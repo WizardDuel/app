@@ -6,15 +6,19 @@ var Battle = require('./lib/Battle');
 
 app.use(express.static(__dirname + '/public'));
 
+app.get('/landing', function(req, res){
+  res.send('/landing/landing.html');
+});
+
 // Events
 var DUEL = 'Duel';
-var BEGIN = 'Begin'
+var BEGIN = 'Begin';
 var CHAT_MSG = 'chat message';
 var NEW_USR = 'new user';
 var ATTACK_PU = 'Attack Power Up';
 var RESOLVE_ATTACK = 'Resolve Attack';
 var PERRY = 'Perry';
-var REPOST = 'Repost'
+var REPOST = 'Repost';
 var RECOVER = 'Recover';
 var DEFEND = 'Defend';
 var WIZ_ID = 'Wizard Id';
@@ -22,7 +26,7 @@ var ATTACK = 'Attack';
 
 // Battle State
 var battles = {};
-var openBattles = []
+var openBattles = [];
 
 io.on('connection', function(socket) {
 
