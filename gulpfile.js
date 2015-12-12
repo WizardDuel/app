@@ -4,11 +4,11 @@ var jscs = require('gulp-jscs');
 var mocha = require('gulp-mocha');
 
 var jsPaths = [
-  './**/*.js', 
+  './**/*.js',
   '!./node_modules/**',
   '!*.bundle.js',
-  '!hooks/**',
-  '!./client/www/lib/**'
+  '!./client/hooks/**',
+  '!./client/www/lib/**',
   ];
 
 gulp.task('jsLint', function() {
@@ -21,7 +21,8 @@ gulp.task('jsLint', function() {
 gulp.task('jsStyle', function() {
   return gulp.src(jsPaths)
     .pipe(jscs())
-    .pipe(jscs.reporter());
+    .pipe(jscs.reporter())
+    .pipe(jscs.reporter('fail'));
 });
 
 gulp.task('test', function() {

@@ -25,7 +25,6 @@
     ],
     "disallowMixedSpacesAndTabs": true,
     "disallowTrailingWhitespace": true,
-    "requireTrailingComma": { "ignoreSingleLine": true },
     "requireSpaceAfterComma": true,
     "disallowYodaConditions": true,
     "disallowKeywords": [ "with" ],
@@ -67,7 +66,6 @@
     "requirePaddingNewLinesBeforeLineComments": {
         "allExcept": "firstAfterCurly"
     },
-    "requirePaddingNewLinesAfterBlocks": true,
     "requireSemicolons": true,
     "safeContextKeyword": "_this",
     "validateLineBreaks": "LF",

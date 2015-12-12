@@ -9,21 +9,22 @@ app.get('/', function(req, res) {
 
 var numUsers = 0;
 var openBattle = true;
-var battles = []
+var battles = [];
 
 io.on('connection', function(socket) {
   io.sockets.connected[socket.id].emit('id', socket.id);
 
-  battles.push(new Battle(socket.id))
-   // send id to client
+  battles.push(new Battle(socket.id));
+
+  // send id to client
   // add socket to a battle
 
   socket.on('new user', function(data) {
     console.log(data);
     socket.user = data;
-    numUsers++
+    numUsers++;
     socket.broadcast.emit('user joined', socket.user);
-  })
+  });
 
   socket.on('disconnect', function() {
     io.emit('disconnect');
@@ -36,11 +37,11 @@ io.on('connection', function(socket) {
     });
   });
   socket.on('Attack Power Up', function(data) {
-    socket.broadcast.emit('Attack Power Up', data)
+    socket.broadcast.emit('Attack Power Up', data);
   });
 
 });
 
 http.listen(3000, function() {
-  console.log('listening on *:3000')
+  console.log('listening on *:3000');
 });

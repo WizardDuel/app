@@ -3,7 +3,7 @@ function Battle(id) {
 }
 
 Battle.prototype.addCombatant = function(id) {
-  this[id] = {}
-}
+  this[id] = {};
+};
 
 module.exports = Battle;
