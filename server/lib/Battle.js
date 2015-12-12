@@ -1,5 +1,7 @@
+var uuid = require('node-uuid');
 
 function Battle(socket) {
+  this.id = uuid.v4();
   this.sockets = [];
   this.addCombatant(socket);
   this.attacks = {};
@@ -7,20 +9,10 @@ function Battle(socket) {
 
 Battle.prototype.addCombatant = function(socket) {
   this[socket.id] = {}
+  socket.join(this.id);
   this.sockets.push(socket)
 }
 
-Battle.prototype.getId = function() {
-  if (!this.id) {
-    this.id = this.sockets[0].id + this.sockets[1].id;
-    this.sockets[0].battleId = this.sockets[1].battleId = this.id;
-
-    // this will need to be updated for group battles
-    this.sockets[0].foeId = this.sockets[1].id
-    this.sockets[1].foeId = this.sockets[0].id
-  }
-  return this.id
-}
 Battle.prototype.startAttack = function(data) {
   this.attacks[data] = {};
   return data.attackId;
