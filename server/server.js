@@ -3,11 +3,12 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var Battle = require('./lib/Battle');
+var path = require('path');
 
 app.use(express.static(__dirname + '/public'));
 
 app.get('/landing', function(req, res){
-  res.send('/landing/landing.html');
+  res.sendFile(path.resolve(__dirname, './public/landing/landing.html'));
 });
 
 // Events
