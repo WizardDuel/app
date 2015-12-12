@@ -1,43 +1,71 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var Battle = require('./lib/Battle');
 
-app.get('/', function(req, res) {
-  res.sendFile(__dirname + '/public/index.html');
-});
+app.use(express.static(__dirname + '/public'));
 
-var numUsers = 0;
-var openBattle = true;
-var battles = [];
+// Events
+var DUEL = 'Duel';
+var BEGIN = 'Begin'
+var CHAT_MSG = 'chat message';
+var NEW_USR = 'new user';
+var ATTACK_PU = 'Attack Power Up';
+var RESOLVE_ATTACK = 'Resolve Attack';
+var PERRY = 'Perry';
+var REPOST = 'Repost'
+var RECOVER = 'Recover';
+var DEFEND = 'Defend';
+var WIZ_ID = 'Wizard Id';
+var ATTACK = 'Attack';
+
+// Battle State
+var battles = {};
+var openBattles = []
 
 io.on('connection', function(socket) {
+
   io.sockets.connected[socket.id].emit('id', socket.id);
 
-  battles.push(new Battle(socket.id));
+  socket.on(DUEL, function(data) {
 
-  // send id to client
-  // add socket to a battle
+    if (openBattles.length > 0) {
+      var battle = openBattles.pop();
+      battle.addCombatant(socket);
+      var battleId = battle.getId();
+      battles[battleId] = battle;
+      battle.sockets.map(function(sock) {
+        sock.getBattle = function() { return battles[socket.battleId]; };
+      });
+      io.emit(BEGIN);
+    } else {
+      openBattles.push(new Battle(socket));
+    }
+  });
 
-  socket.on('new user', function(data) {
+  socket.on(ATTACK_PU, function(data) {
+    var attackId = data.attackId;
+    socket.getBattle().startAttack(attackId);
+    socket.broadcast.emit(ATTACK_PU, {attackId: attackId});
+  });
+
+  socket.on(PERRY, function(data) {
+    socket.getBattle().perryAttack(data);
+  });
+
+  socket.on(REPOST, function(data) {
+    socket.getBattle().counterAttack();
     console.log(data);
-    socket.user = data;
-    numUsers++;
-    socket.broadcast.emit('user joined', socket.user);
+  });
+
+  socket.on(ATTACK, function(data) {
+    var resolution = socket.getBattle().resolveAttack(data);
+    io.emit(RESOLVE_ATTACK, resolution);
   });
 
   socket.on('disconnect', function() {
     io.emit('disconnect');
-  });
-
-  socket.on('chat message', function(msg) {
-    io.emit('chat received', {
-      message: msg,
-      user: socket.user
-    });
-  });
-  socket.on('Attack Power Up', function(data) {
-    socket.broadcast.emit('Attack Power Up', data);
   });
 
 });
