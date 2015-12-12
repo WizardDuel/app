@@ -1,6 +1,7 @@
 function Battle(socket) {
   this.sockets = [];
   this.addCombatant(socket);
+  this.attacks = [];
 }
 
 Battle.prototype.addCombatant = function(socket) {

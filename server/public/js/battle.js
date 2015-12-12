@@ -14,7 +14,9 @@ $( document ).ready(function() {
     var $duel = $('#duel');
     var $perry = $('#perry');
     var $attack = $('#attack');
-    var $alerter = $('#alerter');
+    var $alerter = $('.alerter');
+    var $battleField = $('#battle-field');
+    var $stagingArea = $('#staging-area');
 
     // Events
     var BEGIN = 'Begin';
@@ -36,12 +38,6 @@ $( document ).ready(function() {
       wizId = data;
     })
 
-    // Get nickname;
-    if (!name) {
-      name = window.prompt('What is your name?', 'Anonymous');
-      socket.emit('new user', name);
-    }
-
     // Click Handlers
     $('button').click(function(e) {
       e.preventDefault();
@@ -62,6 +58,10 @@ $( document ).ready(function() {
       socket.emit(ATTACK_PU);
     })
 
+    $attack.click(function(e) {
+      socket.emit(ATTACK_PU);
+    });
+
     $perry.click(function(e) {
       var power = Math.floor(Math.random() * 10)
       var crit = Math.floor(Math.random() * 11 + 1 )
@@ -71,9 +71,12 @@ $( document ).ready(function() {
     // Handle events
     socket.on(BEGIN, function() {
       console.log('fight started');
+      $stagingArea.addClass('hidden');
+      $battleField.removeClass('hidden');
     });
 
     socket.on(ATTACK_PU, function() {
+      console.log()
       $alerter.addClass('red').animate({
         background: 'white',
       }, 250, function() {

@@ -14,16 +14,17 @@ var NEW_USR = 'new user';
 var ATTACK_PU = 'Attack Power Up';
 var RESOLVE_ATTACK = 'Resolve Attack';
 var PERRY = 'Perry';
+var REPOST = 'Repost'
 var RECOVER = 'Recover';
 var DEFEND = 'Defend';
 var WIZ_ID = 'Wizard Id';
 
 // Battle State
-var numUsers = 0;
 var battles = {};
 var openBattles = []
 
 io.on('connection', function(socket) {
+
   io.sockets.connected[socket.id].emit('id', socket.id);
 
   socket.on(DUEL, function(data) {
@@ -33,33 +34,28 @@ io.on('connection', function(socket) {
       // add socket to battle
       var battle = openBattles.pop();
       battle.addCombatant(socket);
-      battles[battle.id] = battle;
+      battles[battle.id()] = battle;
       io.emit(BEGIN)
     } else {
       openBattles.push(new Battle(socket));
     }
-  })
-
-
-  socket.on('new user', function(data) {
-    console.log(data);
-    socket.user = data;
-    numUsers++
-    socket.broadcast.emit('user joined', socket.user);
-  })
+  });
 
   socket.on('disconnect', function() {
     io.emit('disconnect');
   });
 
-  socket.on('chat message', function(msg) {
-    io.emit('chat received', {
-      message: msg,
-      user: socket.user
-    });
-  });
   socket.on(ATTACK_PU, function(data) {
-    socket.broadcast.emit('Attack Power Up', data)
+    console.log(ATTACK_PU, data);
+    battles[socket.battleId][socket.id].attacks.push(new Attack(data));
+    socket.broadcast.emit(ATTACK_PU, data)
+  });
+  socket.on(PERRY, function(data) {
+    console.log(data);
+  });
+
+  socket.on(REPOST, function(data) {
+    console.log(data);
   });
 
 });
