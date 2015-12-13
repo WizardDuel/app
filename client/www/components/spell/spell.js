@@ -4,9 +4,8 @@ angular.module('wizardApp.spell', [])
   .directive('spell', function() {
     return {
       restrict: 'E',
-      replace: true,
       scope: {
-        spell: '@'
+        spell: '='
       },
       templateUrl: './components/spell/spell.html',
       controller: 'SpellCtrl'

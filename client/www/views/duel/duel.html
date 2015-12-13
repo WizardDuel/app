@@ -1,12 +1,10 @@
-<h2>Duel</h2>
-<div class="spells">
-  <spell spell="Recover"></spell>
-  <spell spell="Buff"></spell>
-  <spell spell="Perry"></spell>
-  <spell spell="Repost"></spell>
-  <spell spell="Attack"></spell>
-</div>
-<div class="wizards">
-  <wizard wizard="Self"></wizard>
-  <wizard wizard="Opponent"></wizard>
+<div class="duel">
+  <h2>Duel</h2>
+  <div class="spells">
+    <spell ng-repeat="spell in spells" spell="spell"></spell>
+  </div>
+  <div class="wizards">
+    <wizard wizard="Self" image="../../img/evil_wizard.png"></wizard>
+    <wizard wizard="Opponent" image="../../img/DC_wizard.png"></wizard>
+  </div>
 </div>
