@@ -13,9 +13,14 @@ Battle.prototype.addCombatant = function(socket) {
   this.sockets.push(socket)
 }
 
-Battle.prototype.startAttack = function(data) {
-  this.attacks[data] = {};
-  return data.attackId;
+Battle.prototype.setFoesForDuel = function() {
+  if (this.sockets.length !== 2) throw new Error('Invalid number of combatants');
+  this.sockets[1].foeId = this.sockets[0].id;
+  this.sockets[0].foeId = this.sockets[1].id;
+}
+
+Battle.prototype.startAttack = function(attackId,targetId) {
+  this.attacks[attackId] = {targetId:targetId};
 }
 
 Battle.prototype.perryAttack = function(data) {
@@ -25,13 +30,13 @@ Battle.prototype.perryAttack = function(data) {
 Battle.prototype.counterAttack = function() {}
 
 Battle.prototype.resolveAttack = function(attackData) {
-  var attack = this.attacks[attackData.attackId]
-  var resolution = {}
+  var resolution = [];
+  var attack = this.attacks[attackData.attackId];
   if (attack.response && attack.response.time < attackData.time) {
-    resolution.attack = attackData;
-    resolution.response = attack.response;
+  //   resolution.attack = attackData;
+  //   resolution.response = attack.response;
   } else {
-    resolution = attackData;
+    resolution.push({targetId: attack.targetId, damage:attackData.power})
   }
   return resolution
 }

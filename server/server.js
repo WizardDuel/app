@@ -21,6 +21,7 @@ io.on('connection', function(socket) {
     if (openBattles.length > 0) {
       battle = openBattles.pop();
       battle.addCombatant(socket);
+      battle.setFoesForDuel();
       io.to(battle.id).emit(E.BEGIN);
     } else {
       battle = new Battle(socket);
@@ -29,9 +30,11 @@ io.on('connection', function(socket) {
   });
 
   socket.on(E.ATTACK_PU, function(data) {
-    var attackId = data.attackId
-    socket.getBattle().startAttack(attackId);
-    socket.broadcast.emit(ATTACK_PU, {attackId: attackId});
+    battle.startAttack(data.attackId, data.targetId);
+    socket.broadcast.emit(E.ATTACK_PU, {
+      attackId: data.attackId,
+      targetId: data.targetId
+    });
   });
 
   socket.on(E.PERRY, function(data) {
@@ -44,7 +47,8 @@ io.on('connection', function(socket) {
   });
 
   socket.on(E.ATTACK, function(data) {
-    var resolution = socket.getBattle().resolveAttack(data);
+    console.log('attack received')
+    var resolution = battle.resolveAttack(data);
     io.emit(E.RESOLVE_ATTACK, resolution)
   });
 
