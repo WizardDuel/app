@@ -4,7 +4,6 @@ angular.module('wizardApp.spell', [])
   .directive('spell', function() {
     return {
       restrict: 'E',
-      replace: true,
       scope: {
         spell: '='
       },

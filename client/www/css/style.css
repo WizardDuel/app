@@ -10,7 +10,7 @@
   border: 1px solid blue; /* temporary (testing) */
 }
 
-spell {
+.spell {
   width: 15%;
   text-align: center;
   border: 1px solid gray; /* temporary (testing) */
@@ -27,12 +27,12 @@ spell {
   border: 1px solid blue; /* temporary (testing) */
 }
 
-wizard {
+.wizard {
   width: 45%;
   border: 5px solid gray; /* temporary (testing) */
 }
 
-wizard h3 {
+.wizard h3 {
   text-align: center;
   margin: 0;
   padding: 1rem;
@@ -41,12 +41,12 @@ wizard h3 {
   border: 1px solid red; /* temporary (testing) */
 }
 
-wizard .avatar {
+.wizard .avatar {
   height: 400px;
   background-color: steelblue; /* temporary (testing) */
 }
 
-wizard .avatar img {
+.wizard .avatar img {
   display: block;
   height: 100%; /* need to find better solution */
   width: 100%; /* need to find better solution */
@@ -56,7 +56,7 @@ wizard .avatar img {
   border: 1px solid red; /* temporary (testing) */
 }
 
-wizard .status {
+.wizard .status {
   padding: 1rem;
   background-color: pink; /* temporary (testing) */
   box-sizing: border-box; /* temporary (testing) */

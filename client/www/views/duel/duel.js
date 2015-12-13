@@ -2,8 +2,10 @@
 
 angular.module('wizardApp.duel', [
   'ngRoute',
-  'wizardApp.wizard',
-  'wizardApp.spell',
+  // 'wizardApp.spell',
+  'wizardApp.spells',
+  // 'wizardApp.wizard',
+  'wizardApp.wizards',
   'wizardApp.spinner'
 ])
   .config(['$routeProvider', function($routeProvider) {
@@ -24,5 +26,10 @@ function DuelCtrl($scope) {
     { name: 'Perry' },
     { name: 'Repost' },
     { name: 'Attack' }
+  ];
+
+  $scope.wizards = [
+    { user: 'Self', avatar: '../../img/evil_wizard.png' },
+    { user: 'Opponent', avatar: '../../img/DC_wizard.png' }
   ];
 }

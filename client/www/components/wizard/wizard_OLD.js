@@ -4,9 +4,9 @@ angular.module('wizardApp.wizard', [])
   .directive('wizard', function() {
     return {
       restrict: 'E',
-      replace: true,
       scope: {
-        wizard: '='
+        wizard: '@',
+        image: '@'
       },
       templateUrl: './components/wizard/wizard.html',
       controller: 'WizardCtrl'
