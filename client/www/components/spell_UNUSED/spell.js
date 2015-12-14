@@ -16,7 +16,5 @@ angular.module('wizardApp.spell', [])
   .controller('SpellCtrl', ['$scope', SpellCtrl]);
 
 function SpellCtrl($scope) {
-  $scope.attackSpellO = function () {
-    console.log('HELLO');
-  };
+
 }
