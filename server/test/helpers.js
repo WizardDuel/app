@@ -13,7 +13,7 @@ var helpers = {
     var spell = {
       attackId: attack,
       power: power ? power : this.setPower(),
-      crit: crit ? crit : this.setCrit(),
+      crit: crit !== null ? crit : this.setCrit(),
       time: this.setTime() + timeShift,
     };
     return spell;

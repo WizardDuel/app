@@ -35,6 +35,7 @@ Battle.prototype.perryAttack = function(data) {
 Battle.prototype.counterAttack = function() {};
 
 Battle.prototype.resolveAttack = function(attackSpell) {
+  
   console.log('resolve attack');
   var resolution = [];
   var attack = this.attacks[attackSpell.attackId];

@@ -149,6 +149,8 @@ describe('Attack/Response Cycle', function() {
   // describe('- Repost'); // Repost
   // describe('- Crit'); // Crit
   afterEach(function() {
+    attacking(sock).emit('disconnect');
+    defending(sock).emit('disconnect');
     sock++;
   });
 }); // Attack/Response Cycle
