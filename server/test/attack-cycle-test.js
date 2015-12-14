@@ -7,7 +7,7 @@ var uuid = require('node-uuid');
 var E = require('../lib/events');
 var helpers = require('./helpers');
 
-describe('Attack/Response Cycle', function(){
+describe('Attack/Response Cycle', function() {
   // All attacks should resolve with an collection of damage objects
   // damage object will have two properties: targetId and damage
 
@@ -24,7 +24,7 @@ describe('Attack/Response Cycle', function(){
   function castAttack(sck) {return spells[sck][0];}
   function castDefense(sck) {return spells[sck][1];}
 
-  beforeEach( function(done) {
+  beforeEach(function(done) {
     // have to initialize new clients or you get errors reregistering listeners
     var attacker = require('socket.io-client')('http://localhost:3000', {forceNew: true});
     var defender = require('socket.io-client')('http://localhost:3000', {forceNew: true});
@@ -144,14 +144,11 @@ describe('Attack/Response Cycle', function(){
       });
 
     }); // crit
-
-
   }); // perry
-
 
   // describe('- Repost'); // Repost
   // describe('- Crit'); // Crit
   afterEach(function() {
-    sock ++;
+    sock++;
   });
 }); // Attack/Response Cycle

@@ -1,3 +1,5 @@
+// This filed is not currently relevant
+
 // A $( document ).ready() block.
 $(document).ready(function() {
 
@@ -33,7 +35,7 @@ $(document).ready(function() {
   var WIZ_ID = 'Wizard Id';
 
   // Initialize Socket Io
-  var socket = io();
+  // var socket = io();
 
   // Get Id for self from socket connection
   socket.on(WIZ_ID, function(data) {

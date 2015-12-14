@@ -6,7 +6,7 @@ var expect = chai.expect;
 var E = require('../lib/events');
 var helpers = require('./helpers');
 var sock1 = require('socket.io-client')('http://localhost:3000');
-var sock2 = require('socket.io-client')('http://localhost:3000',{forceNew: true});
+var sock2 = require('socket.io-client')('http://localhost:3000', {forceNew: true});
 var sock3 = require('socket.io-client')('http://localhost:3000', {forceNew: true});
 
 describe('Wizard Duel Initial Duel Setup', function() {

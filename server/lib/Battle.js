@@ -13,7 +13,6 @@ Battle.prototype.addCombatant = function(socket) {
   this.sockets.push(socket);
 };
 
-
 Battle.prototype.setFoesForDuel = function() {
   if (this.sockets.length !== 2) throw new Error('Invalid number of combatants');
   this.sockets[1].foeId = this.sockets[0].id;
@@ -63,7 +62,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
   console.log('resolution:', resolution);
   return resolution;
 };
-Battle.prototype.resolveCrit = function(attackSpell, counterSpell){
+Battle.prototype.resolveCrit = function(attackSpell, counterSpell) {
   var outcome = null;
   switch (counterSpell.crit) {
     case -1:
