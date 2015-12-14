@@ -1,24 +1,3 @@
-// var express = require('express');
-// var http = require('http');
-//
-// var app = express();
-// var server = http.Server(app);
-//
-// var socketIO = require('socket.io');
-// var io = socketIO(server);
-//
-// var path = require('path');
-//
-// app.use(express.static(path.join(__dirname, '..', 'client/www')));
-//
-// app.get('/', function (req, res) {
-//   res.sendFile(path.join(__dirname, '..', 'client/www/index.html'));
-// });
-//
-// server.listen(3000, function () {
-//   console.log('listening on port 3000 ...');
-// });
-
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
@@ -62,33 +41,32 @@ io.on('connection', function(socket) {
     }
   });
 
-  socket.on(E.ATTACK_PU, function(data) {
-    battle.startAttack(data.attackId, data.targetId);
-    socket.broadcast.emit(E.ATTACK_PU, {
-      attackId: data.attackId,
-      targetId: data.targetId
+  socket.on(E.ATTACK_PU, function(attackData) {
+    battle.startAttack(attackData);
+
+    socket.to(battle.id).broadcast.emit(E.ATTACK_PU, {
+      attackId: attackData.attackId,
+      targetId: attackData.targetId
     });
   });
 
   socket.on(E.PERRY, function(data) {
-    socket.getBattle().perryAttack(data);
+    battle.perryAttack(data);
   });
 
   socket.on(E.REPOST, function(data) {
-    socket.getBattle().counterAttack();
-    console.log(data);
+    battle.counterAttack();
   });
 
   socket.on(E.ATTACK, function(data) {
-    console.log('attack received');
     var resolution = battle.resolveAttack(data);
-    io.emit(E.RESOLVE_ATTACK, resolution);
+    console.log('=============================');
+    io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution);
   });
 
   socket.on('disconnect', function() {
     io.emit('disconnect');
   });
-
 });
 
 http.listen(3000, function() {

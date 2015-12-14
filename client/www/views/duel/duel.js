@@ -22,7 +22,7 @@ angular.module('wizardApp.duel', [
 function DuelCtrl($scope) {
   $scope.spells = [
     { name: 'Recover' },
-    { name: 'Buff' },
+    { name: 'Defend' },
     { name: 'Perry' },
     { name: 'Repost' },
     { name: 'Attack' }
