@@ -46,6 +46,7 @@ describe('Attack/Response Cycle', function(){
 
         // create spells
         var attackSpell = helpers.castSpell(attackId(sock), 8, null, 0);
+        attackSpell.msg = 'no response'
         spells.push([attackSpell])
 
         // cast spells
@@ -71,8 +72,9 @@ describe('Attack/Response Cycle', function(){
       defending(sock).on(E.ATTACK_PU, function(data) {
 
         // create spells
-        var attackSpell = helpers.castSpell(attackId(sock), 10, null, 10);
-        var defensiveSpell = helpers.castSpell(attackId(sock), 6, null, -10);
+        var defensiveSpell = helpers.castSpell(attackId(sock), 6, 0, -10);
+        var attackSpell = helpers.castSpell(attackId(sock), 10, 0, 10);
+        attackSpell.msg = 'perry (s)'
         spells.push([attackSpell, defensiveSpell])
 
         // cast spells
@@ -98,6 +100,7 @@ describe('Attack/Response Cycle', function(){
         // create spells
         var attackSpell = helpers.castSpell(attackId(sock), 10, null, -10);
         var defensiveSpell = helpers.castSpell(attackId(sock), 6, null, 10);
+        attackSpell.msg = 'perry (l)'
         spells.push([attackSpell, defensiveSpell])
 
         // cast spells
@@ -121,9 +124,10 @@ describe('Attack/Response Cycle', function(){
       defending(sock).on(E.ATTACK_PU, function(data) {
 
         // create spells
-        var attackSpell = helpers.castSpell(attackId(sock), 10, null, 10);
         // crit still has to come before attack
         var defensiveSpell = helpers.castSpell(attackId(sock), 6, 1, -10);
+        var attackSpell = helpers.castSpell(attackId(sock), 10, null, 10);
+        attackSpell.msg = 'perry (c)'
         spells.push([attackSpell, defensiveSpell])
 
         // cast spells

@@ -59,13 +59,13 @@ Battle.prototype.resolveAttack = function(attackSpell) {
     console.log('Full attack')
     resolution.push({targetId: attack.targetId, damage:attackSpell.power})
   }
+  console.log('msg:', attackSpell.msg)
   console.log('resolution:', resolution)
   return resolution
 }
 Battle.prototype.resolveCrit = function(attackSpell, counterSpell){
   var outcome = null
   switch (counterSpell.crit) {
-    // attack spell not crit, counterspell not crit 0 - 0
     case -1:
       outcome = this.critSwitch(attackSpell.crit, 0, attackSpell.power, 12)
       break;
@@ -76,10 +76,7 @@ Battle.prototype.resolveCrit = function(attackSpell, counterSpell){
       outcome = this.critSwitch(attackSpell.crit, 0, 0, 0)
       break;
   }
-  // simple outcome for now
-  outcome = attackSpell.power - counterSpell.power
   return outcome;
-
 }
 
 Battle.prototype.critSwitch = function(crit, neg, zero, one) {
