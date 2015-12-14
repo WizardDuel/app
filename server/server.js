@@ -14,10 +14,10 @@ var battles = {};
 var openBattles = [];
 
 io.on('connection', function(socket) {
-  console.log('io.sockets.connected keys: ', Object.keys(io.sockets.connected));
+  // console.log('io.sockets.connected keys: ', Object.keys(io.sockets.connected));
   var battle = null;
   socket.on(E.DUEL, function() {
-    console.log('ACTIVE SOCKET ID: ', socket.id);
+    // console.log('ACTIVE SOCKET ID: ', socket.id);
     if (openBattles.length > 0) {
       battle = openBattles.pop();
       battle.addCombatant(socket);
@@ -40,12 +40,10 @@ io.on('connection', function(socket) {
   });
 
   socket.on(E.ATTACK_PU, function(attackData) {
+    attackData.casterId = socket.id;
     battle.startAttack(attackData);
 
-    socket.to(battle.id).broadcast.emit(E.ATTACK_PU, {
-      attackId: attackData.attackId,
-      targetId: attackData.targetId
-    });
+    socket.to(battle.id).broadcast.emit(E.ATTACK_PU, attackData);
   });
 
   socket.on(E.PERRY, function(data) {
@@ -53,7 +51,7 @@ io.on('connection', function(socket) {
   });
 
   socket.on(E.REPOST, function(data) {
-    battle.counterAttack();
+    battle.counterAttack(data);
   });
 
   socket.on(E.ATTACK, function(data) {

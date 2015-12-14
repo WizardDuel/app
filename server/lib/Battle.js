@@ -21,7 +21,7 @@ Battle.prototype.setFoesForDuel = function() {
 
 Battle.prototype.startAttack = function(attackData) {
   console.log('start attack:', attackData);
-  this.attacks[attackData.attackId] = {targetId:attackData.targetId};
+  this.attacks[attackData.attackId] = {targetId:attackData.targetId, casterId: attackData.casterId};
   console.log(this.attacks);
 };
 
@@ -32,10 +32,15 @@ Battle.prototype.perryAttack = function(data) {
   this.attacks[data.attackId].counterSpell.spell.type = 'perry';
 };
 
-Battle.prototype.counterAttack = function() {};
+Battle.prototype.counterAttack = function(spell) {
+  console.log('================ counter ================');
+  if (!this.attacks[spell.attackId]) this.attacks[spell.attackId] = {};
+  this.attacks[spell.attackId].counterSpell = {spell: spell};
+  this.attacks[spell.attackId].counterSpell.spell.type = 'repost';
+};
 
 Battle.prototype.resolveAttack = function(attackSpell) {
-  
+
   console.log('resolve attack');
   var resolution = [];
   var attack = this.attacks[attackSpell.attackId];
@@ -53,6 +58,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
         });
         break;
       case 'repost':
+        resolution.push(this.resolveRepost(attack, counterSpell, attackSpell));
         break;
     }
   } else {
@@ -94,4 +100,34 @@ Battle.prototype.critSwitch = function(crit, neg, zero, one) {
   }
   return outcome;
 };
+
+Battle.prototype.resolveRepost = function(attack, counterSpell, attackSpell){
+  var msg = [
+    'succefully parried attack, but missed counter!',
+    'Critical hit!',
+    'Repost!',
+  ];
+  var response = {
+    targetId: attack.targetId,
+    damage: 0,
+    msg: msg[0]
+  }
+
+  if (counterSpell.repost)
+      switch(counterSpell.crit) {
+        case -1:
+          break;
+        case 0:
+          response.targetId = this.critSwitch(attackSpell.crit, attack.casterId, attack.casterId, attack.targetId)
+          response.damage = this.critSwitch(attackSpell.crit, counterSpell.power, counterSpell.power, 12);
+          response.msg = this.critSwitch(attackSpell.crit, msg[3], msg[3], msg[2])
+          break;
+        case 1:
+          response.targetId = attack.casterId;
+          response.damage = 12;
+          response.msg = [msg[2], msg[3]].join(' ')
+  }
+  return response
+};
+
 module.exports = Battle;

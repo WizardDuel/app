@@ -17,7 +17,14 @@ var helpers = {
       time: this.setTime() + timeShift,
     };
     return spell;
+  },
+
+  resolveCycle: function(done, cb) {
+    cb(done)
   }
 
 };
+
+
+
 module.exports = helpers;
