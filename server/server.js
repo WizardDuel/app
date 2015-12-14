@@ -29,27 +29,27 @@ io.on('connection', function(socket) {
     }
   });
 
-  socket.on(E.ATTACK_PU, function(data) {
-    battle.startAttack(data.attackId, data.targetId);
-    socket.broadcast.emit(E.ATTACK_PU, {
-      attackId: data.attackId,
-      targetId: data.targetId
+  socket.on(E.ATTACK_PU, function(attackData) {
+    battle.startAttack(attackData);
+
+    socket.to(battle.id).broadcast.emit(E.ATTACK_PU, {
+      attackId: attackData.attackId,
+      targetId: attackData.targetId
     });
   });
 
   socket.on(E.PERRY, function(data) {
-    socket.getBattle().perryAttack(data);
+    battle.perryAttack(data);
   });
 
   socket.on(E.REPOST, function(data) {
-    socket.getBattle().counterAttack();
-    console.log(data);
+    battle.counterAttack();
   });
 
   socket.on(E.ATTACK, function(data) {
-    console.log('attack received')
     var resolution = battle.resolveAttack(data);
-    io.emit(E.RESOLVE_ATTACK, resolution)
+    console.log('=============================')
+    io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution)
   });
 
   socket.on('disconnect', function() {
