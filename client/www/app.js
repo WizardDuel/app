@@ -30,3 +30,14 @@ angular.module('wizardApp', ['wizardApp.home']);
   //       redirectTo: function() { return '/'; }
   //     });
   // }]);
+
+  // .factory('socketIO', function() {
+  //   var socket = io();
+  // });
+
+// var socket = io();
+
+// var E = {
+//   DUEL: 'Duel',
+//   BEGIN: 'Begin'
+// };

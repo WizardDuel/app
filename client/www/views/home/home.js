@@ -1,4 +1,4 @@
-/* globals angular */
+/* globals angular, io, socket, E */
 
 angular.module('wizardApp.home', [
   'ngRoute',
@@ -13,8 +13,26 @@ angular.module('wizardApp.home', [
       });
   }])
 
-  .controller('HomeCtrl', ['$scope', HomeCtrl]);
+  .factory('socketIO', function() {
+    return {
+      socket: io(),
+      E: {
+        DUEL: 'Duel',
+        BEGIN: 'Begin'
+      }
+    };
+  })
 
-function HomeCtrl($scope) {
+  .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl]);
 
+function HomeCtrl($scope, $location, socketIO) {
+  $scope.enterBattle = function() {
+    socketIO.socket.emit(socketIO.E.DUEL);
+  };
+
+  socketIO.socket.on(socketIO.E.BEGIN, function() {
+    $location.path('/duel');
+    $scope.$apply();
+    console.log('The battle has begun!');
+  });
 }
