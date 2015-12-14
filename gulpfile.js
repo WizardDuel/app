@@ -9,6 +9,8 @@ var jsPaths = [
   '!*.bundle.js',
   '!./client/hooks/**',
   '!./client/www/lib/**',
+  '!./client/node_modules/**',
+  '!./server/node_modules/**'
   ];
 
 gulp.task('jsLint', function() {

@@ -3,6 +3,7 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var Battle = require('./lib/Battle');
+var path = require('path');
 
 var E = require('./lib/events.js');
 
@@ -57,8 +58,8 @@ io.on('connection', function(socket) {
 
   socket.on(E.ATTACK, function(data) {
     var resolution = battle.resolveAttack(data);
-    console.log('=============================')
-    io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution)
+    console.log('=============================');
+    io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution);
   });
 
   socket.on('disconnect', function() {
