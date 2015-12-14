@@ -1,8 +1,9 @@
-/* globals angular, io, socket, E */
+/* globals angular */
 
 angular.module('wizardApp.home', [
   'ngRoute',
-  'wizardApp.duel'
+  'wizardApp.duel',
+  'wizardApp.socketIO'
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
@@ -12,16 +13,6 @@ angular.module('wizardApp.home', [
         templateUrl: './views/home/home.html'
       });
   }])
-
-  .factory('socketIO', function() {
-    return {
-      socket: io(),
-      E: {
-        DUEL: 'Duel',
-        BEGIN: 'Begin'
-      }
-    };
-  })
 
   .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl]);
 
