@@ -4,65 +4,9 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var Battle = require('./lib/Battle');
 
-// <<<<<<< HEAD
-// app.use(express.static(__dirname + '/public'));
-
-// // Events
-// var DUEL = 'Duel';
-// var BEGIN = 'Begin'
-// var CHAT_MSG = 'chat message';
-// var NEW_USR = 'new user';
-// var ATTACK_PU = 'Attack Power Up';
-// var RESOLVE_ATTACK = 'Resolve Attack';
-// var PERRY = 'Perry';
-// var REPOST = 'Repost'
-// var RECOVER = 'Recover';
-// var DEFEND = 'Defend';
-// var WIZ_ID = 'Wizard Id';
-// var ATTACK = 'Attack';
-
-// // Battle State
-// var battles = {};
-// var openBattles = []
-
-// io.on('connection', function(socket) {
-
-//   io.sockets.connected[socket.id].emit('id', socket.id);
-
-//   socket.on(DUEL, function(data) {
-
-//     if (openBattles.length > 0) {
-//       var battle = openBattles.pop();
-//       battle.addCombatant(socket);
-//       var battleId = battle.getId();
-//       battles[battleId] = battle;
-//       battle.sockets.map(function(sock) {
-//         sock.getBattle = function() { return battles[socket.battleId]; };
-//       });
-//       io.emit(BEGIN);
-//     } else {
-//       openBattles.push(new Battle(socket));
-//     }
-//   });
-
-//   socket.on(ATTACK_PU, function(data) {
-//     var attackId = data.attackId;
-//     socket.getBattle().startAttack(attackId);
-//     socket.broadcast.emit(ATTACK_PU, {attackId: attackId});
-//   });
-
-//   socket.on(PERRY, function(data) {
-//     socket.getBattle().perryAttack(data);
-//   });
-
-//   socket.on(REPOST, function(data) {
-// =======
-var _ = require('lodash');
-var path = require('path');
-
 var E = require('./lib/events.js');
 
-app.use(express.static(path.join(__dirname, '..', 'client/www')));
+app.use(express.static(__dirname + '/public'));
 
 // Battle State
 var battles = {};
@@ -113,8 +57,8 @@ io.on('connection', function(socket) {
 
   socket.on(E.ATTACK, function(data) {
     var resolution = battle.resolveAttack(data);
-    console.log('=============================');
-    io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution);
+    console.log('=============================')
+    io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution)
   });
 
   socket.on('disconnect', function() {

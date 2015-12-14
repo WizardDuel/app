@@ -45,13 +45,6 @@ $( document ).ready(function() {
     e.preventDefault();
   });
 
-  $submit.click(function(e) {
-    e.preventDefault();
-    socket.emit(CHAT_MSG, $chatBox.val());
-    $chatBox.val('');
-    return false;
-  });
-
   $duel.click(function(e) {
     socket.emit(DUEL)
   })
