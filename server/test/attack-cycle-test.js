@@ -18,21 +18,21 @@ describe('Attack/Response Cycle', function(){
   var spells = [];
 
   // setup test specific getters
-  function attackId(sck) {return attacks[0]}
-  function attacking(sck) {return socks[sck][0]}
-  function defending(sck) {return socks[sck][1]}
-  function castAttack(sck) {return spells[sck][0]}
-  function castDefense(sck) {return spells[sck][1]}
+  function attackId(sck) {return attacks[0];}
+  function attacking(sck) {return socks[sck][0];}
+  function defending(sck) {return socks[sck][1];}
+  function castAttack(sck) {return spells[sck][0];}
+  function castDefense(sck) {return spells[sck][1];}
 
   beforeEach( function(done) {
     // have to initialize new clients or you get errors reregistering listeners
-    attacker = require('socket.io-client')('http://localhost:3000', {forceNew: true});
-    defender = require('socket.io-client')('http://localhost:3000', {forceNew: true});
+    var attacker = require('socket.io-client')('http://localhost:3000', {forceNew: true});
+    var defender = require('socket.io-client')('http://localhost:3000', {forceNew: true});
     attacks.push(helpers.setTime());
     attacker.emit(E.DUEL);
     defender.emit(E.DUEL);
     defender.on(E.BEGIN, function() {
-      socks.push([attacker, defender])
+      socks.push([attacker, defender]);
       done();
     });
   });
@@ -46,8 +46,8 @@ describe('Attack/Response Cycle', function(){
 
         // create spells
         var attackSpell = helpers.castSpell(attackId(sock), 8, null, 0);
-        attackSpell.msg = 'no response'
-        spells.push([attackSpell])
+        attackSpell.msg = 'no response';
+        spells.push([attackSpell]);
 
         // cast spells
         attacking(sock).emit(E.ATTACK, castAttack(sock));
@@ -74,8 +74,8 @@ describe('Attack/Response Cycle', function(){
         // create spells
         var defensiveSpell = helpers.castSpell(attackId(sock), 6, 0, -10);
         var attackSpell = helpers.castSpell(attackId(sock), 10, 0, 10);
-        attackSpell.msg = 'perry (s)'
-        spells.push([attackSpell, defensiveSpell])
+        attackSpell.msg = 'perry (s)';
+        spells.push([attackSpell, defensiveSpell]);
 
         // cast spells
         defending(sock).emit(E.PERRY, castDefense(sock));
@@ -100,8 +100,8 @@ describe('Attack/Response Cycle', function(){
         // create spells
         var attackSpell = helpers.castSpell(attackId(sock), 10, null, -10);
         var defensiveSpell = helpers.castSpell(attackId(sock), 6, null, 10);
-        attackSpell.msg = 'perry (l)'
-        spells.push([attackSpell, defensiveSpell])
+        attackSpell.msg = 'perry (l)';
+        spells.push([attackSpell, defensiveSpell]);
 
         // cast spells
         defending(sock).emit(E.PERRY, castDefense(sock));
@@ -127,8 +127,8 @@ describe('Attack/Response Cycle', function(){
         // crit still has to come before attack
         var defensiveSpell = helpers.castSpell(attackId(sock), 6, 1, -10);
         var attackSpell = helpers.castSpell(attackId(sock), 10, null, 10);
-        attackSpell.msg = 'perry (c)'
-        spells.push([attackSpell, defensiveSpell])
+        attackSpell.msg = 'perry (c)';
+        spells.push([attackSpell, defensiveSpell]);
 
         // cast spells
         defending(sock).emit(E.PERRY, castDefense(sock));
@@ -152,6 +152,6 @@ describe('Attack/Response Cycle', function(){
   // describe('- Repost'); // Repost
   // describe('- Crit'); // Crit
   afterEach(function() {
-    sock ++
-  })
+    sock ++;
+  });
 }); // Attack/Response Cycle

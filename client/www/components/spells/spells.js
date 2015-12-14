@@ -16,7 +16,7 @@ angular.module('wizardApp.spells', ['wizardApp.socketIO'])
   .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl]);
 
 function SpellsCtrl($scope, $timeout, socketIO) {
-  $scope.castSpell = function (spell) {
+  $scope.castSpell = function(spell) {
     console.log('"' + spell + '"' + ' spell has been cast');
 
     switch (spell) {

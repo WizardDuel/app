@@ -1,11 +1,11 @@
 // A $( document ).ready() block.
-$( document ).ready(function() {
+$(document).ready(function() {
 
   // client identifiers
   var name = null;
   var wizId = null;
   var oppId = null;
-  var threat = {}
+  var threat = {};
 
   // Elements
   var $submit = $('#submit');
@@ -38,7 +38,7 @@ $( document ).ready(function() {
   // Get Id for self from socket connection
   socket.on(WIZ_ID, function(data) {
     wizId = data;
-  })
+  });
 
   // Click Handlers
   $('button').click(function(e) {
@@ -46,23 +46,23 @@ $( document ).ready(function() {
   });
 
   $duel.click(function(e) {
-    socket.emit(DUEL)
-  })
+    socket.emit(DUEL);
+  });
 
   $attack.click(function(e) {
     var attackId = new Date().getTime();
     socket.emit(ATTACK_PU, {attackId: attackId});
-    var power = Math.floor(Math.random() * 10)
-    var crit = Math.floor(Math.random() * 11 + 1 )
+    var power = Math.floor(Math.random() * 10);
+    var crit = Math.floor(Math.random() * 11 + 1);
     window.setTimeout(function() {
       socket.emit(ATTACK, {attackId: attackId, power: power, crit: (crit > 8), time: new Date().getTime()});
-    }, 2000)
+    }, 2000);
   });
 
   $perry.click(function(e) {
-    var power = Math.floor(Math.random() * 10)
-    var crit = Math.floor(Math.random() * 11 + 1 )
-    socket.emit(PERRY, {attackId: threat.id, power: power, crit: (crit > 8), time: new Date().getTime()})
+    var power = Math.floor(Math.random() * 10);
+    var crit = Math.floor(Math.random() * 11 + 1);
+    socket.emit(PERRY, {attackId: threat.id, power: power, crit: (crit > 8), time: new Date().getTime()});
   });
 
   // Handle events
@@ -73,7 +73,7 @@ $( document ).ready(function() {
   });
 
   socket.on(ATTACK_PU, function(data) {
-    threat.id = data.attackId
+    threat.id = data.attackId;
     $alerter.addClass('red').animate({
       background: 'white',
     }, 250, function() {
@@ -82,6 +82,6 @@ $( document ).ready(function() {
   });
 
   socket.on(RESOLVE_ATTACK, function(resolution) {
-      console.log(resolution);
-  })
+    console.log(resolution);
+  });
 });
