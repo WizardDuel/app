@@ -1,8 +1,21 @@
 {
-  "name": "wizard-duel",
-  "version": "0.1.0",
-  "description": "Realtime combat/strategy game built with Node, ionic and socket.io ",
-  "main": "server.js",
+  "name": "wizduel",
+  "version": "1.0.0",
+  "description": "Realtime combat/strategy game built with Node, ionic and socket.io",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "gulp": "^3.9.0",
+    "gulp-jscs": "^3.0.2",
+    "gulp-jshint": "^2.0.0",
+    "gulp-mocha": "^2.2.0",
+    "jshint": "^2.8.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-jscs": "^3.0.2",
+    "gulp-jshint": "^2.0.0",
+    "gulp-mocha": "^2.2.0"
+  },
   "scripts": {
     "test": "mocha test/",
     "start": "nodemon server.js"
@@ -11,13 +24,7 @@
     "type": "git",
     "url": "git+https://github.com/WizardDuel/app.git"
   },
-  "keywords": [
-    "node",
-    "socketio",
-    "angular",
-    "ionic"
-  ],
-  "author": "Javier Quiroz <javier.s.quiroz@gmail.com>",
+  "author": "",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/WizardDuel/app/issues"
