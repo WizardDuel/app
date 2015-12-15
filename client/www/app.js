@@ -1,4 +1,4 @@
-require('./scss/style.scss');
+require('./assets/scss/style.scss');
 var angular = require('angular');
 var io = require('socket.io-client');
 

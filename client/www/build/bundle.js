@@ -50,7 +50,7 @@
 
 	angular.module('wizardApp', [
 	  __webpack_require__(57),
-	  __webpack_require__(61),
+	  __webpack_require__(60),
 	])
 	.factory('socketIO', function() {
 	    return {
@@ -87,8 +87,8 @@
 	if(false) {
 		// When the styles change, update the <style> tags
 		if(!content.locals) {
-			module.hot.accept("!!./../../node_modules/css-loader/index.js?sourceMap!./../../node_modules/sass-loader/index.js?sourceMap!./style.scss", function() {
-				var newContent = require("!!./../../node_modules/css-loader/index.js?sourceMap!./../../node_modules/sass-loader/index.js?sourceMap!./style.scss");
+			module.hot.accept("!!./../../../node_modules/css-loader/index.js?sourceMap!./../../../node_modules/sass-loader/index.js?sourceMap!./style.scss", function() {
+				var newContent = require("!!./../../../node_modules/css-loader/index.js?sourceMap!./../../../node_modules/sass-loader/index.js?sourceMap!./style.scss");
 				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 				update(newContent);
 			});
@@ -106,7 +106,7 @@
 
 
 	// module
-	exports.push([module.id, ".spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue;\n  /* temporary (testing) */ }\n\n.spell {\n  width: 15%;\n  text-align: center; }\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue;\n  /* temporary (testing) */ }\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray;\n  /* temporary (testing) */ }\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple;\n  /* temporary (testing) */\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue;\n  /* temporary (testing) */ }\n\n.wizard .avatar img {\n  display: block;\n  height: 100%;\n  /* need to find better solution */\n  width: 100%;\n  /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink;\n  /* temporary (testing) */\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n", "", {"version":3,"sources":["/./www/scss/style.scss"],"names":[],"mappings":"AAAA;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,8BAA8B;EAC9B,uBAAuB;EACvB,qBAAqB;EACrB,kBAAkB;EAClB,kBAAkB;EAClB,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,WAAW;EACX,mBAAmB,EACpB;;AAED;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,+BAA+B;EAC/B,uBAAuB;EACvB,qBAAqB;EACrB,eAAe;EACf,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,WAAW;EACX,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,mBAAmB;EACnB,UAAU;EACV,cAAc;EACd,yBAAyB;EAAE,yBAAyB;EACpD,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD;;AAED;EACE,cAAc;EACd,4BAA4B;EAAE,yBAAyB,EACxD;;AAED;EACE,eAAe;EACf,aAAa;EAAE,kCAAkC;EACjD,YAAY;EAAE,kCAAkC;EAChD,eAAe;EACf,cAAc;EACd,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD;;AAED;EACE,cAAc;EACd,uBAAuB;EAAE,yBAAyB;EAClD,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD","file":"style.scss","sourcesContent":[".spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.spell {\n  width: 15%;\n  text-align: center;\n}\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray; /* temporary (testing) */\n}\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue; /* temporary (testing) */\n}\n\n.wizard .avatar img {\n  display: block;\n  height: 100%; /* need to find better solution */\n  width: 100%; /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n"],"sourceRoot":"webpack://"}]);
+	exports.push([module.id, ".spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue;\n  /* temporary (testing) */ }\n\n.spell {\n  width: 15%;\n  text-align: center; }\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue;\n  /* temporary (testing) */ }\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray;\n  /* temporary (testing) */ }\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple;\n  /* temporary (testing) */\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue;\n  /* temporary (testing) */ }\n\n.wizard .avatar img {\n  display: block;\n  height: 100%;\n  /* need to find better solution */\n  width: 100%;\n  /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink;\n  /* temporary (testing) */\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n", "", {"version":3,"sources":["/./www/assets/assets/scss/style.scss"],"names":[],"mappings":"AAAA;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,8BAA8B;EAC9B,uBAAuB;EACvB,qBAAqB;EACrB,kBAAkB;EAClB,kBAAkB;EAClB,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,WAAW;EACX,mBAAmB,EACpB;;AAED;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,+BAA+B;EAC/B,uBAAuB;EACvB,qBAAqB;EACrB,eAAe;EACf,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,WAAW;EACX,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,mBAAmB;EACnB,UAAU;EACV,cAAc;EACd,yBAAyB;EAAE,yBAAyB;EACpD,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD;;AAED;EACE,cAAc;EACd,4BAA4B;EAAE,yBAAyB,EACxD;;AAED;EACE,eAAe;EACf,aAAa;EAAE,kCAAkC;EACjD,YAAY;EAAE,kCAAkC;EAChD,eAAe;EACf,cAAc;EACd,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD;;AAED;EACE,cAAc;EACd,uBAAuB;EAAE,yBAAyB;EAClD,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD","file":"style.scss","sourcesContent":[".spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.spell {\n  width: 15%;\n  text-align: center;\n}\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray; /* temporary (testing) */\n}\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue; /* temporary (testing) */\n}\n\n.wizard .avatar img {\n  display: block;\n  height: 100%; /* need to find better solution */\n  width: 100%; /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n"],"sourceRoot":"webpack://"}]);
 
 	// exports
 
@@ -36647,7 +36647,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = angular.module('wizardApp.home', [
-	  __webpack_require__(59),
+	  __webpack_require__(58),
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -36676,16 +36676,15 @@
 
 
 /***/ },
-/* 58 */,
-/* 59 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(60);
+	__webpack_require__(59);
 	module.exports = 'ngRoute';
 
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports) {
 
 	/**
@@ -37682,13 +37681,13 @@
 
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = angular.module('wizardApp.duel', [
-	  __webpack_require__(59),
+	  __webpack_require__(58),
+	  __webpack_require__(61),
 	  __webpack_require__(62),
-	  __webpack_require__(63),
 	  __webpack_require__(64)
 	])
 	  .config(['$routeProvider', function($routeProvider) {
@@ -37714,14 +37713,14 @@
 	  ];
 
 	  $scope.wizards = [
-	    { user: 'Self', avatar: '../../img/evil_wizard.png' },
-	    { user: 'Opponent', avatar: '../../img/DC_wizard.png' }
+	    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png' },
+	    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png' }
 	  ];
 	}
 
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports) {
 
 	/* globals angular */
@@ -37781,13 +37780,13 @@
 
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* globals angular */
 
 	module.exports = angular.module('wizardApp.wizards', [
-	  __webpack_require__(65)
+	  __webpack_require__(63)
 	  ])
 	  .directive('wizards', function() {
 	    return {
@@ -37811,29 +37810,7 @@
 
 
 /***/ },
-/* 64 */
-/***/ function(module, exports) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.spinner', [])
-	  .directive('spinner', function() {
-	    return {
-	      restrict: 'E',
-	      templateUrl: './views/components/spinner/spinner.html',
-	      controller: 'SpinnerCtrl'
-	    };
-	  })
-	  .controller('SpinnerCtrl', ['$scope', SpinnerCtrl])
-	  .name;
-
-	function SpinnerCtrl($scope) {
-
-	}
-
-
-/***/ },
-/* 65 */
+/* 63 */
 /***/ function(module, exports) {
 
 	/* globals angular */
@@ -37855,6 +37832,28 @@
 	  .name;
 
 	function WizardCtrl($scope) {
+
+	}
+
+
+/***/ },
+/* 64 */
+/***/ function(module, exports) {
+
+	/* globals angular */
+
+	module.exports = angular.module('wizardApp.spinner', [])
+	  .directive('spinner', function() {
+	    return {
+	      restrict: 'E',
+	      templateUrl: './views/components/spinner/spinner.html',
+	      controller: 'SpinnerCtrl'
+	    };
+	  })
+	  .controller('SpinnerCtrl', ['$scope', SpinnerCtrl])
+	  .name;
+
+	function SpinnerCtrl($scope) {
 
 	}
 
