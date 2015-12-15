@@ -55,7 +55,9 @@ Battle.prototype.resolveAttack = function(attackSpell) {
         resolution.push({
           targetId: attack.targetId,
           damage: this.resolveCrit(attackSpell, counterSpell),
-          msg: 'Attack perried!'
+          msg: 'Attack perried!',
+          counterCasterId: attack.targetId,
+          casterId: attack.casterId,
         });
         break;
       case 'repost':
@@ -64,7 +66,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
     }
   } else {
     console.log('Full attack');
-    resolution.push({targetId: attack.targetId, damage:attackSpell.power});
+    resolution.push({targetId: attack.targetId, damage:attackSpell.power, casterId: attack.casterId});
   }
   console.log('msg:', attackSpell.msg);
   console.log('resolution:', resolution);
@@ -128,6 +130,7 @@ Battle.prototype.resolveRepost = function(attack, counterSpell, attackSpell){
           response.damage = 12;
           response.msg = [msg[2], msg[3]].join(' ')
   }
+  response.counterCasterId = targetId;
   return response
 };
 
