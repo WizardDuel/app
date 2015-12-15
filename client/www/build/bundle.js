@@ -52,7 +52,6 @@
 
 	angular.module('wizardApp', [
 	  __webpack_require__(53),
-	  __webpack_require__(56),
 	])
 	.factory('socketIO', function() {
 	    return {
@@ -36300,6 +36299,7 @@
 
 	module.exports = angular.module('wizardApp.home', [
 	  __webpack_require__(54),
+	  __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"./duel/duel.js\""); e.code = 'MODULE_NOT_FOUND'; throw e; }())),
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -36316,6 +36316,7 @@
 
 	function HomeCtrl($scope, $location, socketIO) {
 	  var socket = socketIO.socket;
+
 	  $scope.enterBattle = function() {
 	    socket.emit(socketIO.E.DUEL);
 	  };
@@ -36336,8 +36337,8 @@
 	      console.log('socket:',this.id)
 	    }
 	    console.log('The battle has begun!');
-	    console.log('Health:', socket.health)
-	    console.log('Mana:', socket.mana)
+	    console.log('Health:', socket.health);
+	    console.log('Mana:', socket.mana);
 	  });
 	}
 
@@ -37345,251 +37346,6 @@
 
 
 	})(window, window.angular);
-
-
-/***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = angular.module('wizardApp.duel', [
-	  __webpack_require__(54),
-	  __webpack_require__(57),
-	  __webpack_require__(58),
-	  __webpack_require__(60)
-	])
-	  .config(['$routeProvider', function($routeProvider) {
-	    $routeProvider
-	      .when('/duel', {
-	        controller: 'DuelCtrl',
-	        controllerAs: 'duel',
-	        templateUrl: './views/duel/duel.html'
-	      });
-	  }])
-
-	  .controller('DuelCtrl', ['$scope', DuelCtrl]);
-
-	function DuelCtrl($scope, socketIO) {
-	  var socket = socketIO.socket;
-	  var E = socketIO.E;
-	  $scope.spells = [
-	    { name: 'Perry', icon: 'ion-android-favorite-outline' },
-	    { name: 'Repost', icon: 'ion-ios-plus-outline' },
-	    { name: 'Attack', icon: 'ion-flame' }
-	  ];
-
-	  $scope.wizards = [
-
-	    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png', id: socket.id },
-	    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
-	  ];
-
-	  socket.on(E.ATTACK_PU, function(data) {
-	    // $scope.Attack = 'red';
-	    // setTimeout(function(){$scope.Attack = undefined}, 250)
-	    socket.attack = data.attackId;
-	    console.log('Attack!');
-	    document.getElementsByTagName('body')[0].classList.add('red');
-	    setTimeout(function(){
-	      document.getElementsByTagName('body')[0].classList.remove('red');
-	    },250);
-	  });
-	  socket.on(E.RESOLVE_ATTACK, function(data) {
-	    var solution = data[0];
-	    console.log('resolution:', solution);
-	    switch(solution.targetId) {
-	      case socket.id:
-	        socket.health = Number(socket.health) - Number(solution.damage);
-	        document.getElementById(socket.id +'-health').style.width = socket.health + '%';
-	        break;
-	      case socket.getFoeId():
-	        var origHealth = document.getElementById(solution.targetId + '-health').style.width;
-	        document.getElementById(solution.targetId +'-health').style.width = Number(origHealth.split('%')[0]) - Number(solution.damage) + '%';
-	        break;
-	    }
-	    if (solution.counterCasterId && (solution.counterCasterId !== socket.id)) {
-	      var origMana = document.getElementById(solution.targetId + '-mana').style.width;
-	      document.getElementById(solution.counterCasterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
-	    }
-	    if (solution.casterId !== socket.id) {
-	      var origMana = document.getElementById(solution.casterId + '-mana').style.width;
-	      document.getElementById(solution.casterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
-	    }
-
-	    console.log('Health:', socket.health);
-	    console.log('Mana:', socket.mana);
-	  });
-
-	  }
-
-
-/***/ },
-/* 57 */
-/***/ function(module, exports) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.spells', [
-	  // 'wizardApp.socketIO'
-	  ])
-	  .directive('spells', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        spells: '='
-	      },
-	      templateUrl: './views/components/spells/spells.html',
-	      controller: 'SpellsCtrl'
-	    };
-	  })
-
-	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
-	  .name;
-
-	function SpellsCtrl($scope, $timeout, socketIO) {
-	  var E = socketIO.E;
-	  var socket = socketIO.socket;
-
-	  $scope.castSpell = function(spell) {
-	    console.log('cast spell')
-	    console.log('mana:', socket.mana)
-	    socket.mana = Number(socket.mana) - Number(5);
-	    switch (spell) {
-	      case 'Recover':
-
-	        break;
-
-	      case 'Defend':
-
-	        break;
-
-	      case 'Perry':
-	        if (socket.attack) {
-	          var defensiveSpell = magic.castSpell(socket.attack)
-	          socket.emit(E.PERRY, defensiveSpell);
-	        }
-	        break;
-	      case 'Repost':
-	        if (socket.attack) {
-	          var repostSpell = magic.castSpell(socket.attack)
-	          socket.emit(E.REPOST, repostSpell);
-	        }
-	        break;
-
-	      case 'Attack':
-	        var attackId = new Date().getTime();
-	        var foe = socket.getFoeId()
-	        var me = socket.id
-	        console.log('attack sent:', foe)
-	        console.log('me:', me)
-	        socket.emit(E.ATTACK_PU, {attackId: attackId, targetId: socket.getFoeId()});
-	        setTimeout(function() {
-	          var attackSpell = magic.castSpell(attackId);
-	          socket.emit(E.ATTACK, attackSpell)
-	        }, 400)
-	        break;
-	    }
-	  };
-	}
-	var magic ={
-	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
-	  setCrit: function() {
-	    var roll = Math.floor(Math.random() * 20 + 1);
-	    var crit = null;
-	    if (roll > 17) return 1;
-	    if (roll < 3) return -1;
-	    return 0;
-	  },
-	  setTime: function() {return new Date().getTime();},
-
-	  castSpell: function(attack, power, crit, timeShift) {
-	    var spell = {
-	      attackId: attack,
-	      power: power ? power : this.setPower(),
-	      crit: crit !== null ? crit : this.setCrit(),
-	      time: this.setTime() + timeShift,
-	    };
-	    return spell;
-	  },
-	}
-
-
-/***/ },
-/* 58 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.wizards', [
-	  __webpack_require__(59)
-	  ])
-	  .directive('wizards', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        wizards: '='
-	      },
-	      templateUrl: './views/components/wizards/wizards.html',
-	      controller: 'WizardsCtrl'
-	    };
-	  })
-
-	  .controller('WizardsCtrl', ['$scope', WizardsCtrl])
-
-	  .name;
-
-	function WizardsCtrl($scope) {
-
-	}
-
-
-/***/ },
-/* 59 */
-/***/ function(module, exports) {
-
-	module.exports = angular.module('wizardApp.wizard', [])
-	  .directive('wizard', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        wizard: '='
-	      },
-	      templateUrl: './views/components/wizard/wizard.html',
-	      controller: 'WizardCtrl'
-	    };
-	  })
-	  .controller('WizardCtrl', ['$scope', WizardCtrl])
-	  .name;
-
-	function WizardCtrl($scope, socketIO) {
-	  var socket = socketIO.socket;
-	  $scope.health = socket.health;
-	  $scope.mana = socket.mana;
-	}
-
-
-/***/ },
-/* 60 */
-/***/ function(module, exports) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.spinner', [])
-	  .directive('spinner', function() {
-	    return {
-	      restrict: 'E',
-	      templateUrl: './views/components/spinner/spinner.html',
-	      controller: 'SpinnerCtrl'
-	    };
-	  })
-	  .controller('SpinnerCtrl', ['$scope', SpinnerCtrl])
-	  .name;
-
-	function SpinnerCtrl($scope) {
-
-	}
 
 
 /***/ }
