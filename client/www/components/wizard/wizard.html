@@ -1,16 +1,22 @@
-<div class="wizard">
-  <h3>{{ wizard.user }}</h3>
-  <div class="avatar">
-    <img src="{{ wizard.avatar }}" alt="Avatar for {{ wizard.user }}" />
-  </div>
-  <div class="status">
-    <div class="health">
-      <span>Health</span>
-      <span>500</span>
+<div class="">
+  <div class="row">
+    <div class="col">
+      <h3>{{ wizard.user }}</h3>
     </div>
-    <div class="mana">
-      <span>Mana</span>
-      <span>500</span>
+  </div>
+  <div class="row">
+    <div class="col">
+      <img style="max-width: 75%; width: auto; height:auto" src="{{ wizard.avatar }}" alt="Avatar for {{ wizard.user }}" />
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <span id="{{wizard.id}}-health" class="health-bar" style="width:{{health}}%"></span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <span id="{{wizard.id}}-mana" class="mana-bar" style="width:{{mana}}%"></span>
     </div>
   </div>
 </div>

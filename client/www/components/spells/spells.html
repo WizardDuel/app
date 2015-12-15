@@ -1,5 +1,5 @@
-<div class="spells">
-  <!-- <div ng-repeat="spell in spells" class="spell">{{ spell.name }}</div> -->
-  <!-- <spell ng-repeat="spell in spells" spell="spell"></spell> -->
-  <button ng-repeat="spell in spells" ng-click="castSpell(spell.name)" class="spell">{{ spell.name }}</button>
+<div class="row">
+  <div class="col" ng-repeat="spell in spells">
+    <button  ng-click="castSpell(spell.name)" class="button icon-left {{spell.icon}}">{{ spell.name }}</button>
+  </div>
 </div>

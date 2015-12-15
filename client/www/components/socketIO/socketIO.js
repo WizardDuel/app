@@ -14,7 +14,8 @@ angular.module('wizardApp.socketIO', [])
         RECOVER: 'Recover',
         DEFEND: 'Defend',
         WIZ_ID: 'Wizard Id',
-        ATTACK: 'Attack'
+        ATTACK: 'Attack',
+        UPDATE: 'update stats',
       }
     };
   });

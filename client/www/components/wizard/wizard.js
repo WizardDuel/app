@@ -1,6 +1,6 @@
 /* globals angular */
 
-angular.module('wizardApp.wizard', [])
+angular.module('wizardApp.wizard', ['wizardApp.socketIO'])
   .directive('wizard', function() {
     return {
       restrict: 'E',
@@ -13,8 +13,10 @@ angular.module('wizardApp.wizard', [])
     };
   })
 
-  .controller('WizardCtrl', ['$scope', WizardCtrl]);
+  .controller('WizardCtrl', ['$scope', 'socketIO', WizardCtrl]);
 
-function WizardCtrl($scope) {
-
+function WizardCtrl($scope, socketIO) {
+  var socket = socketIO.socket;
+  $scope.health = socket.health;
+  $scope.mana = socket.mana;
 }
