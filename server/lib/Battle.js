@@ -17,6 +17,7 @@ Battle.prototype.setFoesForDuel = function() {
   if (this.sockets.length !== 2) throw new Error('Invalid number of combatants');
   this.sockets[1].foeId = this.sockets[0].id;
   this.sockets[0].foeId = this.sockets[1].id;
+  //return [this.sockets[0], this.sockets[1]]
 };
 
 Battle.prototype.startAttack = function(attackData) {
