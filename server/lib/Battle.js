@@ -155,11 +155,11 @@ Battle.prototype.applyResolution = function(resolution) {
 }
 
 Battle.prototype.wizStats = function() {
-  return this.sockets.map(function(sock) {
-    var obj = {}
-      obj[sock.id] = {health: sock.health, mana: sock.mana}
-    return obj;
-  })
+  var obj = {}
+  this.sockets.map(function(sock) {
+    obj[sock.id] = {health: sock.health, mana: sock.mana}
+  });
+  return obj;
 }
 
 module.exports = Battle;

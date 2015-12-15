@@ -19,12 +19,6 @@ var helpers = {
     return spell;
   },
 
-  resolveCycle: function(done, cb) {
-    cb(done)
-  }
-
 };
-
-
 
 module.exports = helpers;

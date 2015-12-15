@@ -48,8 +48,11 @@ describe('Wizard Duel Initial Duel Setup', function() {
     });
 
     it('should send array of ids to duelers', function() {
-      expect(beginData).to.have.property('condition').and.to.eql('Battle')
-      expect(beginData).to.have.property('wizStats').and.to.be.an('Array').and.to.have.length(2)
+      expect(beginData, 'condition: battle').to.have.property('condition').and.to.eql('Battle')
+      expect(beginData, 'wizstats exist').to.have.property('wizStats');
+      expect(beginData.wizStats, 'wizstats ids').to.have.property(sock1.id)
+      expect(beginData.wizStats, 'wizstats ids').to.have.property(sock2.id)
+      expect(beginData.wizStats[sock1.id].health).to.eql(100)
     })
 
   });
