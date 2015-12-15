@@ -12,9 +12,9 @@ module.exports = {
     filename: 'bundle.js',
     contentBase: './www/'
   },
-  sassLoader: {
-    includePaths: ['./scss/content', './scss/core', './scss/includes', './scss/layout', './scss/mobile', './scss/general']
-  },
+  // sassLoader: {
+  //   includePaths: ['./scss/content', './scss/core', './scss/includes', './scss/layout', './scss/mobile', './scss/general']
+  // },
   module: {
     loaders: [
         {
@@ -24,6 +24,10 @@ module.exports = {
         {
             test: /\.scss$/,
             loader: 'style!css?sourceMap!sass?sourceMap'
+        },
+        {
+          test:/\.css$/,
+          loader: 'style!css?sourceMap'
         }
       ]
     },

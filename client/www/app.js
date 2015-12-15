@@ -1,5 +1,5 @@
 require('./assets/scss/style.scss');
-require('.lib/ionic/css/ionic.css');
+// require('./lib/ionic/css/ionic.css');
 
 var angular = require('angular');
 var io = require('socket.io-client');
