@@ -13,7 +13,7 @@ module.exports = angular.module('wizardApp.duel', [
       });
   }])
 
-  .controller('DuelCtrl', ['$scope', 'scoketIO', DuelCtrl])
+  .controller('DuelCtrl', ['$scope', 'socketIO', DuelCtrl])
   .name;
 
 function DuelCtrl($scope, socketIO) {

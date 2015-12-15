@@ -1,6 +1,6 @@
 module.exports = angular.module('wizardApp.home', [
   require('angular-route'),
-  require('./duel/duel.js'),
+  require('../duel/duel.js'),
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider

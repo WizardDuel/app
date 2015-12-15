@@ -10,7 +10,7 @@ module.exports = angular.module('wizardApp.wizard', [])
       controller: 'WizardCtrl'
     };
   })
-  .controller('WizardCtrl', ['$scope', WizardCtrl])
+  .controller('WizardCtrl', ['$scope', 'socketIO', WizardCtrl])
   .name;
 
 function WizardCtrl($scope, socketIO) {
