@@ -3,7 +3,7 @@
 angular.module('wizardApp.socketIO', [])
   .factory('socketIO', function() {
     return {
-      socket: io(),
+      socket: io.connect('http://localhost:3000'),
       E: {
         DUEL: 'Duel',
         BEGIN: 'Begin',
