@@ -13,17 +13,26 @@ describe('Wizard Duel Initial Duel Setup', function() {
   var duel = false;
   var duel2 = false;
   var sock3Begin = false;
+  var beginData
 
   describe('Begin Duel', function() {
 
     before(function(done) {
-      sock3.on(E.BEGIN, function() {
+      sock1.getFoe = function(ids) {
+        for (id in ids) {
+          if (ids[id] !== this.id) {
+            return ids[id]
+          }
+        }
+      }
+      sock3.on(E.BEGIN, function(data) {
         sock3Begin = true;
       });
       sock1.emit(E.DUEL);
       sock2.emit(E.DUEL);
-      sock2.on(E.BEGIN, function() {duel2 = true;});
-      sock1.on(E.BEGIN, function() {
+      sock2.on(E.BEGIN, function(data) {duel2 = true;});
+      sock1.on(E.BEGIN, function(data) {
+        beginData = data;
         duel = true;
         done();
       });
@@ -37,6 +46,13 @@ describe('Wizard Duel Initial Duel Setup', function() {
     it('should only start the duel for the two duelers', function() {
       expect(sock3Begin).to.not.be.ok;
     });
+
+    it('should send array of ids to duelers', function() {
+      expect(beginData, 'sId').to.have.property('id1')
+      expect(beginData, 'foe').to.have.property('id2')
+      expect(sock1.getFoe(beginData)).to.eql(sock2.id);
+      
+    })
 
   });
   after(function() {

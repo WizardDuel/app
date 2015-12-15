@@ -1,43 +1,26 @@
-/* globals angular */
+// require('./assets/scss/style.scss');
+// require('./lib/ionic/css/ionic.css');
 
-// angular.module('wizardApp', ['ngRoute'])
-//   .config(['$routeProvider', function($routeProvider) {
-//     $routeProvider
-//       .when('/', {
-//         controller: 'HomeCtrl',
-//         controllerAs: 'home',
-//         templateUrl: './views/home/home.html'
-//       })
-//       .when('/duel', {
-//         controller: 'DuelCtrl',
-//         controllerAs: 'duel',
-//         templateUrl: './views/duel/duel.html'
-//       });
-//   }])
-//
-//   .controller('HomeCtrl', ['$scope', function($scope) {
-//
-//   }])
-//
-//   .controller('DuelCtrl', ['$scope', function($scope) {
-//
-//   }]);
+var angular = require('angular');
+var io = require('socket.io-client');
 
-angular.module('wizardApp', ['wizardApp.home']);
-  // .config(['$routeProvider', function($routeProvider) {
-  //   $routeProvider
-  //     .when('/', {
-  //       redirectTo: function() { return '/'; }
-  //     });
-  // }]);
-
-  // .factory('socketIO', function() {
-  //   var socket = io();
-  // });
-
-// var socket = io();
-
-// var E = {
-//   DUEL: 'Duel',
-//   BEGIN: 'Begin'
-// };
+angular.module('wizardApp', [
+  require('./views/home/home.js'),
+])
+.factory('socketIO', function() {
+    return {
+      socket: io.connect('http://localhost:3000'),
+      E: {
+        DUEL: 'Duel',
+        BEGIN: 'Begin',
+        ATTACK_PU: 'Attack Power Up',
+        RESOLVE_ATTACK: 'Resolve Attack',
+        PERRY: 'Perry',
+        REPOST: 'Repost',
+        RECOVER: 'Recover',
+        DEFEND: 'Defend',
+        WIZ_ID: 'Wizard Id',
+        ATTACK: 'Attack'
+      }
+    };
+  });
