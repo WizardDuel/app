@@ -8,8 +8,8 @@ module.exports = function(io) {
 
   io.on('connection', function(socket) {
     var battle = null;
-    socket.on(E.DUEL, function() {
-      if (openBattles.length > 0) {
+    socket.once(E.DUEL, function() {
+      if (openBattles.length > 0 ) {
         battle = openBattles.pop();
         battle.addCombatant(socket);
         battle.setFoesForDuel();
@@ -18,6 +18,7 @@ module.exports = function(io) {
       } else {
         battle = new Battle(socket);
         openBattles.push(battle);
+        io.sockets.connected[socket.id].emit('waiting for opponent');
       }
     });
 
