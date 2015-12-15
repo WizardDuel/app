@@ -146,9 +146,96 @@ describe('Attack/Response Cycle', function() {
     }); // crit
   }); // perry
 
-  // describe('- Repost'); // Repost
-  // describe('- Crit'); // Crit
+  describe('- Repost', function() {
+
+    it('should block attack, but not counter for repost false', function(done) {
+      // initialize attack
+      attacking(sock).emit(E.ATTACK_PU, {targetId: defending(sock).id, attackId: attackId(sock)});
+      defending(sock).on(E.ATTACK_PU, function(data) {
+
+        // create spells
+        var repostSpell = helpers.castSpell(attackId(sock), 6, 0, -10);
+        var attackSpell = helpers.castSpell(attackId(sock), 10, 0, 10);
+        attackSpell.msg = 'repost (0)';
+        repostSpell.repost = false;
+        spells.push([attackSpell, repostSpell]);
+
+        // cast spells
+        defending(sock).emit(E.REPOST, castDefense(sock));
+        attacking(sock).emit(E.ATTACK, castAttack(sock));
+
+        // resolve cycle
+        defending(sock).on(E.RESOLVE_ATTACK, function(data) {
+          expect(data).to.be.an('Array');
+          expect(data.length).to.eql(1);
+          expect(data[0].targetId).to.be.eql(defending(sock).id)
+          expect(data[0].damage).to.be.eql(0);
+          done();
+        });
+      });
+
+    }); // crit
+    it('should deal the attacker damage for successful repost', function(done) {
+      // initialize attack
+      attacking(sock).emit(E.ATTACK_PU, {targetId: defending(sock).id, attackId: attackId(sock)});
+      defending(sock).on(E.ATTACK_PU, function(data) {
+
+        // create spells
+        var repostSpell = helpers.castSpell(attackId(sock), 6, 0, -10);
+        var attackSpell = helpers.castSpell(attackId(sock), 10, 0, 10);
+        attackSpell.msg = 'repost (1)';
+        repostSpell.repost = true;
+        spells.push([attackSpell, repostSpell]);
+
+        // cast spells
+        defending(sock).emit(E.REPOST, castDefense(sock));
+        attacking(sock).emit(E.ATTACK, castAttack(sock));
+
+        // resolve cycle
+        defending(sock).on(E.RESOLVE_ATTACK, function(data) {
+          expect(data).to.be.an('Array');
+          expect(data.length).to.eql(1);
+          expect(data[0].targetId).to.be.eql(attacking(sock).id)
+          expect(data[0].damage).to.be.eql(6);
+          done();
+        });
+      });
+
+    }); // crit
+    it('should deal attacker 12 damage on crit', function(done) {
+      // initialize attack
+      attacking(sock).emit(E.ATTACK_PU, {targetId: defending(sock).id, attackId: attackId(sock)});
+      defending(sock).on(E.ATTACK_PU, function(data) {
+
+        // create spells
+        // crit still has to come before attack
+        var repostSpell = helpers.castSpell(attackId(sock), 6, 1, -10);
+        var attackSpell = helpers.castSpell(attackId(sock), 10, null, 10);
+        attackSpell.msg = 'repost (c)';
+        repostSpell.repost = true;
+        spells.push([attackSpell, repostSpell]);
+
+        // cast spells
+        defending(sock).emit(E.REPOST, castDefense(sock));
+        attacking(sock).emit(E.ATTACK, castAttack(sock));
+
+        // resolve cycle
+        defending(sock).on(E.RESOLVE_ATTACK, function(data) {
+          expect(data).to.be.an('Array');
+          expect(data.length).to.eql(1);
+          expect(data[0].targetId).to.be.eql(attacking(sock).id)
+          expect(data[0].damage).to.be.eql(12);
+          done();
+        });
+      });
+
+    }); // crit
+
+  }); // Repost
+
   afterEach(function() {
+    attacking(sock).emit('disconnect');
+    defending(sock).emit('disconnect');
     sock++;
   });
 }); // Attack/Response Cycle
