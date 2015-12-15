@@ -29,7 +29,9 @@ io.on('connection', function(socket) {
       // console.log('battle.sockets[1].foeId: ', battle.sockets[1].foeId);
       // console.log('io.sockets.connected[' + battle.sockets[1].foeId + '].rooms: ', io.sockets.connected[battle.sockets[1].foeId].rooms);
       // console.log('io.sockets.connected[' + battle.sockets[0].foeId + '].rooms: ', io.sockets.connected[battle.sockets[0].foeId].rooms);
-      io.to(battle.id).emit(E.BEGIN);
+      var sId = socket.id
+      var foe = socket.foeId
+      io.to(battle.id).emit(E.BEGIN, {id1: sId, id2: foe});
     } else {
       battle = new Battle(socket);
       // console.log('New battle: ', Object.keys(battle), '    battle.id: ', battle.id);
