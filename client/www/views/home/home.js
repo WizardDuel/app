@@ -1,8 +1,5 @@
-
 module.exports = angular.module('wizardApp.home', [
-  'ngRoute',
-  'wizardApp.duel',
-  'wizardApp.socketIO'
+  require('angular-route'),
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
@@ -13,7 +10,9 @@ module.exports = angular.module('wizardApp.home', [
       });
   }])
 
-  .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl]);
+  .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl])
+
+  .name;
 
 function HomeCtrl($scope, $location, socketIO) {
   $scope.enterBattle = function() {

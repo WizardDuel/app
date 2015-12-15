@@ -1,6 +1,8 @@
 /* globals angular */
 
-module.exports = angular.module('wizardApp.wizards', ['wizardApp.wizard'])
+module.exports = angular.module('wizardApp.wizards', [
+  require('../wizard/wizard.js')
+  ])
   .directive('wizards', function() {
     return {
       restrict: 'E',
@@ -8,12 +10,14 @@ module.exports = angular.module('wizardApp.wizards', ['wizardApp.wizard'])
       scope: {
         wizards: '='
       },
-      templateUrl: './components/wizards/wizards.html',
+      templateUrl: './views/components/wizards/wizards.html',
       controller: 'WizardsCtrl'
     };
   })
 
-  .controller('WizardsCtrl', ['$scope', WizardsCtrl]);
+  .controller('WizardsCtrl', ['$scope', WizardsCtrl])
+
+  .name;
 
 function WizardsCtrl($scope) {
 

@@ -1,10 +1,25 @@
-// require('./index.html');
-
+require('./scss/style.scss');
 var angular = require('angular');
-var ngRoute = require('angular-route');
 var io = require('socket.io-client');
-require('./views/home/home.js');
-require('./views/duel/duel.js');
-// require('./components/socketIO/socket.io.js');
 
-angular.module('wizardApp', ['wizardApp.home']);
+angular.module('wizardApp', [
+  require('./views/home/home.js'),
+  require('./views/duel/duel.js'),
+])
+.factory('socketIO', function() {
+    return {
+      socket: io.connect('http://localhost:3000'),
+      E: {
+        DUEL: 'Duel',
+        BEGIN: 'Begin',
+        ATTACK_PU: 'Attack Power Up',
+        RESOLVE_ATTACK: 'Resolve Attack',
+        PERRY: 'Perry',
+        REPOST: 'Repost',
+        RECOVER: 'Recover',
+        DEFEND: 'Defend',
+        WIZ_ID: 'Wizard Id',
+        ATTACK: 'Attack'
+      }
+    };
+  });

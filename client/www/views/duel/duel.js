@@ -1,8 +1,8 @@
-angular.module('wizardApp.duel', [
-  'ngRoute',
-  require('../../components/spells/spells.js'),
-  require('../../components/wizards/wizards.js'),
-  require('../../components/spinner/spinner.js')
+module.exports = angular.module('wizardApp.duel', [
+  require('angular-route'),
+  require('../components/spells/spells.js'),
+  require('../components/wizards/wizards.js'),
+  require('../components/spinner/spinner.js')
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
@@ -13,7 +13,9 @@ angular.module('wizardApp.duel', [
       });
   }])
 
-  .controller('DuelCtrl', ['$scope', DuelCtrl]);
+  .controller('DuelCtrl', ['$scope', DuelCtrl])
+
+  .name;
 
 function DuelCtrl($scope) {
   $scope.spells = [

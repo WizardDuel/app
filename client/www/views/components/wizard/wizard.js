@@ -1,6 +1,6 @@
 /* globals angular */
 
-angular.module('wizardApp.wizard', [])
+module.exports = angular.module('wizardApp.wizard', [])
   .directive('wizard', function() {
     return {
       restrict: 'E',
@@ -8,12 +8,13 @@ angular.module('wizardApp.wizard', [])
       scope: {
         wizard: '='
       },
-      templateUrl: './components/wizard/wizard.html',
+      templateUrl: './views/components/wizard/wizard.html',
       controller: 'WizardCtrl'
     };
   })
 
-  .controller('WizardCtrl', ['$scope', WizardCtrl]);
+  .controller('WizardCtrl', ['$scope', WizardCtrl])
+  .name;
 
 function WizardCtrl($scope) {
 

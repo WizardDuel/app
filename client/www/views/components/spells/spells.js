@@ -1,6 +1,8 @@
 /* globals angular */
 
-angular.module('wizardApp.spells', ['wizardApp.socketIO'])
+module.exports = angular.module('wizardApp.spells', [
+  // 'wizardApp.socketIO'
+  ])
   .directive('spells', function() {
     return {
       restrict: 'E',
@@ -8,12 +10,13 @@ angular.module('wizardApp.spells', ['wizardApp.socketIO'])
       scope: {
         spells: '='
       },
-      templateUrl: './components/spells/spells.html',
+      templateUrl: './views/components/spells/spells.html',
       controller: 'SpellsCtrl'
     };
   })
 
-  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl]);
+  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+  .name;
 
 function SpellsCtrl($scope, $timeout, socketIO) {
   $scope.castSpell = function(spell) {
