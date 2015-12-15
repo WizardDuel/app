@@ -27,7 +27,7 @@ function DuelCtrl($scope) {
   ];
 
   $scope.wizards = [
-    { user: 'Self', avatar: '../../img/evil_wizard.png' },
-    { user: 'Opponent', avatar: '../../img/DC_wizard.png' }
+    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png' },
+    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png' }
   ];
 }
