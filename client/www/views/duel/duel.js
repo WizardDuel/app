@@ -1,12 +1,8 @@
-/* globals angular */
-
 angular.module('wizardApp.duel', [
   'ngRoute',
-  // 'wizardApp.spell',
-  'wizardApp.spells',
-  // 'wizardApp.wizard',
-  'wizardApp.wizards',
-  'wizardApp.spinner'
+  require('../../components/spells/spells.js'),
+  require('../../components/wizards/wizards.js'),
+  require('../../components/spinner/spinner.js')
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider

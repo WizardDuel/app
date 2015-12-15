@@ -1,6 +1,6 @@
 /* globals angular */
 
-angular.module('wizardApp.spinner', [])
+module.exports = angular.module('wizardApp.spinner', [])
   .directive('spinner', function() {
     return {
       restrict: 'E',

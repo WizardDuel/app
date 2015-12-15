@@ -1,6 +1,6 @@
 /* globals angular */
 
-angular.module('wizardApp.wizards', ['wizardApp.wizard'])
+module.exports = angular.module('wizardApp.wizards', ['wizardApp.wizard'])
   .directive('wizards', function() {
     return {
       restrict: 'E',

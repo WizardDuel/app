@@ -1,6 +1,5 @@
-/* globals angular */
 
-angular.module('wizardApp.home', [
+module.exports = angular.module('wizardApp.home', [
   'ngRoute',
   'wizardApp.duel',
   'wizardApp.socketIO'

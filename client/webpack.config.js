@@ -2,27 +2,33 @@ var path = require('path');
 
 module.exports = {
   entry: {
-    app: ['./www/app.js']
+    app: './www/app.js'
+  },
+  resolve: {
+    nodeDirectories: ['node_modules']
   },
   output: {
-    path: path.resolve(__dirname, 'www/build'),
-    publicPath: '/assets/',
-    filename: 'bundle.js'
+    path: path.resolve(__dirname, './www/build'),
+    filename: 'bundle.js',
+    contentBase: './www/'
   },
-    devtool: 'source-map',
-    module: {
-        loaders: [
-            {
-                test: /\.html$/,
-                loader: 'html'
-            },
-            {
-                test: /\.scss$/,
-                loader: 'style!css?sourceMap!sass?sourceMap'
-            }
-        ]
+  sassLoader: {
+    includePaths: ['./scss/content', './scss/core', './scss/includes', './scss/layout', './scss/mobile', './scss/general']
+  },
+  module: {
+    loaders: [
+        {
+            test: /\.html$/,
+            loader: 'html'
+        },
+        {
+            test: /\.scss$/,
+            loader: 'style!css?sourceMap!sass?sourceMap'
+        }
+      ]
     },
-    sassLoader: {
-        includePaths: ['./scss/content', './scss/core', './scss/includes', './scss/layout', './scss/mobile', './scss/general']
+    // devtool: 'source-map',
+    devServer: {
+      contentBase: './build'
     }
 };
