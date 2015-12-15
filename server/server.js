@@ -5,8 +5,8 @@ var io = require('socket.io')(http);
 require('./sockets')(io);
 
 //setup
-var mongoose = require('mongoose');
-//mongoose.connect('mongodb//localhost:3000');
+// var mongoose = require('mongoose');
+// mongoose.connect('mongodb://localhost:3000');
 
 app.use(express.static(__dirname + '/public'));
 

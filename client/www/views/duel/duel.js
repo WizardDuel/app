@@ -1,13 +1,8 @@
-/* globals angular */
-
-angular.module('wizardApp.duel', [
-  'ngRoute',
-  // 'wizardApp.spell',
-  'wizardApp.spells',
-  // 'wizardApp.wizard',
-  'wizardApp.wizards',
-  'wizardApp.spinner',
-  'wizardApp.socketIO',
+module.exports = angular.module('wizardApp.duel', [
+  require('angular-route'),
+  require('../components/spells/spells.js'),
+  require('../components/wizards/wizards.js'),
+  require('../components/spinner/spinner.js')
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
@@ -18,7 +13,8 @@ angular.module('wizardApp.duel', [
       });
   }])
 
-  .controller('DuelCtrl', ['$scope', 'socketIO', DuelCtrl]);
+  .controller('DuelCtrl', ['$scope', 'socketIO', DuelCtrl])
+  .name;
 
 function DuelCtrl($scope, socketIO) {
   var socket = socketIO.socket;
@@ -30,44 +26,45 @@ function DuelCtrl($scope, socketIO) {
   ];
 
   $scope.wizards = [
-    { user: 'Self', avatar: '../../img/evil_wizard.png', id: socket.id },
-    { user: 'Opponent', avatar: '../../img/DC_wizard.png', id: socket.getFoeId() }
+
+    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png', id: socket.id },
+    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
   ];
 
   socket.on(E.ATTACK_PU, function(data) {
     // $scope.Attack = 'red';
     // setTimeout(function(){$scope.Attack = undefined}, 250)
-    socket.attack = data.attackId
-    console.log('Attack!')
-    document.getElementsByTagName('body')[0].classList.add('red')
+    socket.attack = data.attackId;
+    console.log('Attack!');
+    document.getElementsByTagName('body')[0].classList.add('red');
     setTimeout(function(){
-      document.getElementsByTagName('body')[0].classList.remove('red')
-    },250)
+      document.getElementsByTagName('body')[0].classList.remove('red');
+    },250);
   });
   socket.on(E.RESOLVE_ATTACK, function(data) {
-    var solution = data[0]
-    console.log('resolution:', solution)
+    var solution = data[0];
+    console.log('resolution:', solution);
     switch(solution.targetId) {
       case socket.id:
         socket.health = Number(socket.health) - Number(solution.damage);
-        document.getElementById(socket.id +'-health').style.width = socket.health + '%'
+        document.getElementById(socket.id +'-health').style.width = socket.health + '%';
         break;
       case socket.getFoeId():
-        var origHealth = document.getElementById(solution.targetId + '-health').style.width
+        var origHealth = document.getElementById(solution.targetId + '-health').style.width;
         document.getElementById(solution.targetId +'-health').style.width = Number(origHealth.split('%')[0]) - Number(solution.damage) + '%';
         break;
     }
     if (solution.counterCasterId && (solution.counterCasterId !== socket.id)) {
-      var origMana = document.getElementById(solution.targetId + '-mana').style.width
-      document.getElementById(solution.counterCasterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%'
+      var origMana = document.getElementById(solution.targetId + '-mana').style.width;
+      document.getElementById(solution.counterCasterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
     }
     if (solution.casterId !== socket.id) {
-      var origMana = document.getElementById(solution.casterId + '-mana').style.width
-      document.getElementById(solution.casterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%'
+      var origMana = document.getElementById(solution.casterId + '-mana').style.width;
+      document.getElementById(solution.casterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
     }
 
-    console.log('Health:', socket.health)
-    console.log('Mana:', socket.mana)
-  })
+    console.log('Health:', socket.health);
+    console.log('Mana:', socket.mana);
+  });
 
   }

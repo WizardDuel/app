@@ -1,9 +1,6 @@
-/* globals angular */
-
-angular.module('wizardApp.home', [
-  'ngRoute',
-  'wizardApp.duel',
-  'wizardApp.socketIO'
+module.exports = angular.module('wizardApp.home', [
+  require('angular-route'),
+  require('../duel/duel.js'),
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
@@ -14,10 +11,13 @@ angular.module('wizardApp.home', [
       });
   }])
 
-  .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl]);
+  .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl])
+
+  .name;
 
 function HomeCtrl($scope, $location, socketIO) {
   var socket = socketIO.socket;
+
   $scope.enterBattle = function() {
     socket.emit(socketIO.E.DUEL);
   };
@@ -38,7 +38,7 @@ function HomeCtrl($scope, $location, socketIO) {
       console.log('socket:',this.id)
     }
     console.log('The battle has begun!');
-    console.log('Health:', socket.health)
-    console.log('Mana:', socket.mana)
+    console.log('Health:', socket.health);
+    console.log('Mana:', socket.mana);
   });
 }
