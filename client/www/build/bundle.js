@@ -45,6 +45,8 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(1);
+	__webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \".lib/ionic/css/ionic.css\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+
 	var angular = __webpack_require__(5);
 	var io = __webpack_require__(7);
 
@@ -106,7 +108,7 @@
 
 
 	// module
-	exports.push([module.id, ".spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue;\n  /* temporary (testing) */ }\n\n.spell {\n  width: 15%;\n  text-align: center; }\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue;\n  /* temporary (testing) */ }\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray;\n  /* temporary (testing) */ }\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple;\n  /* temporary (testing) */\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue;\n  /* temporary (testing) */ }\n\n.wizard .avatar img {\n  display: block;\n  height: 100%;\n  /* need to find better solution */\n  width: 100%;\n  /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink;\n  /* temporary (testing) */\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n", "", {"version":3,"sources":["/./www/assets/assets/scss/style.scss"],"names":[],"mappings":"AAAA;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,8BAA8B;EAC9B,uBAAuB;EACvB,qBAAqB;EACrB,kBAAkB;EAClB,kBAAkB;EAClB,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,WAAW;EACX,mBAAmB,EACpB;;AAED;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,+BAA+B;EAC/B,uBAAuB;EACvB,qBAAqB;EACrB,eAAe;EACf,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,WAAW;EACX,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,mBAAmB;EACnB,UAAU;EACV,cAAc;EACd,yBAAyB;EAAE,yBAAyB;EACpD,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD;;AAED;EACE,cAAc;EACd,4BAA4B;EAAE,yBAAyB,EACxD;;AAED;EACE,eAAe;EACf,aAAa;EAAE,kCAAkC;EACjD,YAAY;EAAE,kCAAkC;EAChD,eAAe;EACf,cAAc;EACd,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD;;AAED;EACE,cAAc;EACd,uBAAuB;EAAE,yBAAyB;EAClD,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD","file":"style.scss","sourcesContent":[".spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.spell {\n  width: 15%;\n  text-align: center;\n}\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray; /* temporary (testing) */\n}\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue; /* temporary (testing) */\n}\n\n.wizard .avatar img {\n  display: block;\n  height: 100%; /* need to find better solution */\n  width: 100%; /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n"],"sourceRoot":"webpack://"}]);
+	exports.push([module.id, ".red {\n  background-color: red; }\n\n.health-bar {\n  background: red;\n  display: block;\n  height: 1em; }\n\n.mana-bar {\n  background: purple;\n  display: block;\n  height: 1em; }\n\n.spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue;\n  /* temporary (testing) */ }\n\n.spell {\n  width: 15%;\n  text-align: center; }\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue;\n  /* temporary (testing) */ }\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray;\n  /* temporary (testing) */ }\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple;\n  /* temporary (testing) */\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue;\n  /* temporary (testing) */ }\n\n.wizard .avatar img {\n  display: block;\n  height: 100%;\n  /* need to find better solution */\n  width: 100%;\n  /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink;\n  /* temporary (testing) */\n  box-sizing: border-box;\n  /* temporary (testing) */\n  border: 1px solid red;\n  /* temporary (testing) */ }\n", "", {"version":3,"sources":["/./www/assets/assets/scss/style.scss"],"names":[],"mappings":"AAAA;EACE,sBAAsB,EACvB;;AAED;EACE,gBAAgB;EAChB,eAAe;EACf,YACD,EAAC;;AAEF;EACE,mBAAmB;EACnB,eAAe;EACf,YACD,EAAC;;AAEF;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,8BAA8B;EAC9B,uBAAuB;EACvB,qBAAqB;EACrB,kBAAkB;EAClB,kBAAkB;EAClB,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,WAAW;EACX,mBAAmB,EACpB;;AAED;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,+BAA+B;EAC/B,uBAAuB;EACvB,qBAAqB;EACrB,eAAe;EACf,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,WAAW;EACX,uBAAuB;EAAE,yBAAyB,EACnD;;AAED;EACE,mBAAmB;EACnB,UAAU;EACV,cAAc;EACd,yBAAyB;EAAE,yBAAyB;EACpD,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD;;AAED;EACE,cAAc;EACd,4BAA4B;EAAE,yBAAyB,EACxD;;AAED;EACE,eAAe;EACf,aAAa;EAAE,kCAAkC;EACjD,YAAY;EAAE,kCAAkC;EAChD,eAAe;EACf,cAAc;EACd,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD;;AAED;EACE,cAAc;EACd,uBAAuB;EAAE,yBAAyB;EAClD,uBAAuB;EAAE,yBAAyB;EAClD,sBAAsB;EAAE,yBAAyB,EAClD","file":"style.scss","sourcesContent":[".red{\n  background-color: red;\n}\n\n.health-bar {\n  background: red;\n  display: block;\n  height: 1em\n}\n\n.mana-bar {\n  background: purple;\n  display: block;\n  height: 1em\n}\n\n.spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.spell {\n  width: 15%;\n  text-align: center;\n}\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray; /* temporary (testing) */\n}\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue; /* temporary (testing) */\n}\n\n.wizard .avatar img {\n  display: block;\n  height: 100%; /* need to find better solution */\n  width: 100%; /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n"],"sourceRoot":"webpack://"}]);
 
 	// exports
 
@@ -36663,14 +36665,29 @@
 	  .name;
 
 	function HomeCtrl($scope, $location, socketIO) {
+	  var socket = socketIO.socket;
 	  $scope.enterBattle = function() {
-	    socketIO.socket.emit(socketIO.E.DUEL);
+	    socket.emit(socketIO.E.DUEL);
 	  };
 
-	  socketIO.socket.on(socketIO.E.BEGIN, function() {
+	  socket.on(socketIO.E.BEGIN, function(data) {
 	    $location.path('/duel');
 	    $scope.$apply();
+	    socket.wizIds = data;
+	    socket.health = 100;
+	    socket.mana = 100;
+	    socket.getFoeId = function(){
+	      for (id in this.wizIds) {
+	        if (this.wizIds[id] !== this.id) {
+	          return this.wizIds[id]
+	          console.log('foe:', foe)
+	        }
+	      }
+	      console.log('socket:',this.id)
+	    }
 	    console.log('The battle has begun!');
+	    console.log('Health:', socket.health)
+	    console.log('Mana:', socket.mana)
 	  });
 	}
 
@@ -37699,24 +37716,60 @@
 	      });
 	  }])
 
-	  .controller('DuelCtrl', ['$scope', DuelCtrl])
+	  .controller('DuelCtrl', ['$scope', DuelCtrl]);
 
-	  .name;
-
-	function DuelCtrl($scope) {
+	function DuelCtrl($scope, socketIO) {
+	  var socket = socketIO.socket;
+	  var E = socketIO.E;
 	  $scope.spells = [
-	    { name: 'Recover' },
-	    { name: 'Defend' },
-	    { name: 'Perry' },
-	    { name: 'Repost' },
-	    { name: 'Attack' }
+	    { name: 'Perry', icon: 'ion-android-favorite-outline' },
+	    { name: 'Repost', icon: 'ion-ios-plus-outline' },
+	    { name: 'Attack', icon: 'ion-flame' }
 	  ];
 
 	  $scope.wizards = [
-	    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png' },
-	    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png' }
+
+	    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png', id: socket.id },
+	    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
 	  ];
-	}
+
+	  socket.on(E.ATTACK_PU, function(data) {
+	    // $scope.Attack = 'red';
+	    // setTimeout(function(){$scope.Attack = undefined}, 250)
+	    socket.attack = data.attackId;
+	    console.log('Attack!');
+	    document.getElementsByTagName('body')[0].classList.add('red');
+	    setTimeout(function(){
+	      document.getElementsByTagName('body')[0].classList.remove('red');
+	    },250);
+	  });
+	  socket.on(E.RESOLVE_ATTACK, function(data) {
+	    var solution = data[0];
+	    console.log('resolution:', solution);
+	    switch(solution.targetId) {
+	      case socket.id:
+	        socket.health = Number(socket.health) - Number(solution.damage);
+	        document.getElementById(socket.id +'-health').style.width = socket.health + '%';
+	        break;
+	      case socket.getFoeId():
+	        var origHealth = document.getElementById(solution.targetId + '-health').style.width;
+	        document.getElementById(solution.targetId +'-health').style.width = Number(origHealth.split('%')[0]) - Number(solution.damage) + '%';
+	        break;
+	    }
+	    if (solution.counterCasterId && (solution.counterCasterId !== socket.id)) {
+	      var origMana = document.getElementById(solution.targetId + '-mana').style.width;
+	      document.getElementById(solution.counterCasterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
+	    }
+	    if (solution.casterId !== socket.id) {
+	      var origMana = document.getElementById(solution.casterId + '-mana').style.width;
+	      document.getElementById(solution.casterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
+	    }
+
+	    console.log('Health:', socket.health);
+	    console.log('Mana:', socket.mana);
+	  });
+
+	  }
 
 
 /***/ },
@@ -37744,9 +37797,13 @@
 	  .name;
 
 	function SpellsCtrl($scope, $timeout, socketIO) {
-	  $scope.castSpell = function(spell) {
-	    console.log('"' + spell + '"' + ' spell has been cast');
+	  var E = socketIO.E;
+	  var socket = socketIO.socket;
 
+	  $scope.castSpell = function(spell) {
+	    console.log('cast spell')
+	    console.log('mana:', socket.mana)
+	    socket.mana = Number(socket.mana) - Number(5);
 	    switch (spell) {
 	      case 'Recover':
 
@@ -37757,25 +37814,53 @@
 	        break;
 
 	      case 'Perry':
-
+	        if (socket.attack) {
+	          var defensiveSpell = magic.castSpell(socket.attack)
+	          socket.emit(E.PERRY, defensiveSpell);
+	        }
 	        break;
-
 	      case 'Repost':
-
+	        if (socket.attack) {
+	          var repostSpell = magic.castSpell(socket.attack)
+	          socket.emit(E.REPOST, repostSpell);
+	        }
 	        break;
 
 	      case 'Attack':
 	        var attackId = new Date().getTime();
-	        socketIO.socket.emit(socketIO.E.ATTACK_PU, {attackId: attackId});
-	        // var power = Math.floor(Math.random() * 10);
-	        // var crit = Math.floor(Math.random() * 11 + 1 );
-	        // $timeout(function() {
-	        //   console.log('2-SECOND TIMEOUT COMPLETE');
-	        //   socket.emit(ATTACK, {attackId: attackId, power: power, crit: (crit > 8), time: new Date().getTime()});
-	        // }, 2000);
+	        var foe = socket.getFoeId()
+	        var me = socket.id
+	        console.log('attack sent:', foe)
+	        console.log('me:', me)
+	        socket.emit(E.ATTACK_PU, {attackId: attackId, targetId: socket.getFoeId()});
+	        setTimeout(function() {
+	          var attackSpell = magic.castSpell(attackId);
+	          socket.emit(E.ATTACK, attackSpell)
+	        }, 400)
 	        break;
 	    }
 	  };
+	}
+	var magic ={
+	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
+	  setCrit: function() {
+	    var roll = Math.floor(Math.random() * 20 + 1);
+	    var crit = null;
+	    if (roll > 17) return 1;
+	    if (roll < 3) return -1;
+	    return 0;
+	  },
+	  setTime: function() {return new Date().getTime();},
+
+	  castSpell: function(attack, power, crit, timeShift) {
+	    var spell = {
+	      attackId: attack,
+	      power: power ? power : this.setPower(),
+	      crit: crit !== null ? crit : this.setCrit(),
+	      time: this.setTime() + timeShift,
+	    };
+	    return spell;
+	  },
 	}
 
 
@@ -37813,8 +37898,6 @@
 /* 63 */
 /***/ function(module, exports) {
 
-	/* globals angular */
-
 	module.exports = angular.module('wizardApp.wizard', [])
 	  .directive('wizard', function() {
 	    return {
@@ -37827,12 +37910,13 @@
 	      controller: 'WizardCtrl'
 	    };
 	  })
-
 	  .controller('WizardCtrl', ['$scope', WizardCtrl])
 	  .name;
 
-	function WizardCtrl($scope) {
-
+	function WizardCtrl($scope, socketIO) {
+	  var socket = socketIO.socket;
+	  $scope.health = socket.health;
+	  $scope.mana = socket.mana;
 	}
 
 
