@@ -55,7 +55,7 @@
 	])
 	.factory('socketIO', function() {
 	    return {
-	      socket: io.connect('http://localhost:3000'),
+	      socket: io.connect('https://wizardduel.herokuapp.com'),
 	      E: {
 	        DUEL: 'Duel',
 	        BEGIN: 'Begin',
@@ -37356,7 +37356,7 @@
 	  __webpack_require__(54),
 	  __webpack_require__(57),
 	  __webpack_require__(58),
-	  __webpack_require__(60)
+	  // require('../components/spinner/spinner.js')
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -37373,6 +37373,7 @@
 	function DuelCtrl($scope, socketIO) {
 	  var socket = socketIO.socket;
 	  var E = socketIO.E;
+
 	  $scope.spells = [
 	    { name: 'Perry', icon: 'ion-android-favorite-outline' },
 	    { name: 'Repost', icon: 'ion-ios-plus-outline' },
@@ -37380,7 +37381,6 @@
 	  ];
 
 	  $scope.wizards = [
-
 	    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png', id: socket.id },
 	    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
 	  ];
@@ -37431,6 +37431,7 @@
 	/* globals angular */
 
 	module.exports = angular.module('wizardApp.spells', [
+	  // require('../spinner/spinner.js')
 	  // 'wizardApp.socketIO'
 	  ])
 	  .directive('spells', function() {
@@ -37438,7 +37439,7 @@
 	      restrict: 'E',
 	      replace: true,
 	      scope: {
-	        spells: '='
+	        spells: '=',
 	      },
 	      templateUrl: './views/components/spells/spells.html',
 	      controller: 'SpellsCtrl'
@@ -37446,17 +37447,43 @@
 	  })
 
 	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+
+	  .directive('spinner', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      templateUrl: './views/components/spells/spinner.html',
+	      controller: 'SpellsCtrl'
+	    };
+	  })
+
 	  .name;
 
 	function SpellsCtrl($scope, $timeout, socketIO) {
 	  var E = socketIO.E;
 	  var socket = socketIO.socket;
 
-	  $scope.castSpell = function(spell) {
+	  $scope.castingSpell = false;
+
+	  $scope.initializeSpell = function (spellName) {
+	    $scope.spellData = {
+	      name: spellName,
+	      initTime: new Date().getTime()
+	    };
+	    $scope.castingSpell = true;
+	  };
+
+	  $scope.finalizeSpell = function(spellData) {
+	    $scope.spellData.finalTime = new Date().getTime();
+	    $scope.castingSpell = false;
+	    $scope.castSpell($scope.spellData);
+	  };
+
+	  $scope.castSpell = function(spellData) {
 	    console.log('cast spell')
 	    console.log('mana:', socket.mana)
 	    socket.mana = Number(socket.mana) - Number(5);
-	    switch (spell) {
+	    switch (spellData.name) {
 	      case 'Recover':
 
 	        break;
@@ -37493,7 +37520,8 @@
 	    }
 	  };
 	}
-	var magic ={
+
+	var magic = {
 	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
 	  setCrit: function() {
 	    var roll = Math.floor(Math.random() * 20 + 1);
@@ -37513,7 +37541,7 @@
 	    };
 	    return spell;
 	  },
-	}
+	};
 
 
 /***/ },
@@ -37569,28 +37597,6 @@
 	  var socket = socketIO.socket;
 	  $scope.health = socket.health;
 	  $scope.mana = socket.mana;
-	}
-
-
-/***/ },
-/* 60 */
-/***/ function(module, exports) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.spinner', [])
-	  .directive('spinner', function() {
-	    return {
-	      restrict: 'E',
-	      templateUrl: './views/components/spinner/spinner.html',
-	      controller: 'SpinnerCtrl'
-	    };
-	  })
-	  .controller('SpinnerCtrl', ['$scope', SpinnerCtrl])
-	  .name;
-
-	function SpinnerCtrl($scope) {
-
 	}
 
 

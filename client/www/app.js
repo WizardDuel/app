@@ -9,7 +9,7 @@ angular.module('wizardApp', [
 ])
 .factory('socketIO', function() {
     return {
-      socket: io.connect('http://localhost:3000'),
+      socket: io.connect('https://wizardduel.herokuapp.com'),
       E: {
         DUEL: 'Duel',
         BEGIN: 'Begin',
