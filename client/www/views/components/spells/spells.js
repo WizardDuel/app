@@ -1,8 +1,7 @@
 /* globals angular */
 
 module.exports = angular.module('wizardApp.spells', [
-  // require('../spinner/spinner.js')
-  // 'wizardApp.socketIO'
+
   ])
   .directive('spells', function() {
     return {
@@ -36,6 +35,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   $scope.castingSpell = false;
 
   $scope.initializeSpell = function (spellName) {
+    console.log('initialize spell:', spellName)
     $scope.spellData = {
       name: spellName,
       initTime: new Date().getTime()
@@ -81,6 +81,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
         var me = socket.id
         console.log('attack sent:', foe)
         console.log('me:', me)
+        console.log(attackId)
         socket.emit(E.ATTACK_PU, {attackId: attackId, targetId: socket.getFoeId()});
         setTimeout(function() {
           var attackSpell = magic.castSpell(attackId);

@@ -29122,7 +29122,7 @@
 
 	var url = __webpack_require__(5);
 	var parser = __webpack_require__(8);
-	var Manager = __webpack_require__(15);
+	var Manager = __webpack_require__(16);
 	var debug = __webpack_require__(7)('socket.io-client');
 
 	/**
@@ -29200,7 +29200,7 @@
 	 * @api public
 	 */
 
-	exports.Manager = __webpack_require__(15);
+	exports.Manager = __webpack_require__(16);
 	exports.Socket = __webpack_require__(47);
 
 
@@ -29467,12 +29467,12 @@
 	 * Module dependencies.
 	 */
 
-	var debug = __webpack_require__(7)('socket.io-parser');
-	var json = __webpack_require__(9);
-	var isArray = __webpack_require__(11);
-	var Emitter = __webpack_require__(12);
-	var binary = __webpack_require__(13);
-	var isBuf = __webpack_require__(14);
+	var debug = __webpack_require__(9)('socket.io-parser');
+	var json = __webpack_require__(10);
+	var isArray = __webpack_require__(12);
+	var Emitter = __webpack_require__(13);
+	var binary = __webpack_require__(14);
+	var isBuf = __webpack_require__(15);
 
 	/**
 	 * Protocol version.
@@ -29866,6 +29866,149 @@
 
 /***/ },
 /* 9 */
+/***/ function(module, exports) {
+
+	
+	/**
+	 * Expose `debug()` as the module.
+	 */
+
+	module.exports = debug;
+
+	/**
+	 * Create a debugger with the given `name`.
+	 *
+	 * @param {String} name
+	 * @return {Type}
+	 * @api public
+	 */
+
+	function debug(name) {
+	  if (!debug.enabled(name)) return function(){};
+
+	  return function(fmt){
+	    fmt = coerce(fmt);
+
+	    var curr = new Date;
+	    var ms = curr - (debug[name] || curr);
+	    debug[name] = curr;
+
+	    fmt = name
+	      + ' '
+	      + fmt
+	      + ' +' + debug.humanize(ms);
+
+	    // This hackery is required for IE8
+	    // where `console.log` doesn't have 'apply'
+	    window.console
+	      && console.log
+	      && Function.prototype.apply.call(console.log, console, arguments);
+	  }
+	}
+
+	/**
+	 * The currently active debug mode names.
+	 */
+
+	debug.names = [];
+	debug.skips = [];
+
+	/**
+	 * Enables a debug mode by name. This can include modes
+	 * separated by a colon and wildcards.
+	 *
+	 * @param {String} name
+	 * @api public
+	 */
+
+	debug.enable = function(name) {
+	  try {
+	    localStorage.debug = name;
+	  } catch(e){}
+
+	  var split = (name || '').split(/[\s,]+/)
+	    , len = split.length;
+
+	  for (var i = 0; i < len; i++) {
+	    name = split[i].replace('*', '.*?');
+	    if (name[0] === '-') {
+	      debug.skips.push(new RegExp('^' + name.substr(1) + '$'));
+	    }
+	    else {
+	      debug.names.push(new RegExp('^' + name + '$'));
+	    }
+	  }
+	};
+
+	/**
+	 * Disable debug output.
+	 *
+	 * @api public
+	 */
+
+	debug.disable = function(){
+	  debug.enable('');
+	};
+
+	/**
+	 * Humanize the given `ms`.
+	 *
+	 * @param {Number} m
+	 * @return {String}
+	 * @api private
+	 */
+
+	debug.humanize = function(ms) {
+	  var sec = 1000
+	    , min = 60 * 1000
+	    , hour = 60 * min;
+
+	  if (ms >= hour) return (ms / hour).toFixed(1) + 'h';
+	  if (ms >= min) return (ms / min).toFixed(1) + 'm';
+	  if (ms >= sec) return (ms / sec | 0) + 's';
+	  return ms + 'ms';
+	};
+
+	/**
+	 * Returns true if the given mode name is enabled, false otherwise.
+	 *
+	 * @param {String} name
+	 * @return {Boolean}
+	 * @api public
+	 */
+
+	debug.enabled = function(name) {
+	  for (var i = 0, len = debug.skips.length; i < len; i++) {
+	    if (debug.skips[i].test(name)) {
+	      return false;
+	    }
+	  }
+	  for (var i = 0, len = debug.names.length; i < len; i++) {
+	    if (debug.names[i].test(name)) {
+	      return true;
+	    }
+	  }
+	  return false;
+	};
+
+	/**
+	 * Coerce `val`.
+	 */
+
+	function coerce(val) {
+	  if (val instanceof Error) return val.stack || val.message;
+	  return val;
+	}
+
+	// persist
+
+	try {
+	  if (window.localStorage) debug.enable(localStorage.debug);
+	} catch(e){}
+
+
+/***/ },
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*! JSON v3.2.6 | http://bestiejs.github.io/json3 | Copyright 2012-2013, Kit Cambridge | http://kit.mit-license.org */
@@ -29875,7 +30018,7 @@
 
 	  // Detect the `define` function exposed by asynchronous module loaders. The
 	  // strict `define` check is necessary for compatibility with `r.js`.
-	  var isLoader = "function" === "function" && __webpack_require__(10);
+	  var isLoader = "function" === "function" && __webpack_require__(11);
 
 	  // Detect native implementations.
 	  var nativeJSON = typeof JSON == "object" && JSON;
@@ -30732,7 +30875,7 @@
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -30740,7 +30883,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	module.exports = Array.isArray || function (arr) {
@@ -30749,7 +30892,7 @@
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	
@@ -30919,7 +31062,7 @@
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/*global Blob,File*/
@@ -30928,8 +31071,8 @@
 	 * Module requirements
 	 */
 
-	var isArray = __webpack_require__(11);
-	var isBuf = __webpack_require__(14);
+	var isArray = __webpack_require__(12);
+	var isBuf = __webpack_require__(15);
 
 	/**
 	 * Replaces every Buffer | ArrayBuffer in packet with a numbered placeholder.
@@ -31067,7 +31210,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -31087,7 +31230,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -31096,9 +31239,9 @@
 	 */
 
 	var url = __webpack_require__(5);
-	var eio = __webpack_require__(16);
+	var eio = __webpack_require__(17);
 	var Socket = __webpack_require__(47);
-	var Emitter = __webpack_require__(12);
+	var Emitter = __webpack_require__(13);
 	var parser = __webpack_require__(8);
 	var on = __webpack_require__(49);
 	var bind = __webpack_require__(50);
@@ -31596,19 +31739,19 @@
 
 
 /***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	module.exports =  __webpack_require__(17);
-
-
-/***/ },
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	module.exports = __webpack_require__(18);
+	module.exports =  __webpack_require__(18);
+
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	module.exports = __webpack_require__(19);
 
 	/**
 	 * Exports parser
@@ -31616,22 +31759,22 @@
 	 * @api public
 	 *
 	 */
-	module.exports.parser = __webpack_require__(26);
+	module.exports.parser = __webpack_require__(27);
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
 	 * Module dependencies.
 	 */
 
-	var transports = __webpack_require__(19);
-	var Emitter = __webpack_require__(12);
+	var transports = __webpack_require__(20);
+	var Emitter = __webpack_require__(13);
 	var debug = __webpack_require__(38)('engine.io-client:socket');
 	var index = __webpack_require__(44);
-	var parser = __webpack_require__(26);
+	var parser = __webpack_require__(27);
 	var parseuri = __webpack_require__(45);
 	var parsejson = __webpack_require__(46);
 	var parseqs = __webpack_require__(36);
@@ -31749,9 +31892,9 @@
 	 */
 
 	Socket.Socket = Socket;
-	Socket.Transport = __webpack_require__(25);
-	Socket.transports = __webpack_require__(19);
-	Socket.parser = __webpack_require__(26);
+	Socket.Transport = __webpack_require__(26);
+	Socket.transports = __webpack_require__(20);
+	Socket.parser = __webpack_require__(27);
 
 	/**
 	 * Creates transport of the given type.
@@ -32332,15 +32475,15 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
 	 * Module dependencies
 	 */
 
-	var XMLHttpRequest = __webpack_require__(20);
-	var XHR = __webpack_require__(23);
+	var XMLHttpRequest = __webpack_require__(21);
+	var XHR = __webpack_require__(24);
 	var JSONP = __webpack_require__(41);
 	var websocket = __webpack_require__(42);
 
@@ -32392,11 +32535,11 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// browser shim for xmlhttprequest module
-	var hasCORS = __webpack_require__(21);
+	var hasCORS = __webpack_require__(22);
 
 	module.exports = function(opts) {
 	  var xdomain = opts.xdomain;
@@ -32434,7 +32577,7 @@
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -32442,7 +32585,7 @@
 	 * Module dependencies.
 	 */
 
-	var global = __webpack_require__(22);
+	var global = __webpack_require__(23);
 
 	/**
 	 * Module exports.
@@ -32463,7 +32606,7 @@
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports) {
 
 	
@@ -32477,16 +32620,16 @@
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
 	 * Module requirements.
 	 */
 
-	var XMLHttpRequest = __webpack_require__(20);
-	var Polling = __webpack_require__(24);
-	var Emitter = __webpack_require__(12);
+	var XMLHttpRequest = __webpack_require__(21);
+	var Polling = __webpack_require__(25);
+	var Emitter = __webpack_require__(13);
 	var inherit = __webpack_require__(37);
 	var debug = __webpack_require__(38)('engine.io-client:polling-xhr');
 
@@ -32868,16 +33011,16 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Module dependencies.
 	 */
 
-	var Transport = __webpack_require__(25);
+	var Transport = __webpack_require__(26);
 	var parseqs = __webpack_require__(36);
-	var parser = __webpack_require__(26);
+	var parser = __webpack_require__(27);
 	var inherit = __webpack_require__(37);
 	var debug = __webpack_require__(38)('engine.io-client:polling');
 
@@ -32892,7 +33035,7 @@
 	 */
 
 	var hasXHR2 = (function() {
-	  var XMLHttpRequest = __webpack_require__(20);
+	  var XMLHttpRequest = __webpack_require__(21);
 	  var xhr = new XMLHttpRequest({ xdomain: false });
 	  return null != xhr.responseType;
 	})();
@@ -33119,15 +33262,15 @@
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Module dependencies.
 	 */
 
-	var parser = __webpack_require__(26);
-	var Emitter = __webpack_require__(12);
+	var parser = __webpack_require__(27);
+	var Emitter = __webpack_require__(13);
 
 	/**
 	 * Module exports.
@@ -33284,15 +33427,15 @@
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
 	 * Module dependencies.
 	 */
 
-	var keys = __webpack_require__(27);
-	var hasBinary = __webpack_require__(28);
+	var keys = __webpack_require__(28);
+	var hasBinary = __webpack_require__(29);
 	var sliceBuffer = __webpack_require__(30);
 	var base64encoder = __webpack_require__(31);
 	var after = __webpack_require__(32);
@@ -33885,7 +34028,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports) {
 
 	
@@ -33910,7 +34053,7 @@
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -33918,7 +34061,7 @@
 	 * Module requirements.
 	 */
 
-	var isArray = __webpack_require__(29);
+	var isArray = __webpack_require__(12);
 
 	/**
 	 * Module exports.
@@ -33973,15 +34116,6 @@
 	}
 
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
-
-/***/ },
-/* 29 */
-/***/ function(module, exports) {
-
-	module.exports = Array.isArray || function (arr) {
-	  return Object.prototype.toString.call(arr) == '[object Array]';
-	};
-
 
 /***/ },
 /* 30 */
@@ -35022,7 +35156,7 @@
 	 * Module requirements.
 	 */
 
-	var Polling = __webpack_require__(24);
+	var Polling = __webpack_require__(25);
 	var inherit = __webpack_require__(37);
 
 	/**
@@ -35261,8 +35395,8 @@
 	 * Module dependencies.
 	 */
 
-	var Transport = __webpack_require__(25);
-	var parser = __webpack_require__(26);
+	var Transport = __webpack_require__(26);
+	var parser = __webpack_require__(27);
 	var parseqs = __webpack_require__(36);
 	var inherit = __webpack_require__(37);
 	var debug = __webpack_require__(38)('engine.io-client:websocket');
@@ -35654,12 +35788,12 @@
 	 */
 
 	var parser = __webpack_require__(8);
-	var Emitter = __webpack_require__(12);
+	var Emitter = __webpack_require__(13);
 	var toArray = __webpack_require__(48);
 	var on = __webpack_require__(49);
 	var bind = __webpack_require__(50);
 	var debug = __webpack_require__(7)('socket.io-client:socket');
-	var hasBin = __webpack_require__(28);
+	var hasBin = __webpack_require__(29);
 
 	/**
 	 * Module exports.
@@ -36324,14 +36458,15 @@
 	  socket.on(socketIO.E.BEGIN, function(data) {
 	    $location.path('/duel');
 	    $scope.$apply();
-	    socket.wizIds = data;
-	    socket.health = 100;
-	    socket.mana = 100;
+	    console.log(data)
+	    socket.condition = data.condition
+	    socket.wizStats = data.wizStats;
+	    socket.health = data.wizStats[socket.id].health
+	    socket.mana = data.wizStats[socket.id].mana
 	    socket.getFoeId = function(){
-	      for (id in this.wizIds) {
-	        if (this.wizIds[id] !== this.id) {
-	          return this.wizIds[id]
-	          console.log('foe:', foe)
+	      for (id in this.wizStats) {
+	        if (id !== this.id) {
+	          return id
 	        }
 	      }
 	      console.log('socket:',this.id)
@@ -37356,7 +37491,6 @@
 	  __webpack_require__(54),
 	  __webpack_require__(57),
 	  __webpack_require__(58),
-	  __webpack_require__(60)
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -37373,6 +37507,7 @@
 	function DuelCtrl($scope, socketIO) {
 	  var socket = socketIO.socket;
 	  var E = socketIO.E;
+
 	  $scope.spells = [
 	    { name: 'Perry', icon: 'ion-android-favorite-outline' },
 	    { name: 'Repost', icon: 'ion-ios-plus-outline' },
@@ -37380,14 +37515,11 @@
 	  ];
 
 	  $scope.wizards = [
-
 	    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png', id: socket.id },
 	    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
 	  ];
 
 	  socket.on(E.ATTACK_PU, function(data) {
-	    // $scope.Attack = 'red';
-	    // setTimeout(function(){$scope.Attack = undefined}, 250)
 	    socket.attack = data.attackId;
 	    console.log('Attack!');
 	    document.getElementsByTagName('body')[0].classList.add('red');
@@ -37431,14 +37563,14 @@
 	/* globals angular */
 
 	module.exports = angular.module('wizardApp.spells', [
-	  // 'wizardApp.socketIO'
+
 	  ])
 	  .directive('spells', function() {
 	    return {
 	      restrict: 'E',
 	      replace: true,
 	      scope: {
-	        spells: '='
+	        spells: '=',
 	      },
 	      templateUrl: './views/components/spells/spells.html',
 	      controller: 'SpellsCtrl'
@@ -37446,17 +37578,44 @@
 	  })
 
 	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+
+	  .directive('spinner', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      templateUrl: './views/components/spells/spinner.html',
+	      controller: 'SpellsCtrl'
+	    };
+	  })
+
 	  .name;
 
 	function SpellsCtrl($scope, $timeout, socketIO) {
 	  var E = socketIO.E;
 	  var socket = socketIO.socket;
 
-	  $scope.castSpell = function(spell) {
+	  $scope.castingSpell = false;
+
+	  $scope.initializeSpell = function (spellName) {
+	    console.log('initialize spell:', spellName)
+	    $scope.spellData = {
+	      name: spellName,
+	      initTime: new Date().getTime()
+	    };
+	    $scope.castingSpell = true;
+	  };
+
+	  $scope.finalizeSpell = function(spellData) {
+	    $scope.spellData.finalTime = new Date().getTime();
+	    $scope.castingSpell = false;
+	    $scope.castSpell($scope.spellData);
+	  };
+
+	  $scope.castSpell = function(spellData) {
 	    console.log('cast spell')
 	    console.log('mana:', socket.mana)
 	    socket.mana = Number(socket.mana) - Number(5);
-	    switch (spell) {
+	    switch (spellData.name) {
 	      case 'Recover':
 
 	        break;
@@ -37484,6 +37643,7 @@
 	        var me = socket.id
 	        console.log('attack sent:', foe)
 	        console.log('me:', me)
+	        console.log(attackId)
 	        socket.emit(E.ATTACK_PU, {attackId: attackId, targetId: socket.getFoeId()});
 	        setTimeout(function() {
 	          var attackSpell = magic.castSpell(attackId);
@@ -37493,7 +37653,8 @@
 	    }
 	  };
 	}
-	var magic ={
+
+	var magic = {
 	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
 	  setCrit: function() {
 	    var roll = Math.floor(Math.random() * 20 + 1);
@@ -37513,7 +37674,7 @@
 	    };
 	    return spell;
 	  },
-	}
+	};
 
 
 /***/ },
@@ -37569,28 +37730,6 @@
 	  var socket = socketIO.socket;
 	  $scope.health = socket.health;
 	  $scope.mana = socket.mana;
-	}
-
-
-/***/ },
-/* 60 */
-/***/ function(module, exports) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.spinner', [])
-	  .directive('spinner', function() {
-	    return {
-	      restrict: 'E',
-	      templateUrl: './views/components/spinner/spinner.html',
-	      controller: 'SpinnerCtrl'
-	    };
-	  })
-	  .controller('SpinnerCtrl', ['$scope', SpinnerCtrl])
-	  .name;
-
-	function SpinnerCtrl($scope) {
-
 	}
 
 
