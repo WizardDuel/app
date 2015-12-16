@@ -163,4 +163,8 @@ Battle.prototype.wizStats = function() {
   return obj;
 }
 
+Battle.prototype.startGameClock = function() {
+
+};
+
 module.exports = Battle;
