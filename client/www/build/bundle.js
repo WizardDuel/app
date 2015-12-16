@@ -36736,6 +36736,7 @@
 
 	function HomeCtrl($scope, $location, socketIO) {
 	  var socket = socketIO.socket;
+	  var E = socketIO.E
 
 	  $scope.enterBattle = function() {
 	    socket.emit(socketIO.E.DUEL);
@@ -36744,23 +36745,37 @@
 	  socket.on(socketIO.E.BEGIN, function(data) {
 	    $location.path('/duel');
 	    $scope.$apply();
-	    console.log(data)
-	    socket.condition = data.condition
-	    socket.wizStats = data.wizStats;
-	    socket.health = data.wizStats[socket.id].health
-	    socket.mana = data.wizStats[socket.id].mana
+	    socketHelper.initialize(socket, data, E)
+	    console.log('The battle has begun!');
+	  });
+	}
+
+	var socketHelper = {
+	  initialize: function(socket, BeginData, E) {
+	    socket.condition = BeginData.condition;
+	    socket.wizStats = BeginData.wizStats;
+	    socket.health = BeginData.wizStats[socket.id].health;
+	    socket.mana = BeginData.wizStats[socket.id].mana;
+	    this.registerFoeIdFn(socket);
+	    this.registerAttackFn(socket, E);
+	  },
+	  registerFoeIdFn: function(socket) {
 	    socket.getFoeId = function(){
 	      for (id in this.wizStats) {
 	        if (id !== this.id) {
 	          return id
 	        }
 	      }
-	      console.log('socket:',this.id)
 	    }
-	    console.log('The battle has begun!');
-	    console.log('Health:', socket.health);
-	    console.log('Mana:', socket.mana);
-	  });
+	  },
+	  registerAttackFn: function(socket, E) {
+	    socket.attackWith = function(spell) {
+	      spell.attackId = new Date().getTime();
+	      socket.emit(E.ATTACK_PU, {attackId: spell.attackId, targetId: socket.getFoeId()});
+	      return spell
+	    }
+	  }
+
 	}
 
 
@@ -37795,9 +37810,9 @@
 	  var E = socketIO.E;
 
 	  $scope.spells = [
-	    { name: 'Perry', icon: 'ion-android-favorite-outline' },
-	    { name: 'Repost', icon: 'ion-ios-plus-outline' },
-	    { name: 'Attack', icon: 'ion-flame' }
+	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry' },
+	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost' },
+	    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack' }
 	  ];
 
 	  $scope.wizards = [
@@ -37805,38 +37820,60 @@
 	    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
 	  ];
 
-	  socket.on(E.ATTACK_PU, function(data) {
-	    socket.attack = data.attackId;
-	    console.log('Attack!');
-	    document.getElementsByTagName('body')[0].classList.add('red');
-	    setTimeout(function(){
-	      document.getElementsByTagName('body')[0].classList.remove('red');
-	    },250);
-	  });
-	  socket.on(E.RESOLVE_ATTACK, function(data) {
-	    var solution = data[0];
-	    console.log('resolution:', solution);
-	    switch(solution.targetId) {
-	      case socket.id:
-	        socket.health = Number(socket.health) - Number(solution.damage);
-	        document.getElementById(socket.id +'-health').style.width = socket.health + '%';
-	        break;
-	      case socket.getFoeId():
-	        var origHealth = document.getElementById(solution.targetId + '-health').style.width;
-	        document.getElementById(solution.targetId +'-health').style.width = Number(origHealth.split('%')[0]) - Number(solution.damage) + '%';
-	        break;
-	    }
-	    if (solution.counterCasterId && (solution.counterCasterId !== socket.id)) {
-	      var origMana = document.getElementById(solution.targetId + '-mana').style.width;
-	      document.getElementById(solution.counterCasterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
-	    }
-	    if (solution.casterId !== socket.id) {
-	      var origMana = document.getElementById(solution.casterId + '-mana').style.width;
-	      document.getElementById(solution.casterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
-	    }
 
-	    console.log('Health:', socket.health);
-	    console.log('Mana:', socket.mana);
+	  var foe = {id:socket.getFoeId()};
+	  var self = {id: socket.id};
+	  [self, foe].map(function(wiz) {
+	    console.log('createWiz')
+	    console.log(wiz)
+	    console.log(wiz.id)
+	    wiz.getAvatar = function(){
+	      return document.getElementById(this.id);
+	    }
+	    wiz.getHealth = function(){
+	      return document.getElementById(this.id+'-health');
+	    }
+	    wiz.getMana = function(){
+	      return document.getElementById(this.id+'-mana');
+	    }
+	    wiz.addClass = function(cname){
+	      this.getAvatar().classList.add(cname)
+	    }
+	    wiz.removeClass = function(cname) {
+	      this.getAvatar().classList.remove(cname)
+	    }
+	    wiz.setHealth = function(health) {
+	      this.getHealth().style.width = health +'%';
+	    }
+	    wiz.setMana = function(mana) {
+	      this.getMana().style.width = mana+'%';
+	    }
+	    console.log('output')
+	    console.log(wiz)
+	    return wiz
+	  });
+
+	  var avatars = {};
+	  avatars[foe.id] = foe;
+	  avatars[self.id] = self;
+
+	  socket.on(E.ATTACK_PU, function(data) {
+	    console.log('received attack')
+	    console.log(data.casterId)
+	    console.log(avatars)
+	    avatars[data.casterId].addClass('purple');
+	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
+	  });
+	  socket.on(E.RESOLVE_ATTACK, function(solution) {
+	    // update world based on solution
+	    for (wiz in solution.wizStats) {
+	      // console.log(wiz)
+	      // console.log(avatars[wiz])
+	      avatars[wiz].setHealth(solution.wizStats[wiz].health)
+	      avatars[wiz].setMana(solution.wizStats[wiz].mana)
+	    }
+	    console.log('received solution:')
+	    console.log(solution)
 	  });
 
 	  }
@@ -37879,66 +37916,53 @@
 	function SpellsCtrl($scope, $timeout, socketIO) {
 	  var E = socketIO.E;
 	  var socket = socketIO.socket;
+	  $scope.castingSpell = false; // shows powerbar when true
+	  $scope.underAttack = false;
 
-	  $scope.castingSpell = false;
-
-	  $scope.initializeSpell = function (spellName) {
-	    console.log('initialize spell:', spellName)
-	    $scope.spellData = {
-	      name: spellName,
-	      initTime: new Date().getTime()
-	    };
+	  $scope.initializeSpell = function (spell) {
+	    console.log('initialize spell:', spell)
+	    if (spell.type === 'Attack') { // initialize the attack cycle
+	      spell = socket.attackWith(spell);
+	    }
+	    spell.initTime = new Date().getTime()
 	    $scope.castingSpell = true;
+	    // Inspect spell
+	    $scope.spell = spell
 	  };
 
-	  $scope.finalizeSpell = function(spellData) {
-	    $scope.spellData.finalTime = new Date().getTime();
+	  $scope.finalizeSpell = function(spell) {
+	    spell.finalTime = new Date().getTime();
 	    $scope.castingSpell = false;
-	    $scope.castSpell($scope.spellData);
+	    $scope.castSpell(spell);
 	  };
 
-	  $scope.castSpell = function(spellData) {
+	  $scope.castSpell = function(spell) {
+	    var attackId = spell.attackId
+
 	    console.log('cast spell')
-	    console.log('mana:', socket.mana)
-	    socket.mana = Number(socket.mana) - Number(5);
-	    switch (spellData.name) {
+
+	    switch (spell.type) {
 	      case 'Recover':
-
 	        break;
-
 	      case 'Defend':
-
 	        break;
-
 	      case 'Perry':
-	        if (socket.attack) {
-	          var defensiveSpell = magic.castSpell(socket.attack)
+	          var defensiveSpell = magic.castSpell(attackId)
 	          socket.emit(E.PERRY, defensiveSpell);
-	        }
 	        break;
 	      case 'Repost':
-	        if (socket.attack) {
-	          var repostSpell = magic.castSpell(socket.attack)
+	          var repostSpell = magic.castSpell(attackId)
 	          socket.emit(E.REPOST, repostSpell);
-	        }
 	        break;
 
 	      case 'Attack':
-	        var attackId = new Date().getTime();
-	        var foe = socket.getFoeId()
-	        var me = socket.id
-	        console.log('attack sent:', foe)
-	        console.log('me:', me)
-	        console.log(attackId)
-	        socket.emit(E.ATTACK_PU, {attackId: attackId, targetId: socket.getFoeId()});
-	        setTimeout(function() {
 	          var attackSpell = magic.castSpell(attackId);
 	          socket.emit(E.ATTACK, attackSpell)
-	        }, 400)
 	        break;
 	    }
 	  };
-	}
+
+	} // Spells controller
 
 	var magic = {
 	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
