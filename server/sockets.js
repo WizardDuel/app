@@ -1,15 +1,18 @@
 module.exports = function(io) {
   var Battle = require('./lib/Battle');
   var E = require('./lib/events.js');
+  var _ = require('lodash');
 
   // Battle State
-  var battles = {};
   var openBattles = [];
 
   io.on('connection', function(socket) {
+
     var battle = null;
+
     socket.once(E.DUEL, function() {
-      if (openBattles.length > 0 ) {
+
+      if (openBattles.length > 0) {
         battle = openBattles.pop();
         battle.addCombatant(socket);
         battle.setFoesForDuel();
@@ -41,20 +44,31 @@ module.exports = function(io) {
       setTimeout(function(){
         var resolution = battle.resolveAttack(data);
         if (resolution.condition === 'Victory') {
-          io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution)
           battle.sockets.map(function(sock) {
-            io.to(battle.id).emit('End of battle')
-            io.sockets.connected[sock.id].emit('disconnect');
-
+            var msg = null;
+            if (sock.id === resolution.winner) {
+               msg = 'you win!'
+            } else {
+              msg = 'you lose :('
+            }
+            io.sockets.connected[sock.id].emit('End of battle', msg)
           })
+        } else {
+          io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution);
+          console.log('=============================');
         }
-        io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution);
-        console.log('=============================');
       }, 100);
-
     });
 
     socket.on('disconnect', function() {
+      if (battle) {
+        io.to(battle.id).emit('End of battle', 'opponent disconnected')
+        if (_.includes(_.pluck(openBattles, 'id'), battle.id) ){
+          openBattles = openBattles.filter(function(btl) {
+            return btl.id !== battle.id
+          })
+        }
+      }
       //io.to(battle.id).emit('End of battle', 'opponent disconnected')
       io.emit('disconnect');
     });

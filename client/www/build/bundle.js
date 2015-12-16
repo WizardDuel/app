@@ -37516,10 +37516,10 @@
 	      });
 	  }])
 
-	  .controller('DuelCtrl', ['$scope', 'socketIO', DuelCtrl])
+	  .controller('DuelCtrl', ['$scope', 'socketIO', '$location', '$window',DuelCtrl])
 	  .name;
 
-	function DuelCtrl($scope, socketIO) {
+	function DuelCtrl($scope, socketIO, $location, $window) {
 	  var socket = socketIO.socket;
 	  var E = socketIO.E;
 
@@ -37589,8 +37589,14 @@
 	    console.log('received solution:')
 	    console.log(solution)
 	  });
-
-	  }
+	  socket.on('End of battle', function(msg) {
+	    alert(msg)
+	    $scope.$apply(function() {
+	      $location.path('/');
+	      $window.location.reload();
+	    });
+	  })
+	}
 
 
 /***/ },
