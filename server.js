@@ -2,7 +2,7 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-require('./server-files/sockets')(io);
+require('./server/sockets')(io);
 
 var port = process.env.PORT || 3000;
 app.set('env', process.env.NODE_ENV);
@@ -22,7 +22,7 @@ app.get('/play', function(req, res) {
 app.use(express.static(__dirname + '/client/www'));
 
 //routes
-var spellRoutes = require('./server-files/routes/spellRoutes.js');
+var spellRoutes = require('./server/routes/spellRoutes.js');
 app.use('/spells', spellRoutes);
 
 http.listen(port, function() {

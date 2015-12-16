@@ -1,4 +1,4 @@
-// require('./assets/scss/style.scss');
+require('./assets/css/style.css');
 require('./lib/ionic/css/ionic.css');
 
 var angular = require('angular');
