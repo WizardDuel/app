@@ -55,10 +55,12 @@
 	])
 	.factory('socketIO', function() {
 	    return {
-	      socket: io.connect('https://wizardduel.herokuapp.com'),
+	      socket: io.connect('http://localhost:3000'),
 	      E: {
 	        DUEL: 'Duel',
-	        BEGIN: 'Begin',
+	        BEGIN: 'Begin',                     //Loads Duel View
+	        READY: 'Ready',                     // Waits for users to load
+	        START: 'Start',                     //Begins Duel
 	        ATTACK_PU: 'Attack Power Up',
 	        RESOLVE_ATTACK: 'Resolve Attack',
 	        PERRY: 'Perry',
@@ -36737,6 +36739,7 @@
 	function HomeCtrl($scope, $location, socketIO) {
 	  var socket = socketIO.socket;
 	  var E = socketIO.E
+	  socket.ready = false;
 
 	  $scope.enterBattle = function() {
 	    socket.emit(socketIO.E.DUEL);
@@ -36746,7 +36749,7 @@
 	    $location.path('/duel');
 	    $scope.$apply();
 	    socketHelper.initialize(socket, data, E)
-	    console.log('The battle has begun!');
+	    // console.log('The battle has begun!');
 	  });
 	}
 
@@ -37824,9 +37827,9 @@
 	  var foe = {id:socket.getFoeId()};
 	  var self = {id: socket.id};
 	  [self, foe].map(function(wiz) {
-	    console.log('createWiz')
-	    console.log(wiz)
-	    console.log(wiz.id)
+	    // console.log('createWiz')
+	    // console.log(wiz)
+	    // console.log(wiz.id)
 	    wiz.getAvatar = function(){
 	      return document.getElementById(this.id);
 	    }
@@ -37848,8 +37851,8 @@
 	    wiz.setMana = function(mana) {
 	      this.getMana().style.width = mana+'%';
 	    }
-	    console.log('output')
-	    console.log(wiz)
+	    // console.log('output')
+	    // console.log(wiz)
 	    return wiz
 	  });
 
@@ -37858,12 +37861,13 @@
 	  avatars[self.id] = self;
 
 	  socket.on(E.ATTACK_PU, function(data) {
-	    console.log('received attack')
-	    console.log(data.casterId)
-	    console.log(avatars)
+	    // console.log('received attack')
+	    // console.log(data.casterId)
+	    // console.log(avatars)
 	    avatars[data.casterId].addClass('purple');
 	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
 	  });
+
 	  socket.on(E.RESOLVE_ATTACK, function(solution) {
 	    // update world based on solution
 	    for (wiz in solution.wizStats) {
@@ -37872,9 +37876,20 @@
 	      avatars[wiz].setHealth(solution.wizStats[wiz].health)
 	      avatars[wiz].setMana(solution.wizStats[wiz].mana)
 	    }
-	    console.log('received solution:')
-	    console.log(solution)
+	    // console.log('received solution:')
+	    // console.log(solution)
 	  });
+
+	  angular.element(document).ready(function(){
+	    socket.ready = true;
+	    socket.emit(E.READY);
+	  });
+
+	  socket.on('Start', function(){
+	    
+	    console.log('start recieved')
+	  });
+
 	  socket.on('End of battle', function(msg) {
 	    alert(msg)
 	    $scope.$apply(function() {

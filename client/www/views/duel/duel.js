@@ -34,9 +34,9 @@ function DuelCtrl($scope, socketIO, $location, $window) {
   var foe = {id:socket.getFoeId()};
   var self = {id: socket.id};
   [self, foe].map(function(wiz) {
-    console.log('createWiz')
-    console.log(wiz)
-    console.log(wiz.id)
+    // console.log('createWiz')
+    // console.log(wiz)
+    // console.log(wiz.id)
     wiz.getAvatar = function(){
       return document.getElementById(this.id);
     }
@@ -58,8 +58,8 @@ function DuelCtrl($scope, socketIO, $location, $window) {
     wiz.setMana = function(mana) {
       this.getMana().style.width = mana+'%';
     }
-    console.log('output')
-    console.log(wiz)
+    // console.log('output')
+    // console.log(wiz)
     return wiz
   });
 
@@ -68,12 +68,13 @@ function DuelCtrl($scope, socketIO, $location, $window) {
   avatars[self.id] = self;
 
   socket.on(E.ATTACK_PU, function(data) {
-    console.log('received attack')
-    console.log(data.casterId)
-    console.log(avatars)
+    // console.log('received attack')
+    // console.log(data.casterId)
+    // console.log(avatars)
     avatars[data.casterId].addClass('purple');
     setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
   });
+
   socket.on(E.RESOLVE_ATTACK, function(solution) {
     // update world based on solution
     for (wiz in solution.wizStats) {
@@ -82,9 +83,20 @@ function DuelCtrl($scope, socketIO, $location, $window) {
       avatars[wiz].setHealth(solution.wizStats[wiz].health)
       avatars[wiz].setMana(solution.wizStats[wiz].mana)
     }
-    console.log('received solution:')
-    console.log(solution)
+    // console.log('received solution:')
+    // console.log(solution)
   });
+
+  angular.element(document).ready(function(){
+    socket.ready = true;
+    socket.emit(E.READY);
+  });
+
+  socket.on('Start', function(){
+    
+    console.log('start recieved')
+  });
+
   socket.on('End of battle', function(msg) {
     alert(msg)
     $scope.$apply(function() {

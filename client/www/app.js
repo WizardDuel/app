@@ -9,10 +9,12 @@ angular.module('wizardApp', [
 ])
 .factory('socketIO', function() {
     return {
-      socket: io.connect('https://wizardduel.herokuapp.com'),
+      socket: io.connect('http://localhost:3000'),
       E: {
         DUEL: 'Duel',
-        BEGIN: 'Begin',
+        BEGIN: 'Begin',                     //Loads Duel View
+        READY: 'Ready',                     // Waits for users to load
+        START: 'Start',                     //Begins Duel
         ATTACK_PU: 'Attack Power Up',
         RESOLVE_ATTACK: 'Resolve Attack',
         PERRY: 'Perry',

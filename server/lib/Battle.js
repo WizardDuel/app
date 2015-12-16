@@ -5,6 +5,7 @@ function Battle(socket) {
   this.sockets = [];
   this.addCombatant(socket);
   this.attacks = {};
+  this.clock = new Date();
 }
 
 Battle.prototype.addCombatant = function(socket) {

@@ -7,7 +7,6 @@ module.exports = function(io) {
   var openBattles = [];
 
   io.on('connection', function(socket) {
-
     var battle = null;
 
     socket.once(E.DUEL, function() {
@@ -22,6 +21,16 @@ module.exports = function(io) {
         battle = new Battle(socket);
         openBattles.push(battle);
         io.sockets.connected[socket.id].emit('waiting for opponent');
+      }
+    });
+
+    socket.on(E.READY, function(){
+      var readySockets = battle.sockets.filter(function(socks){
+        return socks.ready;
+      });
+
+      if(readySockets.length === battle.sockets.length){
+        io.to(battle.id).emit(E.START);
       }
     });
 
@@ -72,5 +81,6 @@ module.exports = function(io) {
       //io.to(battle.id).emit('End of battle', 'opponent disconnected')
       io.emit('disconnect');
     });
+
   });
 };

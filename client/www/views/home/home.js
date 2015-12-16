@@ -18,6 +18,7 @@ module.exports = angular.module('wizardApp.home', [
 function HomeCtrl($scope, $location, socketIO) {
   var socket = socketIO.socket;
   var E = socketIO.E
+  socket.ready = false;
 
   $scope.enterBattle = function() {
     socket.emit(socketIO.E.DUEL);
@@ -27,7 +28,7 @@ function HomeCtrl($scope, $location, socketIO) {
     $location.path('/duel');
     $scope.$apply();
     socketHelper.initialize(socket, data, E)
-    console.log('The battle has begun!');
+    // console.log('The battle has begun!');
   });
 }
 

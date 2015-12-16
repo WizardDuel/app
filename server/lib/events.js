@@ -2,6 +2,8 @@
 var Events = {
   DUEL:'Duel',
   BEGIN:'Begin',
+  READY: 'Ready',
+  START: 'Start',
   ATTACK_PU:'Attack Power Up',
   RESOLVE_ATTACK:'Resolve Attack',
   PERRY:'Perry',
