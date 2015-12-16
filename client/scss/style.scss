@@ -1,6 +1,9 @@
 .red{
   background-color: red;
 }
+.container {
+  margin-top: 200px;
+}
 
 .health-bar {
   background: red;
@@ -9,7 +12,7 @@
 }
 
 .mana-bar {
-  background: purple;
+  background: #A621FF;
   display: block;
   height: 1em
 }

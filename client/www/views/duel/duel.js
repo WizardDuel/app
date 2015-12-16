@@ -2,7 +2,6 @@ module.exports = angular.module('wizardApp.duel', [
   require('angular-route'),
   require('../components/spells/spells.js'),
   require('../components/wizards/wizards.js'),
-  // require('../components/spinner/spinner.js')
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
@@ -32,8 +31,6 @@ function DuelCtrl($scope, socketIO) {
   ];
 
   socket.on(E.ATTACK_PU, function(data) {
-    // $scope.Attack = 'red';
-    // setTimeout(function(){$scope.Attack = undefined}, 250)
     socket.attack = data.attackId;
     console.log('Attack!');
     document.getElementsByTagName('body')[0].classList.add('red');
