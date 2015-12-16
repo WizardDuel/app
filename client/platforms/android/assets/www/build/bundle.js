@@ -55,7 +55,7 @@
 	])
 	.factory('socketIO', function() {
 	    return {
-	      socket: io.connect('http://192.168.2.3:3000'),
+	      socket: io.connect('https://wizardduel.herokuapp.com'),
 	      E: {
 	        DUEL: 'Duel',
 	        BEGIN: 'Begin',
@@ -36324,14 +36324,15 @@
 	  socket.on(socketIO.E.BEGIN, function(data) {
 	    $location.path('/duel');
 	    $scope.$apply();
-	    socket.wizIds = data;
-	    socket.health = 100;
-	    socket.mana = 100;
+	    console.log(data)
+	    socket.condition = data.condition
+	    socket.wizStats = data.wizStats;
+	    socket.health = data.wizStats[socket.id].health
+	    socket.mana = data.wizStats[socket.id].mana
 	    socket.getFoeId = function(){
-	      for (id in this.wizIds) {
-	        if (this.wizIds[id] !== this.id) {
-	          return this.wizIds[id]
-	          console.log('foe:', foe)
+	      for (id in this.wizStats) {
+	        if (id !== this.id) {
+	          return id
 	        }
 	      }
 	      console.log('socket:',this.id)
@@ -37356,7 +37357,6 @@
 	  __webpack_require__(54),
 	  __webpack_require__(57),
 	  __webpack_require__(58),
-	  // require('../components/spinner/spinner.js')
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -37386,8 +37386,6 @@
 	  ];
 
 	  socket.on(E.ATTACK_PU, function(data) {
-	    // $scope.Attack = 'red';
-	    // setTimeout(function(){$scope.Attack = undefined}, 250)
 	    socket.attack = data.attackId;
 	    console.log('Attack!');
 	    document.getElementsByTagName('body')[0].classList.add('red');
@@ -37431,8 +37429,7 @@
 	/* globals angular */
 
 	module.exports = angular.module('wizardApp.spells', [
-	  // require('../spinner/spinner.js')
-	  // 'wizardApp.socketIO'
+
 	  ])
 	  .directive('spells', function() {
 	    return {
@@ -37466,6 +37463,7 @@
 	  $scope.castingSpell = false;
 
 	  $scope.initializeSpell = function (spellName) {
+	    console.log('initialize spell:', spellName)
 	    $scope.spellData = {
 	      name: spellName,
 	      initTime: new Date().getTime()
@@ -37511,6 +37509,7 @@
 	        var me = socket.id
 	        console.log('attack sent:', foe)
 	        console.log('me:', me)
+	        console.log(attackId)
 	        socket.emit(E.ATTACK_PU, {attackId: attackId, targetId: socket.getFoeId()});
 	        setTimeout(function() {
 	          var attackSpell = magic.castSpell(attackId);

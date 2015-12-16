@@ -25,14 +25,15 @@ function HomeCtrl($scope, $location, socketIO) {
   socket.on(socketIO.E.BEGIN, function(data) {
     $location.path('/duel');
     $scope.$apply();
-    socket.wizIds = data;
-    socket.health = 100;
-    socket.mana = 100;
+    console.log(data)
+    socket.condition = data.condition
+    socket.wizStats = data.wizStats;
+    socket.health = data.wizStats[socket.id].health
+    socket.mana = data.wizStats[socket.id].mana
     socket.getFoeId = function(){
-      for (id in this.wizIds) {
-        if (this.wizIds[id] !== this.id) {
-          return this.wizIds[id]
-          console.log('foe:', foe)
+      for (id in this.wizStats) {
+        if (id !== this.id) {
+          return id
         }
       }
       console.log('socket:',this.id)
