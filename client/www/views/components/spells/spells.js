@@ -1,6 +1,7 @@
 /* globals angular */
 
 module.exports = angular.module('wizardApp.spells', [
+  // require('../spinner/spinner.js')
   // 'wizardApp.socketIO'
   ])
   .directive('spells', function() {
@@ -8,7 +9,7 @@ module.exports = angular.module('wizardApp.spells', [
       restrict: 'E',
       replace: true,
       scope: {
-        spells: '='
+        spells: '=',
       },
       templateUrl: './views/components/spells/spells.html',
       controller: 'SpellsCtrl'
@@ -16,17 +17,43 @@ module.exports = angular.module('wizardApp.spells', [
   })
 
   .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+
+  .directive('spinner', function() {
+    return {
+      restrict: 'E',
+      replace: true,
+      templateUrl: './views/components/spells/spinner.html',
+      controller: 'SpellsCtrl'
+    };
+  })
+
   .name;
 
 function SpellsCtrl($scope, $timeout, socketIO) {
   var E = socketIO.E;
   var socket = socketIO.socket;
 
-  $scope.castSpell = function(spell) {
+  $scope.castingSpell = false;
+
+  $scope.initializeSpell = function (spellName) {
+    $scope.spellData = {
+      name: spellName,
+      initTime: new Date().getTime()
+    };
+    $scope.castingSpell = true;
+  };
+
+  $scope.finalizeSpell = function(spellData) {
+    $scope.spellData.finalTime = new Date().getTime();
+    $scope.castingSpell = false;
+    $scope.castSpell($scope.spellData);
+  };
+
+  $scope.castSpell = function(spellData) {
     console.log('cast spell')
     console.log('mana:', socket.mana)
     socket.mana = Number(socket.mana) - Number(5);
-    switch (spell) {
+    switch (spellData.name) {
       case 'Recover':
 
         break;
@@ -63,7 +90,8 @@ function SpellsCtrl($scope, $timeout, socketIO) {
     }
   };
 }
-var magic ={
+
+var magic = {
   setPower: function() {return Math.floor(Math.random() * 10 + 1);},
   setCrit: function() {
     var roll = Math.floor(Math.random() * 20 + 1);
@@ -83,4 +111,4 @@ var magic ={
     };
     return spell;
   },
-}
+};
