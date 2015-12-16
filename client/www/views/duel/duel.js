@@ -20,9 +20,9 @@ function DuelCtrl($scope, socketIO) {
   var E = socketIO.E;
 
   $scope.spells = [
-    { name: 'Perry', icon: 'ion-android-favorite-outline' },
-    { name: 'Repost', icon: 'ion-ios-plus-outline' },
-    { name: 'Attack', icon: 'ion-flame' }
+    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry' },
+    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost' },
+    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack' }
   ];
 
   $scope.wizards = [
@@ -38,8 +38,9 @@ function DuelCtrl($scope, socketIO) {
       document.getElementsByTagName('body')[0].classList.remove('red');
     },250);
   });
-  socket.on(E.RESOLVE_ATTACK, function(data) {
-    var solution = data[0];
+  socket.on(E.RESOLVE_ATTACK, function(solution) {
+    // update world based on solution
+
     console.log('resolution:', solution);
     switch(solution.targetId) {
       case socket.id:

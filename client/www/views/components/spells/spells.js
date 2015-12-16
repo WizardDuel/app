@@ -31,66 +31,53 @@ module.exports = angular.module('wizardApp.spells', [
 function SpellsCtrl($scope, $timeout, socketIO) {
   var E = socketIO.E;
   var socket = socketIO.socket;
+  $scope.castingSpell = false; // shows powerbar when true
+  $scope.underAttack = false;
 
-  $scope.castingSpell = false;
-
-  $scope.initializeSpell = function (spellName) {
-    console.log('initialize spell:', spellName)
-    $scope.spellData = {
-      name: spellName,
-      initTime: new Date().getTime()
-    };
+  $scope.initializeSpell = function (spell) {
+    console.log('initialize spell:', spell)
+    if (spell.type === 'Attack') { // initialize the attack cycle
+      spell = socket.attackWith(spell);
+    }
+    spell.initTime = new Date().getTime()
     $scope.castingSpell = true;
+    // Inspect spell
+    $scope.spell = spell
   };
 
-  $scope.finalizeSpell = function(spellData) {
-    $scope.spellData.finalTime = new Date().getTime();
+  $scope.finalizeSpell = function(spell) {
+    spell.finalTime = new Date().getTime();
     $scope.castingSpell = false;
-    $scope.castSpell($scope.spellData);
+    $scope.castSpell(spell);
   };
 
-  $scope.castSpell = function(spellData) {
+  $scope.castSpell = function(spell) {
+    var attackId = spell.attackId
+
     console.log('cast spell')
-    console.log('mana:', socket.mana)
-    socket.mana = Number(socket.mana) - Number(5);
-    switch (spellData.name) {
+
+    switch (spell.type) {
       case 'Recover':
-
         break;
-
       case 'Defend':
-
         break;
-
       case 'Perry':
-        if (socket.attack) {
-          var defensiveSpell = magic.castSpell(socket.attack)
+          var defensiveSpell = magic.castSpell(attackId)
           socket.emit(E.PERRY, defensiveSpell);
-        }
         break;
       case 'Repost':
-        if (socket.attack) {
-          var repostSpell = magic.castSpell(socket.attack)
+          var repostSpell = magic.castSpell(attackId)
           socket.emit(E.REPOST, repostSpell);
-        }
         break;
 
       case 'Attack':
-        var attackId = new Date().getTime();
-        var foe = socket.getFoeId()
-        var me = socket.id
-        console.log('attack sent:', foe)
-        console.log('me:', me)
-        console.log(attackId)
-        socket.emit(E.ATTACK_PU, {attackId: attackId, targetId: socket.getFoeId()});
-        setTimeout(function() {
           var attackSpell = magic.castSpell(attackId);
           socket.emit(E.ATTACK, attackSpell)
-        }, 400)
         break;
     }
   };
-}
+
+} // Spells controller
 
 var magic = {
   setPower: function() {return Math.floor(Math.random() * 10 + 1);},

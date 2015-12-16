@@ -36450,6 +36450,7 @@
 
 	function HomeCtrl($scope, $location, socketIO) {
 	  var socket = socketIO.socket;
+	  var E = socketIO.E
 
 	  $scope.enterBattle = function() {
 	    socket.emit(socketIO.E.DUEL);
@@ -36458,23 +36459,37 @@
 	  socket.on(socketIO.E.BEGIN, function(data) {
 	    $location.path('/duel');
 	    $scope.$apply();
-	    console.log(data)
-	    socket.condition = data.condition
-	    socket.wizStats = data.wizStats;
-	    socket.health = data.wizStats[socket.id].health
-	    socket.mana = data.wizStats[socket.id].mana
+	    socketHelper.initialize(socket, data, E)
+	    console.log('The battle has begun!');
+	  });
+	}
+
+	var socketHelper = {
+	  initialize: function(socket, BeginData, E) {
+	    socket.condition = BeginData.condition;
+	    socket.wizStats = BeginData.wizStats;
+	    socket.health = BeginData.wizStats[socket.id].health;
+	    socket.mana = BeginData.wizStats[socket.id].mana;
+	    this.registerFoeIdFn(socket);
+	    this.registerAttackFn(socket, E);
+	  },
+	  registerFoeIdFn: function(socket) {
 	    socket.getFoeId = function(){
 	      for (id in this.wizStats) {
 	        if (id !== this.id) {
 	          return id
 	        }
 	      }
-	      console.log('socket:',this.id)
 	    }
-	    console.log('The battle has begun!');
-	    console.log('Health:', socket.health);
-	    console.log('Mana:', socket.mana);
-	  });
+	  },
+	  registerAttackFn: function(socket, E) {
+	    socket.attackWith = function(spell) {
+	      spell.attackId = new Date().getTime();
+	      socket.emit(E.ATTACK_PU, {attackId: spell.attackId, targetId: socket.getFoeId()});
+	      return spell
+	    }
+	  }
+
 	}
 
 
@@ -37509,9 +37524,9 @@
 	  var E = socketIO.E;
 
 	  $scope.spells = [
-	    { name: 'Perry', icon: 'ion-android-favorite-outline' },
-	    { name: 'Repost', icon: 'ion-ios-plus-outline' },
-	    { name: 'Attack', icon: 'ion-flame' }
+	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry' },
+	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost' },
+	    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack' }
 	  ];
 
 	  $scope.wizards = [
@@ -37527,8 +37542,9 @@
 	      document.getElementsByTagName('body')[0].classList.remove('red');
 	    },250);
 	  });
-	  socket.on(E.RESOLVE_ATTACK, function(data) {
-	    var solution = data[0];
+	  socket.on(E.RESOLVE_ATTACK, function(solution) {
+	    // update world based on solution
+
 	    console.log('resolution:', solution);
 	    switch(solution.targetId) {
 	      case socket.id:
@@ -37593,66 +37609,53 @@
 	function SpellsCtrl($scope, $timeout, socketIO) {
 	  var E = socketIO.E;
 	  var socket = socketIO.socket;
+	  $scope.castingSpell = false; // shows powerbar when true
+	  $scope.underAttack = false;
 
-	  $scope.castingSpell = false;
-
-	  $scope.initializeSpell = function (spellName) {
-	    console.log('initialize spell:', spellName)
-	    $scope.spellData = {
-	      name: spellName,
-	      initTime: new Date().getTime()
-	    };
+	  $scope.initializeSpell = function (spell) {
+	    console.log('initialize spell:', spell)
+	    if (spell.type === 'Attack') { // initialize the attack cycle
+	      spell = socket.attackWith(spell);
+	    }
+	    spell.initTime = new Date().getTime()
 	    $scope.castingSpell = true;
+	    // Inspect spell
+	    $scope.spell = spell
 	  };
 
-	  $scope.finalizeSpell = function(spellData) {
-	    $scope.spellData.finalTime = new Date().getTime();
+	  $scope.finalizeSpell = function(spell) {
+	    spell.finalTime = new Date().getTime();
 	    $scope.castingSpell = false;
-	    $scope.castSpell($scope.spellData);
+	    $scope.castSpell(spell);
 	  };
 
-	  $scope.castSpell = function(spellData) {
+	  $scope.castSpell = function(spell) {
+	    var attackId = spell.attackId
+
 	    console.log('cast spell')
-	    console.log('mana:', socket.mana)
-	    socket.mana = Number(socket.mana) - Number(5);
-	    switch (spellData.name) {
+
+	    switch (spell.type) {
 	      case 'Recover':
-
 	        break;
-
 	      case 'Defend':
-
 	        break;
-
 	      case 'Perry':
-	        if (socket.attack) {
-	          var defensiveSpell = magic.castSpell(socket.attack)
+	          var defensiveSpell = magic.castSpell(attackId)
 	          socket.emit(E.PERRY, defensiveSpell);
-	        }
 	        break;
 	      case 'Repost':
-	        if (socket.attack) {
-	          var repostSpell = magic.castSpell(socket.attack)
+	          var repostSpell = magic.castSpell(attackId)
 	          socket.emit(E.REPOST, repostSpell);
-	        }
 	        break;
 
 	      case 'Attack':
-	        var attackId = new Date().getTime();
-	        var foe = socket.getFoeId()
-	        var me = socket.id
-	        console.log('attack sent:', foe)
-	        console.log('me:', me)
-	        console.log(attackId)
-	        socket.emit(E.ATTACK_PU, {attackId: attackId, targetId: socket.getFoeId()});
-	        setTimeout(function() {
 	          var attackSpell = magic.castSpell(attackId);
 	          socket.emit(E.ATTACK, attackSpell)
-	        }, 400)
 	        break;
 	    }
 	  };
-	}
+
+	} // Spells controller
 
 	var magic = {
 	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
