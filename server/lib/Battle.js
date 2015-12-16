@@ -8,9 +8,10 @@ function Battle(socket) {
 }
 
 Battle.prototype.addCombatant = function(socket) {
-  this[socket.id] = {};
+  this[socket.id] = socket;
   socket.join(this.id);
   this.sockets.push(socket);
+  socket.health = socket.mana = 100;
 };
 
 Battle.prototype.setFoesForDuel = function() {
@@ -34,45 +35,46 @@ Battle.prototype.perryAttack = function(data) {
 };
 
 Battle.prototype.counterAttack = function(spell) {
-  console.log('================ counter ================');
   if (!this.attacks[spell.attackId]) this.attacks[spell.attackId] = {};
   this.attacks[spell.attackId].counterSpell = {spell: spell};
   this.attacks[spell.attackId].counterSpell.spell.type = 'repost';
 };
 
 Battle.prototype.resolveAttack = function(attackSpell) {
-
-  console.log('resolve attack');
-  var resolution = [];
+  console.log('resolve attack:', attackSpell)
+  // get spells
+  var resolution = {};
   var attack = this.attacks[attackSpell.attackId];
-  console.log('attack:', attack);
-  var counterSpell = null;
-  if (attack.counterSpell) counterSpell = attack.counterSpell.spell;
-  if (counterSpell) console.log('counter spell:', counterSpell);
+  if (attack.counterSpell) var counterSpell = attack.counterSpell.spell;
+
   if (counterSpell && counterSpell.time < attackSpell.time) {
     switch (counterSpell.type) {
       case 'perry':
-        resolution.push({
-          targetId: attack.targetId,
-          damage: this.resolveCrit(attackSpell, counterSpell),
-          msg: 'Attack perried!',
-          counterCasterId: attack.targetId,
-          casterId: attack.casterId,
-        });
+        console.log('perry, attackspell:', attackSpell)
+        resolution = this.resolvePerry(attack, counterSpell, attackSpell);
         break;
       case 'repost':
-        resolution.push(this.resolveRepost(attack, counterSpell, attackSpell));
+        resolution = this.resolveRepost(attack, counterSpell, attackSpell);
         break;
     }
   } else {
-    console.log('Full attack');
-    resolution.push({targetId: attack.targetId, damage:attackSpell.power, casterId: attack.casterId});
+    resolution = {targetId: attack.targetId, damage:attackSpell.power, casterId: attack.casterId};
   }
-  console.log('msg:', attackSpell.msg);
-  console.log('resolution:', resolution);
-  return resolution;
+  return this.applyResolution(resolution)
 };
+
+Battle.prototype.resolvePerry = function(attack, counterSpell, attackSpell) {
+  return {
+    targetId: attack.targetId,
+    damage: this.resolveCrit(attackSpell, counterSpell),
+    msg: 'Attack perried!',
+    counterCasterId: attack.targetId,
+    casterId: attack.casterId,
+  }
+}
+
 Battle.prototype.resolveCrit = function(attackSpell, counterSpell) {
+  console.log('attackspell:',attackSpell)
   var outcome = null;
   switch (counterSpell.crit) {
     case -1:
@@ -130,8 +132,34 @@ Battle.prototype.resolveRepost = function(attack, counterSpell, attackSpell){
           response.damage = 12;
           response.msg = [msg[2], msg[3]].join(' ')
   }
-  response.counterCasterId = targetId;
-  return response
+  response.counterCasterId = attack.targetId;
+  response.casterId = attack.casterId;
+  return response;
 };
+
+Battle.prototype.applyResolution = function(resolution) {
+  console.log('apply resolution:', resolution)
+  this[resolution.targetId].health -= resolution.damage;
+  this[resolution.casterId].mana -= 5;
+  if (resolution.counterCaster) this[resolution.counterCasterId].mana -= 5;
+
+  this.sockets.map(function(wiz) {
+    if (wiz.mana <= 0) wiz.mana = 0;
+  })
+
+  if (this.sockets[0].health <= 0 || this.sockets[1].health[0]) {
+    return {condition:'Victory', wizStats:this.wizStats()}
+  }
+
+  return {condition: 'Battle', wizStats:this.wizStats()}
+}
+
+Battle.prototype.wizStats = function() {
+  var obj = {}
+  this.sockets.map(function(sock) {
+    obj[sock.id] = {health: sock.health, mana: sock.mana}
+  });
+  return obj;
+}
 
 module.exports = Battle;

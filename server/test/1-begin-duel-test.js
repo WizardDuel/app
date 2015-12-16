@@ -8,6 +8,7 @@ var helpers = require('./helpers');
 var sock1 = require('socket.io-client')('http://localhost:3000');
 var sock2 = require('socket.io-client')('http://localhost:3000', {forceNew: true});
 var sock3 = require('socket.io-client')('http://localhost:3000', {forceNew: true});
+var sock4 = require('socket.io-client')('http://localhost:3000', {forceNew: true});
 
 describe('Wizard Duel Initial Duel Setup', function() {
   var duel = false;
@@ -48,10 +49,11 @@ describe('Wizard Duel Initial Duel Setup', function() {
     });
 
     it('should send array of ids to duelers', function() {
-      expect(beginData, 'sId').to.have.property('id1')
-      expect(beginData, 'foe').to.have.property('id2')
-      expect(sock1.getFoe(beginData)).to.eql(sock2.id);
-      
+      expect(beginData, 'condition: battle').to.have.property('condition').and.to.eql('Battle')
+      expect(beginData, 'wizstats exist').to.have.property('wizStats');
+      expect(beginData.wizStats, 'wizstats ids').to.have.property(sock1.id)
+      expect(beginData.wizStats, 'wizstats ids').to.have.property(sock2.id)
+      expect(beginData.wizStats[sock1.id].health).to.eql(100)
     })
 
   });

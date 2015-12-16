@@ -31,7 +31,11 @@ describe('Attack/Response Cycle', function() {
     attacks.push(helpers.setTime());
     attacker.emit(E.DUEL);
     defender.emit(E.DUEL);
-    defender.on(E.BEGIN, function() {
+    defender.on(E.BEGIN, function(data) {
+      [attacker, defender].map(function(s) {
+        s.health = 100
+        s.mana = 100
+      });
       socks.push([attacker, defender]);
       done();
     });
@@ -41,11 +45,13 @@ describe('Attack/Response Cycle', function() {
 
     it('should do full damage when no response from defender', function(done) {
       // initialize attack
+      //
       attacking(sock).emit(E.ATTACK_PU, {targetId: defending(sock).id, attackId: attackId(sock)});
+
       defending(sock).on(E.ATTACK_PU, function(data) {
 
         // create spells
-        var attackSpell = helpers.castSpell(attackId(sock), 8, null, 0);
+        var attackSpell = helpers.castSpell(attackId(sock), 8, 0, 0);
         attackSpell.msg = 'no response';
         spells.push([attackSpell]);
 
@@ -54,9 +60,10 @@ describe('Attack/Response Cycle', function() {
 
         // resolve cycle
         defending(sock).on(E.RESOLVE_ATTACK, function(data) {
-          expect(data).to.be.an('Array');
-          expect(data.length).to.eql(1);
-          expect(data[0].damage).to.be.eql(8);
+
+          expect(data).to.have.property('condition');
+          expect(data).to.have.property('wizStats');
+          expect(data.wizStats[defending(sock).id].health).to.eql(defending(sock).health - 8)
           done();
         });
       });
@@ -83,9 +90,9 @@ describe('Attack/Response Cycle', function() {
 
         // resolve cycle
         defending(sock).on(E.RESOLVE_ATTACK, function(data) {
-          expect(data).to.be.an('Array');
-          expect(data.length).to.eql(1);
-          expect(data[0].damage).to.be.eql(4);
+          expect(data).to.have.property('condition');
+          expect(data).to.have.property('wizStats');
+          expect(data.wizStats[defending(sock).id].health).to.eql(defending(sock).health - 4)
           done();
         });
       });
@@ -109,9 +116,9 @@ describe('Attack/Response Cycle', function() {
 
         // resolve cycle
         defending(sock).on(E.RESOLVE_ATTACK, function(data) {
-          expect(data).to.be.an('Array');
-          expect(data.length).to.eql(1);
-          expect(data[0].damage).to.be.eql(10);
+          expect(data).to.have.property('condition');
+          expect(data).to.have.property('wizStats');
+          expect(data.wizStats[defending(sock).id].health).to.eql(defending(sock).health - 10)
           done();
         });
       });
@@ -136,9 +143,9 @@ describe('Attack/Response Cycle', function() {
 
         // resolve cycle
         defending(sock).on(E.RESOLVE_ATTACK, function(data) {
-          expect(data).to.be.an('Array');
-          expect(data.length).to.eql(1);
-          expect(data[0].damage).to.be.eql(0);
+          expect(data).to.have.property('condition');
+          expect(data).to.have.property('wizStats');
+          expect(data.wizStats[defending(sock).id].health).to.eql(defending(sock).health - 0)
           done();
         });
       });
@@ -166,10 +173,9 @@ describe('Attack/Response Cycle', function() {
 
         // resolve cycle
         defending(sock).on(E.RESOLVE_ATTACK, function(data) {
-          expect(data).to.be.an('Array');
-          expect(data.length).to.eql(1);
-          expect(data[0].targetId).to.be.eql(defending(sock).id)
-          expect(data[0].damage).to.be.eql(0);
+          expect(data).to.have.property('condition');
+          expect(data).to.have.property('wizStats');
+          expect(data.wizStats[defending(sock).id].health).to.eql(defending(sock).health - 0)
           done();
         });
       });
@@ -193,10 +199,9 @@ describe('Attack/Response Cycle', function() {
 
         // resolve cycle
         defending(sock).on(E.RESOLVE_ATTACK, function(data) {
-          expect(data).to.be.an('Array');
-          expect(data.length).to.eql(1);
-          expect(data[0].targetId).to.be.eql(attacking(sock).id)
-          expect(data[0].damage).to.be.eql(6);
+          expect(data).to.have.property('condition');
+          expect(data).to.have.property('wizStats');
+          expect(data.wizStats[attacking(sock).id].health).to.eql(attacking(sock).health - 6)
           done();
         });
       });
@@ -221,10 +226,9 @@ describe('Attack/Response Cycle', function() {
 
         // resolve cycle
         defending(sock).on(E.RESOLVE_ATTACK, function(data) {
-          expect(data).to.be.an('Array');
-          expect(data.length).to.eql(1);
-          expect(data[0].targetId).to.be.eql(attacking(sock).id)
-          expect(data[0].damage).to.be.eql(12);
+          expect(data).to.have.property('condition');
+          expect(data).to.have.property('wizStats');
+          expect(data.wizStats[attacking(sock).id].health).to.eql(attacking(sock).health - 12)
           done();
         });
       });
