@@ -148,7 +148,8 @@ Battle.prototype.applyResolution = function(resolution) {
   })
   console.log('health: ' + this.sockets[0].health + ' -- ' + this.sockets[1].health)
   if (this.sockets[0].health <= 0 || this.sockets[1].health <= 0) {
-    return {condition:'Victory', wizStats:this.wizStats()}
+    var winner = this.sockets.filter(function(sk) {return sk.health > 0})[0]
+    return {condition:'Victory', wizStats:this.wizStats(), winner:winner}
   } else {
     return {condition: 'Battle', wizStats:this.wizStats()}
   }
