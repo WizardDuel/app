@@ -1,0 +1,11 @@
+{
+  "name": "client",
+  "app_id": "",
+  "gulpStartupTasks": [
+    "webpack"
+  ],
+  "watchPatterns": [
+    "www/**/*",
+    "!www/lib/**/*"
+  ]
+}

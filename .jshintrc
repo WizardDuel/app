@@ -81,5 +81,8 @@
     "worker"        : false,     // Web Workers
 
     // Custom Globals
-    "globals"       : {}        // additional predefined global variables
+    "globals"       : {
+        "angular": true,
+        "cordova": true
+    }        // additional predefined global variables
 }
