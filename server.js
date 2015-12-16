@@ -8,14 +8,18 @@ var port = process.env.PORT || 3000;
 app.set('env', process.env.NODE_ENV);
 
 var path = require('path');
-app.get('/landing', function(req, res) {
-  res.sendFile(path.resolve(__dirname, './public/landing/landing.html'));
+app.get('/', function(req, res) {
+  res.sendFile(path.resolve(__dirname, './client/www/landing.html'));
+});
+
+app.get('/play', function(req, res) {
+  res.sendFile(path.resolve(__dirname, './client/www/index.html'));
 });
 //setup
 // var mongoose = require('mongoose');
 // mongoose.connect('mongodb://localhost:3000');
 
-app.use(express.static(__dirname + '/client'));
+app.use(express.static(__dirname + '/client/www'));
 
 //routes
 var spellRoutes = require('./server-files/routes/spellRoutes.js');
