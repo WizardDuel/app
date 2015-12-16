@@ -146,12 +146,12 @@ Battle.prototype.applyResolution = function(resolution) {
   this.sockets.map(function(wiz) {
     if (wiz.mana <= 0) wiz.mana = 0;
   })
-
-  if (this.sockets[0].health <= 0 || this.sockets[1].health[0]) {
+  console.log('health: ' + this.sockets[0].health + ' -- ' + this.sockets[1].health)
+  if (this.sockets[0].health <= 0 || this.sockets[1].health <= 0) {
     return {condition:'Victory', wizStats:this.wizStats()}
+  } else {
+    return {condition: 'Battle', wizStats:this.wizStats()}
   }
-
-  return {condition: 'Battle', wizStats:this.wizStats()}
 }
 
 Battle.prototype.wizStats = function() {

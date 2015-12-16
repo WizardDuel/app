@@ -30,39 +30,60 @@ function DuelCtrl($scope, socketIO) {
     { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
   ];
 
+
+  var foe = {id:socket.getFoeId()};
+  var self = {id: socket.id};
+  [self, foe].map(function(wiz) {
+    console.log('createWiz')
+    console.log(wiz)
+    console.log(wiz.id)
+    wiz.getAvatar = function(){
+      return document.getElementById(this.id);
+    }
+    wiz.getHealth = function(){
+      return document.getElementById(this.id+'-health');
+    }
+    wiz.getMana = function(){
+      return document.getElementById(this.id+'-mana');
+    }
+    wiz.addClass = function(cname){
+      this.getAvatar().classList.add(cname)
+    }
+    wiz.removeClass = function(cname) {
+      this.getAvatar().classList.remove(cname)
+    }
+    wiz.setHealth = function(health) {
+      this.getHealth().style.width = health +'%';
+    }
+    wiz.setMana = function(mana) {
+      this.getMana().style.width = mana+'%';
+    }
+    console.log('output')
+    console.log(wiz)
+    return wiz
+  });
+
+  var avatars = {};
+  avatars[foe.id] = foe;
+  avatars[self.id] = self;
+
   socket.on(E.ATTACK_PU, function(data) {
-    socket.attack = data.attackId;
-    console.log('Attack!');
-    document.getElementsByTagName('body')[0].classList.add('red');
-    setTimeout(function(){
-      document.getElementsByTagName('body')[0].classList.remove('red');
-    },250);
+    console.log('received attack')
+    console.log(data.casterId)
+    console.log(avatars)
+    avatars[data.casterId].addClass('purple');
+    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
   });
   socket.on(E.RESOLVE_ATTACK, function(solution) {
     // update world based on solution
-
-    console.log('resolution:', solution);
-    switch(solution.targetId) {
-      case socket.id:
-        socket.health = Number(socket.health) - Number(solution.damage);
-        document.getElementById(socket.id +'-health').style.width = socket.health + '%';
-        break;
-      case socket.getFoeId():
-        var origHealth = document.getElementById(solution.targetId + '-health').style.width;
-        document.getElementById(solution.targetId +'-health').style.width = Number(origHealth.split('%')[0]) - Number(solution.damage) + '%';
-        break;
+    for (wiz in solution.wizStats) {
+      // console.log(wiz)
+      // console.log(avatars[wiz])
+      avatars[wiz].setHealth(solution.wizStats[wiz].health)
+      avatars[wiz].setMana(solution.wizStats[wiz].mana)
     }
-    if (solution.counterCasterId && (solution.counterCasterId !== socket.id)) {
-      var origMana = document.getElementById(solution.targetId + '-mana').style.width;
-      document.getElementById(solution.counterCasterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
-    }
-    if (solution.casterId !== socket.id) {
-      var origMana = document.getElementById(solution.casterId + '-mana').style.width;
-      document.getElementById(solution.casterId +'-mana').style.width = Number(origMana.split('%')[0]) - 5 + '%';
-    }
-
-    console.log('Health:', socket.health);
-    console.log('Mana:', socket.mana);
+    console.log('received solution:')
+    console.log(solution)
   });
 
   }

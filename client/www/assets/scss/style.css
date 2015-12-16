@@ -1,13 +1,17 @@
+
 .red{
   background-color: red;
 }
 
+.purple {
+  background-color: purple;
+}
 .container {
   margin-top: 200px;
 }
 
 .health-bar {
-  background: red;
+  background: #FF5656;
   display: block;
   height: 1em
 }
