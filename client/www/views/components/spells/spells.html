@@ -1,5 +1,7 @@
 <div class="row">
   <div class="col" ng-repeat="spell in spells">
-    <button  ng-click="castSpell(spell.name)" class="button icon-left {{spell.icon}}">{{ spell.name }}</button>
+    <button  ng-click="initializeSpell(spell.name)" class="button icon-left {{spell.icon}}">{{ spell.name }}</button>
   </div>
+
+  <spinner></spinner>
 </div>

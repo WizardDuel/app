@@ -2,7 +2,7 @@ module.exports = angular.module('wizardApp.duel', [
   require('angular-route'),
   require('../components/spells/spells.js'),
   require('../components/wizards/wizards.js'),
-  require('../components/spinner/spinner.js')
+  // require('../components/spinner/spinner.js')
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
@@ -19,6 +19,7 @@ module.exports = angular.module('wizardApp.duel', [
 function DuelCtrl($scope, socketIO) {
   var socket = socketIO.socket;
   var E = socketIO.E;
+
   $scope.spells = [
     { name: 'Perry', icon: 'ion-android-favorite-outline' },
     { name: 'Repost', icon: 'ion-ios-plus-outline' },
@@ -26,7 +27,6 @@ function DuelCtrl($scope, socketIO) {
   ];
 
   $scope.wizards = [
-
     { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png', id: socket.id },
     { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
   ];
