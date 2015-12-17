@@ -12,10 +12,10 @@ module.exports = angular.module('wizardApp.duel', [
       });
   }])
 
-  .controller('DuelCtrl', ['$scope', 'socketIO', '$location', '$window',DuelCtrl])
+  .controller('DuelCtrl', ['$scope', 'socketIO', '$location', '$window', '$timeout', DuelCtrl])
   .name;
 
-function DuelCtrl($scope, socketIO, $location, $window) {
+function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   var socket = socketIO.socket;
   var E = socketIO.E;
 
@@ -88,13 +88,31 @@ function DuelCtrl($scope, socketIO, $location, $window) {
   });
 
   angular.element(document).ready(function(){
-    socket.ready = true;
     socket.emit(E.READY);
   });
 
+
   socket.on('Start', function(){
-    
-    console.log('start recieved')
+    console.log('start game')
+    $scope.counter = 3;
+
+    $scope.countdown = function() {
+      if($scope.counter === 0){
+        $timeout.cancel(stopped);
+        $scope.counter = "Duel!";
+        $timeout(function() {
+          $('.overlay').removeClass('overlay');
+          $('.start-timer').hide();
+        }, 1200);
+      } else {
+        stopped = $timeout(function() {
+         $scope.counter--;
+         $scope.countdown();
+        }, 1000);
+      }
+    };
+
+    $scope.countdown();
   });
 
   socket.on('End of battle', function(msg) {

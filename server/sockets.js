@@ -5,6 +5,7 @@ module.exports = function(io) {
 
   // Battle State
   var openBattles = [];
+  var readyCount = 0;
 
   io.on('connection', function(socket) {
     var battle = null;
@@ -24,14 +25,12 @@ module.exports = function(io) {
       }
     });
 
-    socket.on(E.READY, function(){
-      var readySockets = battle.sockets.filter(function(socks){
-        return socks.ready;
-      });
-
-      if(readySockets.length === battle.sockets.length){
+    socket.on(E.READY, function(socket){
+      if(++readyCount === battle.sockets.length){
         io.to(battle.id).emit(E.START);
+        // console.log('Start?')
       }
+      // console.log(readyCount)
     });
 
     socket.on(E.ATTACK_PU, function(attackData) {
@@ -82,5 +81,8 @@ module.exports = function(io) {
       io.emit('disconnect');
     });
 
+    socket.on('error', function(err){
+      console.log(err);
+    })
   });
 };

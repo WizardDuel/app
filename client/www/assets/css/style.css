@@ -5,14 +5,7 @@
   overflow: hidden;
 }
 
-.overlay {
-  position: absolute;
-  top: 0;
-  background-color: #222;
-  width: 100%;
-  opacity: 0.75;
-  height: 99999px;
-}
+
 
 .purple {
   background-color: purple;

@@ -18,7 +18,6 @@ module.exports = angular.module('wizardApp.home', [
 function HomeCtrl($scope, $location, socketIO) {
   var socket = socketIO.socket;
   var E = socketIO.E
-  socket.ready = false;
 
   $scope.enterBattle = function() {
     socket.emit(socketIO.E.DUEL);
