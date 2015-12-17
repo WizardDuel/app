@@ -1,0 +1,25 @@
+<div class="container">
+  <section class="profile">
+    <p>Wins<span>{{wins}}</span></p>
+    <p>Losses<span>{{losses}}</span></p>
+    <div class="match-history">
+      
+    </div>
+  </section>
+  <section class="spell-lib" >
+    <ul>
+      <li ng-repeat="spell in spells | filter: { inSpellBook: false} " ng-click="spell.inSpellBook=true">
+        <span>{{spell.name}}</span>
+      </li>
+    </ul>
+  </section>
+  <button ng-click="playNow()">Go to Waiting Room</button>
+  <section class="spell-book">
+    <ul>
+      <li ng-click="spell.inSpellBook=false" ng-repeat="spell in spells | filter: { inSpellBook: true }">
+        <span>{{spell.name}}</span>
+      </li>
+    </ul>
+  </section>
+
+</div>

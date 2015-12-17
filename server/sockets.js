@@ -5,16 +5,16 @@ module.exports = function(io) {
 
   // Battle State
   var openBattles = [];
-  var readyCount = 0;     //Number of people who are loaded
 
-  function regenerateMana(){
-    battle.manaRegen(function() {
-      io.to(battle.id).emit(E.MANA_REGEN);
-    });
-  }
 
   io.on('connection', function(socket) {
     var battle = null;
+
+    function regenerateMana(){
+      battle.manaRegen(function() {
+        io.to(battle.id).emit(E.MANA_REGEN, battle.wizStats());
+      });
+    }
 
     socket.once(E.DUEL, function() {
 
@@ -32,9 +32,9 @@ module.exports = function(io) {
     });
 
     socket.on(E.READY, function(socket){
-      if(++readyCount === battle.sockets.length){
+      if(++battle.readyCount === battle.sockets.length){
         io.to(battle.id).emit(E.START);
-        setInterval(regenerateMana(), 7000);
+        setInterval(regenerateMana, 7000);
       }
     });
 
@@ -75,6 +75,7 @@ module.exports = function(io) {
     });
 
     socket.on('disconnect', function() {
+      console.log('disconnect')
       if (battle) {
         io.to(battle.id).emit('End of battle', 'opponent disconnected');
         if (_.includes(_.pluck(openBattles, 'id'), battle.id) ){

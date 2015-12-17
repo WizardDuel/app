@@ -5,7 +5,7 @@ function Battle(socket) {
   this.sockets = [];
   this.addCombatant(socket);
   this.attacks = {};
-  this.clock = new Date();
+  this.readyCount = 0;
 }
 
 Battle.prototype.addCombatant = function(socket) {
@@ -164,13 +164,9 @@ Battle.prototype.wizStats = function() {
   return obj;
 }
 
-Battle.prototype.startGameClock = function() {
-
-};
-
 Battle.prototype.manaRegen = function(callback) {
   this.sockets.map(function(wiz) {
-    wiz.mana += 5;
+    if(wiz.mana < 100) wiz.mana += 5;
   });
   callback();
 };

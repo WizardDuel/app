@@ -36761,67 +36761,49 @@
 /* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = angular.module('wizardApp.home', [
+	module.exports = angular.module('wizardApp.profile', [
 	  __webpack_require__(67),
 	  __webpack_require__(69),
+	  __webpack_require__(72)
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
 	      .when('/', {
-	        controller: 'HomeCtrl',
+	        controller: 'ProfileCtrl',
 	        controllerAs: 'home',
-	        templateUrl: './views/home/home.html'
+	        templateUrl: './views/user-profile/profile.html'
 	      });
 	  }])
 
-	  .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl])
+	  .controller('ProfileCtrl', ['$scope', '$location', ProfileCtrl])
 
+	  .filter('inSpellBook', function() {
+	    return function(inBook) {
+	      return inBook;
+	    };
+	  })
 	  .name;
 
-	function HomeCtrl($scope, $location, socketIO) {
-	  var socket = socketIO.socket;
-	  var E = socketIO.E
+	function ProfileCtrl($scope, $location){
+	  $scope.wins = 0;    //Database Call Needed
+	  $scope.losses = 0;  //Database Call Needed
+	  $scope.book = [];
 
-	  $scope.enterBattle = function() {
-	    socket.emit(socketIO.E.DUEL);
+	  //Database Call Needed
+	  $scope.spells = [
+	    { inSpellBook: false, name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
+	    { inSpellBook: false, name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
+	    { inSpellBook: false, name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
+	  ];
+
+	  $scope.playNow = function() {
+	    $location.path('/waiting');
+
+	    $scope.book = $scope.spells.filter(function(spell) {
+	      return spell.inSpellBook;
+	    });
 	  };
-
-	  socket.on(socketIO.E.BEGIN, function(data) {
-	    $location.path('/duel');
-	    $scope.$apply();
-	    socketHelper.initialize(socket, data, E)
-	    // console.log('The battle has begun!');
-	  });
 	}
-
-	var socketHelper = {
-	  initialize: function(socket, BeginData, E) {
-	    socket.condition = BeginData.condition;
-	    socket.wizStats = BeginData.wizStats;
-	    socket.health = BeginData.wizStats[socket.id].health;
-	    socket.mana = BeginData.wizStats[socket.id].mana;
-	    this.registerFoeIdFn(socket);
-	    this.registerAttackFn(socket, E);
-	  },
-	  registerFoeIdFn: function(socket) {
-	    socket.getFoeId = function(){
-	      for (id in this.wizStats) {
-	        if (id !== this.id) {
-	          return id
-	        }
-	      }
-	    }
-	  },
-	  registerAttackFn: function(socket, E) {
-	    socket.attackWith = function(spell) {
-	      spell.attackId = new Date().getTime();
-	      socket.emit(E.ATTACK_PU, {attackId: spell.attackId, targetId: socket.getFoeId()});
-	      return spell
-	    }
-	  }
-
-	}
-
 
 /***/ },
 /* 67 */
@@ -37832,10 +37814,76 @@
 /* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
+	module.exports = angular.module('wizardApp.home', [
+	  __webpack_require__(67),
+	  __webpack_require__(70),
+	])
+	  .config(['$routeProvider', function($routeProvider) {
+	    $routeProvider
+	      .when('/waiting', {
+	        controller: 'HomeCtrl',
+	        controllerAs: 'home',
+	        templateUrl: './views/home/home.html'
+	      });
+	  }])
+
+	  .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl])
+
+	  .name;
+
+	function HomeCtrl($scope, $location, socketIO) {
+	  var socket = socketIO.socket;
+	  var E = socketIO.E
+
+	  $scope.enterBattle = function() {
+	    socket.emit(socketIO.E.DUEL);
+	  };
+
+	  socket.on(socketIO.E.BEGIN, function(data) {
+	    $location.path('/duel');
+	    $scope.$apply();
+	    socketHelper.initialize(socket, data, E)
+	    // console.log('The battle has begun!');
+	  });
+	}
+
+	var socketHelper = {
+	  initialize: function(socket, BeginData, E) {
+	    socket.condition = BeginData.condition;
+	    socket.wizStats = BeginData.wizStats;
+	    socket.health = BeginData.wizStats[socket.id].health;
+	    socket.mana = BeginData.wizStats[socket.id].mana;
+	    this.registerFoeIdFn(socket);
+	    this.registerAttackFn(socket, E);
+	  },
+	  registerFoeIdFn: function(socket) {
+	    socket.getFoeId = function(){
+	      for (id in this.wizStats) {
+	        if (id !== this.id) {
+	          return id
+	        }
+	      }
+	    }
+	  },
+	  registerAttackFn: function(socket, E) {
+	    socket.attackWith = function(spell) {
+	      spell.attackId = new Date().getTime();
+	      socket.emit(E.ATTACK_PU, {attackId: spell.attackId, targetId: socket.getFoeId()});
+	      return spell
+	    }
+	  }
+
+	}
+
+
+/***/ },
+/* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function($) {module.exports = angular.module('wizardApp.duel', [
 	  __webpack_require__(67),
-	  __webpack_require__(71),
 	  __webpack_require__(72),
+	  __webpack_require__(73),
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -37964,11 +38012,11 @@
 	    self.disableCounterSpells();
 	  });
 
-	  socket.on(E.MANA_REGEN, function() {
-	    console.log('Mana regen sent');
-	    console.log(socket.mana)
-	    self.setMana();
-	    foe.setMana();
+	  socket.on(E.MANA_REGEN, function(data) {
+	    console.log(data)
+	    for (var wiz in data) {
+	      avatars[wiz].setMana(data[wiz].mana);
+	    }
 	  });
 
 	  angular.element(document).ready(function(){
@@ -38018,10 +38066,10 @@
 	  'merlin_the_wizard.png',
 	]
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(70)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(71)))
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -47237,7 +47285,7 @@
 
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports) {
 
 	/* globals angular */
@@ -47356,13 +47404,13 @@
 
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* globals angular */
 
 	module.exports = angular.module('wizardApp.wizards', [
-	  __webpack_require__(73)
+	  __webpack_require__(74)
 	  ])
 	  .directive('wizards', function() {
 	    return {
@@ -47386,7 +47434,7 @@
 
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports) {
 
 	module.exports = angular.module('wizardApp.wizard', [])

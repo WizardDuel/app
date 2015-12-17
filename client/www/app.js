@@ -6,7 +6,7 @@ var angular = require('angular');
 var io = require('socket.io-client');
 
 angular.module('wizardApp', [
-  require('./views/home/home.js'),
+  require('./views/user-profile/profile.js'),
 ])
 .factory('socketIO', function() {
     return {

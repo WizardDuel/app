@@ -4,7 +4,7 @@ module.exports = angular.module('wizardApp.home', [
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
-      .when('/', {
+      .when('/waiting', {
         controller: 'HomeCtrl',
         controllerAs: 'home',
         templateUrl: './views/home/home.html'

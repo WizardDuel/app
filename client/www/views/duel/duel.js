@@ -130,11 +130,11 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     self.disableCounterSpells();
   });
 
-  socket.on(E.MANA_REGEN, function() {
-    console.log('Mana regen sent');
-    console.log(socket.mana)
-    self.setMana();
-    foe.setMana();
+  socket.on(E.MANA_REGEN, function(data) {
+    console.log(data)
+    for (var wiz in data) {
+      avatars[wiz].setMana(data[wiz].mana);
+    }
   });
 
   angular.element(document).ready(function(){
