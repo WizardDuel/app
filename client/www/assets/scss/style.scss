@@ -1,92 +1,11 @@
-.red{
-  background-color: red;
-}
-.container {
-  margin-top: 200px;
-}
+$main-text-color: #fff;
 
-.spinner {
-  position: absolute;
-  margin-top: 200px;
-  margin-right: 200px;
+.start-timer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  height: 100px;
+  width: 100px;
+  font-size: 10em;
+  color: $main-text-color;
 }
-
-.health-bar {
-  background: red;
-  display: block;
-  height: 1em
-}
-
-.mana-bar {
-  background: #A621FF;
-  display: block;
-  height: 1em
-}
-
-.spells {
-  width: 75%;
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-around;
-  align-content: stretch;
-  align-items: stretch;
-  margin: 1rem auto;
-  /*padding: 1rem;*/
-  border: 1px solid blue; /* temporary (testing) */
-}
-
-.spell {
-  width: 15%;
-  text-align: center;
-}
-
-.wizards {
-  width: 75%;
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-between;
-  align-content: stretch;
-  align-items: stretch;
-  margin: 0 auto;
-  border: 1px solid blue; /* temporary (testing) */
-}
-
-.wizard {
-  width: 45%;
-  border: 5px solid gray; /* temporary (testing) */
-}
-
-.wizard h3 {
-  text-align: center;
-  margin: 0;
-  padding: 1rem;
-  background-color: purple; /* temporary (testing) */
-  box-sizing: border-box; /* temporary (testing) */
-  border: 1px solid red; /* temporary (testing) */
-}
-
-.wizard .avatar {
-  height: 400px;
-  background-color: steelblue; /* temporary (testing) */
-}
-
-.wizard .avatar img {
-  display: block;
-  height: 100%; /* need to find better solution */
-  width: 100%; /* need to find better solution */
-  margin: 0 auto;
-  padding: 1rem;
-  box-sizing: border-box; /* temporary (testing) */
-  border: 1px solid red; /* temporary (testing) */
-}
-
-.wizard .status {
-  padding: 1rem;
-  background-color: pink; /* temporary (testing) */
-  box-sizing: border-box; /* temporary (testing) */
-  border: 1px solid red; /* temporary (testing) */
-}
-
-/*body {
-  opacity: 0.2;
-}*/
