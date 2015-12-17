@@ -1,6 +1,6 @@
 <div class="spell-panel">
     <button
-    ng-repeat="spell in spells" ng-click="initializeSpell(spell)"
+    ng-repeat="spell in spellList" ng-click="initializeSpell(spell)"
     class="button btn-spell {{spell.stylesToAdd}}"
     data-spell-type="{{spell.type}}">
     {{ spell.name }}
