@@ -15,8 +15,6 @@ module.exports = angular.module('wizardApp.spells', [
     };
   })
 
-  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
-
   .directive('spinner', function() {
     return {
       restrict: 'E',
@@ -26,6 +24,20 @@ module.exports = angular.module('wizardApp.spells', [
     };
   })
 
+  .directive('spellPanel', function() {
+    return {
+      restrict: 'E',
+      replace: true,
+      scope: {
+        spellList: '=spellList'
+      },
+      templateUrl: './views/components/spells/spellPanel.html',
+      controller: 'SpellsCtrl'
+    }
+  })
+
+  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+
   .name;
 
 function SpellsCtrl($scope, $timeout, socketIO) {
@@ -34,6 +46,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   var socket = socketIO.socket;
   $scope.castingSpell = false; // shows powerbar when true
   // gain access to the world
+  var avatars = socket.avatars
   var avatar = socket.avatars[socket.id]
   // set counterspells to disabled
   avatar.disableCounterSpells()
