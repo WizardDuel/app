@@ -69,7 +69,8 @@
 	        RECOVER: 'Recover',
 	        DEFEND: 'Defend',
 	        WIZ_ID: 'Wizard Id',
-	        ATTACK: 'Attack'
+	        ATTACK: 'Attack',
+	        MANA_REGEN: 'Mana Regen'
 	      }
 	    };
 	  });
@@ -37833,8 +37834,8 @@
 
 	/* WEBPACK VAR INJECTION */(function($) {module.exports = angular.module('wizardApp.duel', [
 	  __webpack_require__(67),
-	  __webpack_require__(70),
 	  __webpack_require__(71),
+	  __webpack_require__(72),
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -37878,13 +37879,9 @@
 
 	  var foe = {id:socket.getFoeId()};
 	  var self = {id: socket.id};
+
 	  [self, foe].map(function(wiz) {
-<<<<<<< HEAD
-	    // console.log('createWiz')
-	    // console.log(wiz)
-	    // console.log(wiz.id)
-=======
->>>>>>> redesign-UI
+
 	    wiz.getAvatar = function(){
 	      return document.getElementById(this.id);
 	    }
@@ -37906,10 +37903,7 @@
 	    wiz.setMana = function(mana) {
 	      this.getMana().style.width = mana+'%';
 	    }
-<<<<<<< HEAD
-	    // console.log('output')
-	    // console.log(wiz)
-=======
+
 	    wiz.enableCounterSpells = function() {
 	      var buttons = document.getElementsByClassName('btn-spell')
 	      for (var i = 0; i < buttons.length; i++ ){
@@ -37942,7 +37936,6 @@
 	        }
 	      }
 	    }
->>>>>>> redesign-UI
 	    return wiz
 	  });
 
@@ -37951,7 +37944,6 @@
 	  avatars[foe.id] = foe;
 	  avatars[self.id] = self;
 
-<<<<<<< HEAD
 	  socket.on(E.ATTACK_PU, function(data) {
 	    // console.log('received attack')
 	    // console.log(data.casterId)
@@ -37960,27 +37952,32 @@
 	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
 	  });
 
-=======
->>>>>>> redesign-UI
 	  socket.on(E.RESOLVE_ATTACK, function(solution) {
 	    // update world based on solution
 	    for (wiz in solution.wizStats) {
-	      avatars[wiz].setHealth(solution.wizStats[wiz].health)
-	      avatars[wiz].setMana(solution.wizStats[wiz].mana)
+	      avatars[wiz].setHealth(solution.wizStats[wiz].health);
+	      avatars[wiz].setMana(solution.wizStats[wiz].mana);
 	    }
-<<<<<<< HEAD
-	    // console.log('received solution:')
-	    // console.log(solution)
+
+	    // Allow access to spells
+	    self.enableAttackSpells();
+	    self.disableCounterSpells();
+	  });
+
+	  socket.on(E.MANA_REGEN, function() {
+	    console.log('Mana regen sent');
+	    console.log(socket.mana)
+	    self.setMana();
+	    foe.setMana();
 	  });
 
 	  angular.element(document).ready(function(){
 	    socket.emit(E.READY);
 	  });
 
-
 	  socket.on('Start', function(){
-	    console.log('start game')
 	    $scope.counter = 3;
+	    console.log('started')
 
 	    $scope.countdown = function() {
 	      if($scope.counter === 0){
@@ -37999,11 +37996,6 @@
 	    };
 
 	    $scope.countdown();
-=======
-	    // Allow access to spells
-	    self.enableAttackSpells()
-	    self.disableCounterSpells()
->>>>>>> redesign-UI
 	  });
 
 	  socket.on('End of battle', function(msg) {
@@ -38026,186 +38018,10 @@
 	  'merlin_the_wizard.png',
 	]
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(73)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(70)))
 
 /***/ },
 /* 70 */
-/***/ function(module, exports) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.spells', [
-
-	  ])
-	  .directive('spells', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        spells: '=',
-	      },
-	      templateUrl: './views/components/spells/spells.html',
-	      controller: 'SpellsCtrl'
-	    };
-	  })
-
-	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
-
-	  .directive('spinner', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      templateUrl: './views/components/spells/spinner.html',
-	      controller: 'SpellsCtrl'
-	    };
-	  })
-
-	  .name;
-
-	function SpellsCtrl($scope, $timeout, socketIO) {
-	  var E = socketIO.E;
-	  var socket = socketIO.socket;
-
-	  $scope.castingSpell = false; // shows powerbar when true
-
-	  // gain access to the world
-	  var avatar = socket.avatars[socket.id]
-	  // set counterspells to disabled
-	  avatar.disableCounterSpells()
-
-	  $scope.initializeSpell = function (spell) {
-	    avatar.disableAttackSpells();
-	    avatar.disableCounterSpells();
-	    if (spell.type === 'Attack') { // initialize the attack cycle
-	      spell = socket.attackWith(spell);
-	    }
-	    spell.initTime = new Date().getTime()
-	    $scope.castingSpell = true;
-	    // Inspect spell
-	    $scope.spell = spell
-	  };
-
-	  $scope.finalizeSpell = function(spell) {
-	    spell.finalTime = new Date().getTime();
-	    $scope.castingSpell = false;
-	    $scope.castSpell(spell);
-	  };
-
-	  $scope.castSpell = function(spell) {
-	    var attackId = spell.attackId
-
-	    console.log('cast spell')
-
-	    switch (spell.type) {
-	      case 'Recover':
-	        break;
-	      case 'Defend':
-	        break;
-	      case 'Perry':
-	          var defensiveSpell = magic.castSpell(attackId)
-	          socket.emit(E.PERRY, defensiveSpell);
-	        break;
-	      case 'Repost':
-	          var repostSpell = magic.castSpell(attackId)
-	          socket.emit(E.REPOST, repostSpell);
-	        break;
-
-	      case 'Attack':
-	          var attackSpell = magic.castSpell(attackId);
-	          socket.emit(E.ATTACK, attackSpell)
-	        break;
-	    }
-	  };
-
-	  socket.on(E.ATTACK_PU, function(data) {
-	    if (data.targetId === socket.id) avatar.enableCounterSpells()
-	    avatars[data.casterId].addClass('purple');
-	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
-	  });
-
-	} // Spells controller
-
-	var magic = {
-	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
-	  setCrit: function() {
-	    var roll = Math.floor(Math.random() * 20 + 1);
-	    var crit = null;
-	    if (roll > 17) return 1;
-	    if (roll < 3) return -1;
-	    return 0;
-	  },
-	  setTime: function() {return new Date().getTime();},
-
-	  castSpell: function(attack, power, crit, timeShift) {
-	    var spell = {
-	      attackId: attack,
-	      power: power ? power : this.setPower(),
-	      crit: crit !== null ? crit : this.setCrit(),
-	      time: this.setTime() + timeShift,
-	    };
-	    return spell;
-	  },
-	};
-
-
-/***/ },
-/* 71 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.wizards', [
-	  __webpack_require__(72)
-	  ])
-	  .directive('wizards', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        wizards: '='
-	      },
-	      templateUrl: './views/components/wizards/wizards.html',
-	      controller: 'WizardsCtrl'
-	    };
-	  })
-
-	  .controller('WizardsCtrl', ['$scope', WizardsCtrl])
-
-	  .name;
-
-	function WizardsCtrl($scope) {
-
-	}
-
-
-/***/ },
-/* 72 */
-/***/ function(module, exports) {
-
-	module.exports = angular.module('wizardApp.wizard', [])
-	  .directive('wizard', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        wizard: '='
-	      },
-	      templateUrl: './views/components/wizard/wizard.html',
-	      controller: 'WizardCtrl'
-	    };
-	  })
-	  .controller('WizardCtrl', ['$scope', 'socketIO', WizardCtrl])
-	  .name;
-
-	function WizardCtrl($scope, socketIO) {
-	  var socket = socketIO.socket;
-	  $scope.health = socket.health;
-	  $scope.mana = socket.mana;
-	}
-
-
-/***/ },
-/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -47418,6 +47234,181 @@
 	return jQuery;
 
 	}));
+
+
+/***/ },
+/* 71 */
+/***/ function(module, exports) {
+
+	/* globals angular */
+
+	module.exports = angular.module('wizardApp.spells', [
+
+	  ])
+	  .directive('spells', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        spells: '=',
+	      },
+	      templateUrl: './views/components/spells/spells.html',
+	      controller: 'SpellsCtrl'
+	    };
+	  })
+
+	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+
+	  .directive('spinner', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      templateUrl: './views/components/spells/spinner.html',
+	      controller: 'SpellsCtrl'
+	    };
+	  })
+
+	  .name;
+
+	function SpellsCtrl($scope, $timeout, socketIO) {
+	  // set initial values for magic casting
+	  var E = socketIO.E;
+	  var socket = socketIO.socket;
+	  $scope.castingSpell = false; // shows powerbar when true
+	  // gain access to the world
+	  var avatar = socket.avatars[socket.id]
+	  // set counterspells to disabled
+	  avatar.disableCounterSpells()
+
+	  $scope.initializeSpell = function (spell) {
+	    avatar.disableAttackSpells();
+	    avatar.disableCounterSpells();
+	    if (spell.type === 'Attack') { // initialize the attack cycle
+	      spell = socket.attackWith(spell);
+	    }
+	    spell.initTime = new Date().getTime()
+	    $scope.castingSpell = true;
+	    // Inspect spell
+	    $scope.spell = spell
+	  };
+
+	  $scope.finalizeSpell = function(spell) {
+	    spell.finalTime = new Date().getTime();
+	    $scope.castingSpell = false;
+	    $scope.castSpell(spell);
+	  };
+
+	  $scope.castSpell = function(spell) {
+	    var attackId = spell.attackId
+
+	    console.log('cast spell')
+
+	    switch (spell.type) {
+	      case 'Recover':
+	        break;
+	      case 'Defend':
+	        break;
+	      case 'Perry':
+	          var defensiveSpell = magic.castSpell(attackId)
+	          socket.emit(E.PERRY, defensiveSpell);
+	        break;
+	      case 'Repost':
+	          var repostSpell = magic.castSpell(attackId)
+	          socket.emit(E.REPOST, repostSpell);
+	        break;
+
+	      case 'Attack':
+	          var attackSpell = magic.castSpell(attackId);
+	          socket.emit(E.ATTACK, attackSpell)
+	        break;
+	    }
+	  };
+
+	  socket.on(E.ATTACK_PU, function(data) {
+	    if (data.targetId === socket.id) avatar.enableCounterSpells()
+	    avatars[data.casterId].addClass('purple');
+	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
+	  });
+
+	} // Spells controller
+
+	var magic = {
+	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
+	  setCrit: function() {
+	    var roll = Math.floor(Math.random() * 20 + 1);
+	    var crit = null;
+	    if (roll > 17) return 1;
+	    if (roll < 3) return -1;
+	    return 0;
+	  },
+	  setTime: function() {return new Date().getTime();},
+
+	  castSpell: function(attack, power, crit, timeShift) {
+	    var spell = {
+	      attackId: attack,
+	      power: power ? power : this.setPower(),
+	      crit: crit !== null ? crit : this.setCrit(),
+	      time: this.setTime() + timeShift,
+	    };
+	    return spell;
+	  },
+	};
+
+
+/***/ },
+/* 72 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* globals angular */
+
+	module.exports = angular.module('wizardApp.wizards', [
+	  __webpack_require__(73)
+	  ])
+	  .directive('wizards', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        wizards: '='
+	      },
+	      templateUrl: './views/components/wizards/wizards.html',
+	      controller: 'WizardsCtrl'
+	    };
+	  })
+
+	  .controller('WizardsCtrl', ['$scope', WizardsCtrl])
+
+	  .name;
+
+	function WizardsCtrl($scope) {
+
+	}
+
+
+/***/ },
+/* 73 */
+/***/ function(module, exports) {
+
+	module.exports = angular.module('wizardApp.wizard', [])
+	  .directive('wizard', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        wizard: '='
+	      },
+	      templateUrl: './views/components/wizard/wizard.html',
+	      controller: 'WizardCtrl'
+	    };
+	  })
+	  .controller('WizardCtrl', ['$scope', 'socketIO', WizardCtrl])
+	  .name;
+
+	function WizardCtrl($scope, socketIO) {
+	  var socket = socketIO.socket;
+	  $scope.health = socket.health;
+	  $scope.mana = socket.mana;
+	}
 
 
 /***/ }

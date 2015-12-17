@@ -23,7 +23,8 @@ angular.module('wizardApp', [
         RECOVER: 'Recover',
         DEFEND: 'Defend',
         WIZ_ID: 'Wizard Id',
-        ATTACK: 'Attack'
+        ATTACK: 'Attack',
+        MANA_REGEN: 'Mana Regen'
       }
     };
   });

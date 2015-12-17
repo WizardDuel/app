@@ -45,6 +45,7 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
   var foe = {id:socket.getFoeId()};
   var self = {id: socket.id};
+
   [self, foe].map(function(wiz) {
 
     wiz.getAvatar = function(){
@@ -120,23 +121,29 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   socket.on(E.RESOLVE_ATTACK, function(solution) {
     // update world based on solution
     for (wiz in solution.wizStats) {
-      avatars[wiz].setHealth(solution.wizStats[wiz].health)
-      avatars[wiz].setMana(solution.wizStats[wiz].mana)
+      avatars[wiz].setHealth(solution.wizStats[wiz].health);
+      avatars[wiz].setMana(solution.wizStats[wiz].mana);
     }
 
     // Allow access to spells
-    self.enableAttackSpells()
-    self.disableCounterSpells()
+    self.enableAttackSpells();
+    self.disableCounterSpells();
+  });
+
+  socket.on(E.MANA_REGEN, function() {
+    console.log('Mana regen sent');
+    console.log(socket.mana)
+    self.setMana();
+    foe.setMana();
   });
 
   angular.element(document).ready(function(){
     socket.emit(E.READY);
   });
 
-
   socket.on('Start', function(){
-    console.log('start game')
     $scope.counter = 3;
+    console.log('started')
 
     $scope.countdown = function() {
       if($scope.counter === 0){

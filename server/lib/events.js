@@ -11,7 +11,8 @@ var Events = {
   RECOVER:'Recover',
   DEFEND:'Defend',
   WIZ_ID:'Wizard Id',
-  ATTACK:'Attack'
+  ATTACK:'Attack',
+  MANA_REGEN: 'Mana Regen'
 };
 
 module.exports = Events;

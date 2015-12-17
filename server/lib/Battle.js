@@ -168,4 +168,11 @@ Battle.prototype.startGameClock = function() {
 
 };
 
+Battle.prototype.manaRegen = function(callback) {
+  this.sockets.map(function(wiz) {
+    wiz.mana += 5;
+  });
+  callback();
+};
+
 module.exports = Battle;
