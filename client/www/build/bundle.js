@@ -37522,25 +37522,34 @@
 	function DuelCtrl($scope, socketIO, $location, $window) {
 	  var socket = socketIO.socket;
 	  var E = socketIO.E;
+	  socket.attacking = false;
 
 	  $scope.spells = [
-	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry' },
-	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost' },
-	    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack' }
-	  ];
+	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
+	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
+	    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
+	  ]
 
+	  wizard1 = Math.floor(Math.random() * wizardPhotos.length);
+	  wizard2 = Math.floor(Math.random() * wizardPhotos.length);
+
+	  if (wizard1 === wizard2) {
+	    if (wizard1 === 0) {
+	      wizard2 = 1;
+	    } else {
+	      wizard2 = wizard1 - 1;
+	    }
+	  }
+
+	  $scope.foe = '';
 	  $scope.wizards = [
-	    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png', id: socket.id },
-	    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
+	    { user: 'Self', avatar: '../../assets/imgs/' + wizardPhotos[wizard1], id: socket.id },
+	    { user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard2], id: socket.getFoeId() }
 	  ];
-
 
 	  var foe = {id:socket.getFoeId()};
 	  var self = {id: socket.id};
 	  [self, foe].map(function(wiz) {
-	    console.log('createWiz')
-	    console.log(wiz)
-	    console.log(wiz.id)
 	    wiz.getAvatar = function(){
 	      return document.getElementById(this.id);
 	    }
@@ -37562,33 +37571,57 @@
 	    wiz.setMana = function(mana) {
 	      this.getMana().style.width = mana+'%';
 	    }
-	    console.log('output')
-	    console.log(wiz)
+	    wiz.enableCounterSpells = function() {
+	      var buttons = document.getElementsByClassName('btn-spell')
+	      for (var i = 0; i < buttons.length; i++ ){
+	        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
+	          buttons[i].removeAttribute('disabled')
+	        }
+	      }
+	    }
+	    wiz.disableCounterSpells = function() {
+	      var buttons = document.getElementsByClassName('btn-spell')
+	      for (var i = 0; i < buttons.length; i++ ){
+	        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
+	          buttons[i].setAttribute('disabled', 'disabled')
+	        }
+	      }
+	    }
+	    wiz.enableAttackSpells = function() {
+	      var buttons = document.getElementsByClassName('btn-spell')
+	      for (var i = 0; i < buttons.length; i++ ){
+	        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
+	          buttons[i].removeAttribute('disabled')
+	        }
+	      }
+	    }
+	    wiz.disableAttackSpells = function() {
+	      var buttons = document.getElementsByClassName('btn-spell')
+	      for (var i = 0; i < buttons.length; i++ ){
+	        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
+	          buttons[i].setAttribute('disabled', 'disabled')
+	        }
+	      }
+	    }
 	    return wiz
 	  });
 
-	  var avatars = {};
+
+	  var avatars = socket.avatars = {};
 	  avatars[foe.id] = foe;
 	  avatars[self.id] = self;
 
-	  socket.on(E.ATTACK_PU, function(data) {
-	    console.log('received attack')
-	    console.log(data.casterId)
-	    console.log(avatars)
-	    avatars[data.casterId].addClass('purple');
-	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
-	  });
 	  socket.on(E.RESOLVE_ATTACK, function(solution) {
 	    // update world based on solution
 	    for (wiz in solution.wizStats) {
-	      // console.log(wiz)
-	      // console.log(avatars[wiz])
 	      avatars[wiz].setHealth(solution.wizStats[wiz].health)
 	      avatars[wiz].setMana(solution.wizStats[wiz].mana)
 	    }
-	    console.log('received solution:')
-	    console.log(solution)
+	    // Allow access to spells
+	    self.enableAttackSpells()
+	    self.disableCounterSpells()
 	  });
+
 	  socket.on('End of battle', function(msg) {
 	    alert(msg)
 	    $scope.$apply(function() {
@@ -37597,6 +37630,17 @@
 	    });
 	  })
 	}
+	var wizardPhotos = [
+	  'walking_wizard.gif',
+	  'simpsons_wizard.jpg',
+	  'wizard_by_adam_brown.jpg',
+	  'cartman_wizard.png',
+	  'character_wizard.png',
+	  'DC_wizard.png',
+	  'eggplant_wizard_uprising.png',
+	  'evil_wizard.png',
+	  'merlin_the_wizard.png',
+	]
 
 
 /***/ },
@@ -37636,11 +37680,17 @@
 	function SpellsCtrl($scope, $timeout, socketIO) {
 	  var E = socketIO.E;
 	  var socket = socketIO.socket;
+
 	  $scope.castingSpell = false; // shows powerbar when true
-	  $scope.underAttack = false;
+
+	  // gain access to the world
+	  var avatar = socket.avatars[socket.id]
+	  // set counterspells to disabled
+	  avatar.disableCounterSpells()
 
 	  $scope.initializeSpell = function (spell) {
-	    console.log('initialize spell:', spell)
+	    avatar.disableAttackSpells();
+	    avatar.disableCounterSpells();
 	    if (spell.type === 'Attack') { // initialize the attack cycle
 	      spell = socket.attackWith(spell);
 	    }
@@ -37681,6 +37731,12 @@
 	        break;
 	    }
 	  };
+
+	  socket.on(E.ATTACK_PU, function(data) {
+	    if (data.targetId === socket.id) avatar.enableCounterSpells()
+	    avatars[data.casterId].addClass('purple');
+	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
+	  });
 
 	} // Spells controller
 

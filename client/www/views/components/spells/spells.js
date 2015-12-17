@@ -29,13 +29,18 @@ module.exports = angular.module('wizardApp.spells', [
   .name;
 
 function SpellsCtrl($scope, $timeout, socketIO) {
+  // set initial values for magic casting
   var E = socketIO.E;
   var socket = socketIO.socket;
   $scope.castingSpell = false; // shows powerbar when true
-  $scope.underAttack = false;
+  // gain access to the world
+  var avatar = socket.avatars[socket.id]
+  // set counterspells to disabled
+  avatar.disableCounterSpells()
 
   $scope.initializeSpell = function (spell) {
-    console.log('initialize spell:', spell)
+    avatar.disableAttackSpells();
+    avatar.disableCounterSpells();
     if (spell.type === 'Attack') { // initialize the attack cycle
       spell = socket.attackWith(spell);
     }
@@ -76,6 +81,12 @@ function SpellsCtrl($scope, $timeout, socketIO) {
         break;
     }
   };
+
+  socket.on(E.ATTACK_PU, function(data) {
+    if (data.targetId === socket.id) avatar.enableCounterSpells()
+    avatars[data.casterId].addClass('purple');
+    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
+  });
 
 } // Spells controller
 
