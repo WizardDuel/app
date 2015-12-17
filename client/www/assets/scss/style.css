@@ -24,6 +24,9 @@
   background-color: red;
 }
 
+.status-bar {
+  margin-bottom: 5px;
+}
 .purple {
   background-color: purple;
 }

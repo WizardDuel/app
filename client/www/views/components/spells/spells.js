@@ -15,11 +15,11 @@ module.exports = angular.module('wizardApp.spells', [
     };
   })
 
-  .directive('spinner', function() {
+  .directive('powerBar', function() {
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: './views/components/spells/spinner.html',
+      templateUrl: './views/components/spells/powerBar.html',
       controller: 'SpellsCtrl'
     };
   })
