@@ -20,27 +20,10 @@ function DuelCtrl($scope, socketIO, $location, $window) {
   var E = socketIO.E;
   socket.attacking = false;
 
-  $scope.spells = [
-    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
-    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
-    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
-  ]
-
   wizard1 = Math.floor(Math.random() * wizardPhotos.length);
-  wizard2 = Math.floor(Math.random() * wizardPhotos.length);
 
-  if (wizard1 === wizard2) {
-    if (wizard1 === 0) {
-      wizard2 = 1;
-    } else {
-      wizard2 = wizard1 - 1;
-    }
-  }
-
-  $scope.foe = '';
   $scope.wizards = [
-    { user: 'Self', avatar: '../../assets/imgs/' + wizardPhotos[wizard1], id: socket.id },
-    { user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard2], id: socket.getFoeId() }
+    { user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard1], id: socket.getFoeId() }
   ];
 
   var foe = {id:socket.getFoeId()};
@@ -67,41 +50,29 @@ function DuelCtrl($scope, socketIO, $location, $window) {
     wiz.setMana = function(mana) {
       this.getMana().style.width = mana+'%';
     }
-    wiz.enableCounterSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
-      for (var i = 0; i < buttons.length; i++ ){
-        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-          buttons[i].removeAttribute('disabled')
+    wiz.getSpells = function(){
+      return document.getElementsByClassName('btn-spell')
+    }
+    wiz.enableSpells = function(type) {
+      var spells = this.getSpells();
+      for (var i = 0; i < spells.length; i++ ){
+        if (spells[i].getAttribute('data-spell-type') === type) {
+          spells[i].removeAttribute('disabled')
         }
       }
     }
-    wiz.disableCounterSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
-      for (var i = 0; i < buttons.length; i++ ){
-        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-          buttons[i].setAttribute('disabled', 'disabled')
+    wiz.disableSpells = function(type) {
+      var spells = this.getSpells();
+      for (var i = 0; i < spells.length; i++ ){
+        if (spells[i].getAttribute('data-spell-type') === type) {
+          spells[i].setAttribute('disabled', 'disabled')
         }
       }
     }
-    wiz.enableAttackSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
-      for (var i = 0; i < buttons.length; i++ ){
-        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-          buttons[i].removeAttribute('disabled')
-        }
-      }
+    wiz.manaCheck = function() {
+      var spells = this.getSpells();
     }
-    wiz.disableAttackSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
-      for (var i = 0; i < buttons.length; i++ ){
-        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-          buttons[i].setAttribute('disabled', 'disabled')
-        }
-      }
-    }
-    return wiz
   });
-
 
   var avatars = socket.avatars = {};
   avatars[foe.id] = foe;
@@ -113,9 +84,10 @@ function DuelCtrl($scope, socketIO, $location, $window) {
       avatars[wiz].setHealth(solution.wizStats[wiz].health)
       avatars[wiz].setMana(solution.wizStats[wiz].mana)
     }
-    // Allow access to spells
-    self.enableAttackSpells()
-    self.disableCounterSpells()
+    // Spell Access Control
+    self.enableSpells('Attack')
+    self.disableSpells('Counter')
+    var spells = self.getSpells();
   });
 
   socket.on('End of battle', function(msg) {

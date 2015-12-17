@@ -1,6 +1,25 @@
-<div class="row">
-  <div class="col" ng-repeat="spell in spells">
-    <button  ng-click="initializeSpell(spell)" class="button icon-left {{spell.icon}} btn-spell" data-spell-type="{{spell.type}}">{{ spell.name }}</button>
+<div id="spells" class="row">
+
+  <div class="col no-space">
+    <spell-panel spells='nonAttackSpells'></spell-panel>
   </div>
-  <spinner></spinner>
+
+  <div class="col no-space">
+    <div class="row">
+      <div class="col">
+        <spinner></spinner>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <status wizard=''></status>
+      </div>
+    </div>
+  </div>
+
+  <div class="col no-space">
+    <spell-panel spells='AttackSpells'></spell-panel>
+  </div>
+
 </div>

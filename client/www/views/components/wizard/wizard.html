@@ -5,18 +5,22 @@
     </div>
   </div>
   <div class="row">
-    <div class="col">
-      <img style="max-width: 75%; width: auto; height:auto" src="{{ wizard.avatar }}" alt="Avatar for {{ wizard.user }}" />
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <span id="{{wizard.id}}-health" class="health-bar" style="width:{{health}}%"></span>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <span id="{{wizard.id}}-mana" class="mana-bar" style="width:{{mana}}%"></span>
+    <div class="col" style="max-width: 200px">
+      <div class="row">
+        <div class="col">
+          <img style="max-width: 100px; width: auto; height:auto" src="{{ wizard.avatar }}" alt="Avatar for {{ wizard.user }}" />
+        </div>
+      </div>
+      <div class="row" >
+        <div class="col">
+          <span id="{{wizard.id}}-health" class="health-bar" style="width:{{health}}%"></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <span id="{{wizard.id}}-mana" class="mana-bar" style="width:{{mana}}%"></span>
+        </div>
+      </div>
     </div>
   </div>
 </div>

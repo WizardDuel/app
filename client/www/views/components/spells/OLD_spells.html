@@ -1,0 +1,11 @@
+<div class="row">
+  <div class="col" ng-repeat="spell in spells">
+    <button
+      ng-click="initializeSpell(spell)"
+      class="button icon-left {{spell.icon}} btn-spell"
+      data-spell-type="{{spell.type}}"
+      data-spell-cost="{{spell.cost}}">
+      {{ spell.name }}
+    </button>
+  <spellPanel></spellPanel>
+</div>
