@@ -1,17 +1,7 @@
-<div class="overlay">
-  <div class="duel {$scope.Attack}" >
-    <h2>Duel</h2>
-    <!-- <div class="spells">
-      <spell ng-repeat="spell in spells" spell="spell"></spell>
-    </div> -->
-    <spells spells="spells"></spells>
-
-    <!-- <div class="wizards">
-      <wizard wizard="Self" image="../../img/evil_wizard.png"></wizard>
-      <wizard wizard="Opponent" image="../../img/DC_wizard.png"></wizard>
-    </div> -->
-    <wizards wizards="wizards"></wizards>
-  </div>
+<div class="duel">
+  <h2>Duel</h2>
+  <wizards wizards="wizards"></wizards>
+  <spells spells="spells"></spells>
 </div>
 <div class='start-timer'>
   <h1 ng-bind="counter"></h1>
