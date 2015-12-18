@@ -24,7 +24,7 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
     { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
     { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
-  ]
+  ];
 
   wizard2 = Math.floor(Math.random() * wizardPhotos.length);
 
@@ -46,78 +46,59 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
     wiz.getAvatar = function(){
       return document.getElementById(this.id);
-    }
+    };
     wiz.getHealth = function(){
       return document.getElementById(this.id+'-health');
-    }
+    };
     wiz.getMana = function(){
       return document.getElementById(this.id+'-mana');
-    }
+    };
     wiz.addClass = function(cname){
-      this.getAvatar().classList.add(cname)
-    }
+      this.getAvatar().classList.add(cname);
+    };
     wiz.removeClass = function(cname) {
-      this.getAvatar().classList.remove(cname)
-    }
+      this.getAvatar().classList.remove(cname);
+    };
     wiz.setHealth = function(health) {
       this.getHealth().style.width = health +'%';
-    }
+    };
     wiz.setMana = function(mana) {
       this.getMana().style.width = mana+'%';
-    }
+    };
 
     wiz.enableCounterSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
+      var buttons = document.getElementsByClassName('btn-spell');
       for (var i = 0; i < buttons.length; i++ ){
         if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-          buttons[i].removeAttribute('disabled')
+          buttons[i].removeAttribute('disabled');
         }
       }
-    }
+    };
     wiz.disableCounterSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
+      var buttons = document.getElementsByClassName('btn-spell');
       for (var i = 0; i < buttons.length; i++ ){
         if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-          buttons[i].setAttribute('disabled', 'disabled')
+          buttons[i].setAttribute('disabled', 'disabled');
         }
       }
-    }
+    };
     wiz.enableAttackSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
+      var buttons = document.getElementsByClassName('btn-spell');
       for (var i = 0; i < buttons.length; i++ ){
         if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-          buttons[i].removeAttribute('disabled')
+          buttons[i].removeAttribute('disabled');
         }
       }
-    }
+    };
     wiz.disableAttackSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
+      var buttons = document.getElementsByClassName('btn-spell');
       for (var i = 0; i < buttons.length; i++ ){
         if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-          buttons[i].setAttribute('disabled', 'disabled')
+          buttons[i].setAttribute('disabled', 'disabled');
         }
       }
-    }
-    wiz.displayAttackResolutionMessage = function(resolution) {
-      function updateView(wizId) {
-        document.getElementById(wizId + '-wizard-message').innerHTML = resolution.spellName + ' (Damage: #)';
-        document.getElementById(wizId + '-avatar-overlay').style.visibility = 'visible';
-        setTimeout(function() {
-          document.getElementById(wizId + '-avatar-overlay').style.visibility = 'hidden';
-          document.getElementById(wizId + '-wizard-message').innerHTML = '';
-        }, 1500);
-      }
-      switch (this.id) {
-        case resolution.casterId:
-          updateView(this.foeId);
-          break;
-
-        case resolution.targetId:
-          updateView(this.id);
-          break;
-      }
-    }
-    return wiz
+    };
+    return wiz;
   });
 
 
@@ -130,15 +111,35 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     // console.log(data.casterId)
     // console.log(avatars)
     avatars[data.casterId].addClass('purple');
-    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
+    setTimeout(function(){ avatars[data.casterId].removeClass('purple'); }, 500);
   });
 
   socket.on(E.RESOLVE_ATTACK, function(resolution) {
     // update world based on solution
-    for (wiz in resolution.wizStats) {
+    for (var wiz in resolution.wizStats) {
       avatars[wiz].setHealth(resolution.wizStats[wiz].health);
       avatars[wiz].setMana(resolution.wizStats[wiz].mana);
-      avatars[wiz].displayAttackResolutionMessage(resolution);
+    }
+
+    var message;
+    function updateView(wizId, message) {
+      document.getElementById(wizId + '-wizard-message').innerHTML = message;
+      if (wizId === foe.id) { document.getElementById(wizId + '-avatar-overlay').style.visibility = 'visible'; }
+      setTimeout(function() {
+        if (wizId === foe.id) { document.getElementById(wizId + '-avatar-overlay').style.visibility = 'hidden'; }
+        document.getElementById(wizId + '-wizard-message').innerHTML = '';
+      }, 1500);
+    }
+    switch (self.id) {
+      case resolution.casterId:
+        message = 'LANDED ' + resolution.spellName + ' (Damage: ' + resolution.damage + ')';
+        updateView(foe.id, message);
+        break;
+
+      case resolution.targetId:
+        message = 'HIT BY ' + resolution.spellName + ' (Damage: ' + resolution.damage + ')';
+        updateView(self.id, message);
+        break;
     }
 
     // Allow access to spells
@@ -147,7 +148,7 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   });
 
   socket.on(E.MANA_REGEN, function(data) {
-    console.log(data)
+    console.log(data);
     for (var wiz in data) {
       avatars[wiz].setMana(data[wiz].mana);
     }
@@ -159,7 +160,7 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
   socket.on('Start', function(){
     $scope.counter = 3;
-    console.log('started')
+    console.log('started');
 
     $scope.countdown = function() {
       if($scope.counter === 0){
@@ -181,12 +182,12 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   });
 
   socket.on('End of battle', function(msg) {
-    alert(msg)
+    alert(msg);
     $scope.$apply(function() {
       $location.path('/');
       $window.location.reload();
     });
-  })
+  });
 }
 var wizardPhotos = [
   'walking_wizard.gif',
@@ -198,4 +199,4 @@ var wizardPhotos = [
   'eggplant_wizard_uprising.png',
   'evil_wizard.png',
   'merlin_the_wizard.png',
-]
+];

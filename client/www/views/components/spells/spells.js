@@ -94,8 +94,6 @@ function SpellsCtrl($scope, $timeout, socketIO) {
       case 'Attack':
           var attackSpell = magic.castSpell(attack);
           socket.emit(E.ATTACK, attackSpell);
-          document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';
-          setTimeout(function() { document.getElementById(socket.id + '-spell-message').innerHTML = '' }, 1500);
         break;
     }
   };
