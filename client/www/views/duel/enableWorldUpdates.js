@@ -10,13 +10,16 @@ function enableWorldUpdates(wiz){
       avatar.classList.remove(className)
     }
   }
-  wiz.getVital = function(vital) {
-    return document.getElementById(this.id+ '-' + vital);
+  // set and get vitals
+  wiz.getVital = function(vital, actual) {
+    var el = document.getElementById(this.id+ '-' + vital);
+    if (actual) return el.style.width.split('%')[0];
+    return el;
   }
   wiz.setVital = function(vital, value) {
     this.getVital(vital).style.width = value +'%';
   }
-
+  // spell access
   wiz.enableSpellsBy = function(spellAttr, value) {
     var spells = document.getElementsByClassName('btn-spell')
     for (var i = 0; i < spells.length; i++ ){
@@ -26,7 +29,6 @@ function enableWorldUpdates(wiz){
       }
     }
   }
-  
   wiz.disableSpellsBy = function(spellAttr, value) {
     var spells = document.getElementsByClassName('btn-spell')
     for (var i = 0; i < spells.length; i++ ){
@@ -36,82 +38,36 @@ function enableWorldUpdates(wiz){
       }
     }
   }
-
-
-  wiz.enableCounterSpells = function() {
-    var buttons = document.getElementsByClassName('btn-spell')
-    for (var i = 0; i < buttons.length; i++ ){
-      if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-        buttons[i].removeAttribute('disabled')
-      }
+  wiz.resetSpells = function(socket) {
+    if (!socket.castingSpell) {
+      this.enableSpellsBy('type', 'attack');
+      this.enableSpellsBy('role', 'enhancer')
+      this.disableSpellsBy('role', 'counter')
     }
   }
-  wiz.disableCounterSpells = function() {
-    var buttons = document.getElementsByClassName('btn-spell')
-    for (var i = 0; i < buttons.length; i++ ){
-      if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-        buttons[i].setAttribute('disabled', 'disabled')
-      }
-    }
+  // messages
+  wiz.getMessageEl = function() {
+    return document.getElementById(this.id + '-wizard-message')
   }
-  wiz.enableAttackSpells = function() {
-    var buttons = document.getElementsByClassName('btn-spell')
-    for (var i = 0; i < buttons.length; i++ ){
-      if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-        buttons[i].removeAttribute('disabled')
-      }
-    }
+  wiz.updateMessage = function(el, msg) {
+    el.innerHTML = msg;
   }
-  wiz.disableAttackSpells = function() {
-    var buttons = document.getElementsByClassName('btn-spell')
-    for (var i = 0; i < buttons.length; i++ ){
-      if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-        buttons[i].setAttribute('disabled', 'disabled')
-      }
-    }
+  wiz.setAvatarOverlayVisibility = function(visibility) {
+    var el = document.getElementById(this.id + '-avatar-overlay')
+    el.style.visibility = visibility;
   }
-  wiz.displayAttackResolutionMessage = function(resolution) {
-    function updateView(wizId) {
-      document.getElementById(wizId + '-wizard-message').innerHTML = resolution.spellName + ' (Damage: #)';
-      document.getElementById(wizId + '-avatar-overlay').style.visibility = 'visible';
-      setTimeout(function() {
-        document.getElementById(wizId + '-avatar-overlay').style.visibility = 'hidden';
-        document.getElementById(wizId + '-wizard-message').innerHTML = '';
-      }, 1500);
-    }
-    switch (this.id) {
-      case resolution.casterId:
-        updateView(this.foeId);
-        break;
-
-      case resolution.targetId:
-        updateView(this.id);
-        break;
-    }
+  wiz.flashMessage = function(msg) {
+    // write message to element
+    var messageEl = this.getMessageEl();
+    this.updateMessage(messageEl, msg)
+    // show message
+    this.setAvatarOverlayVisibility('visible')
+    var ths = this;
+    setTimeout(function() {
+      ths.setAvatarOverlayVisibility('hidden')
+      ths.updateMessage(messageEl, '')
+    }, 1500)
   }
-  //// refactored out
-  wiz.addClass = function(cname){
-    this.getAvatar().classList.add(cname)
-  }
-  wiz.removeClass = function(cname) {
-    this.getAvatar().classList.remove(cname)
-  }
-  wiz.getHealth = function(){
-    return document.getElementById(this.id+'-health');
-  }
-  wiz.getMana = function(){
-    return document.getElementById(this.id+'-mana');
-  }
-  wiz.setHealth = function(health) {
-    this.getHealth().style.width = health +'%';
-  }
-  wiz.setMana = function(mana) {
-    this.getMana().style.width = mana+'%';
-  }
-
-
-
-
-return wiz
+  return wiz
 }
 module.exports = enableWorldUpdates;

@@ -67,6 +67,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
       socket.castingSpell = true;
       // Inspect spell
       $scope.spell = spell
+      console.log(spell)
     } else {
       var enhanceSpell = Magic.castEnhancer(spell, socket.id);
       socket.emit(E.ENHANCE, enhanceSpell);
@@ -82,27 +83,26 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   };
 
   $scope.castSpell = function(spell) {
-    var attackId = spell.attackId;
-    var attack = {
-      attackId: attackId,
-      spellName: spell.name
-    };
-
     switch (spell.type) {
       case 'perry':
-          var defensiveSpell = Magic.castSpell(attackId)
+          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId)
           socket.emit(E.PERRY, defensiveSpell);
+          avatar.resetSpells(socket)
+          socket.incomingSpell = null;
+          avatar.flashMessage('-'+spell.cost+' mana')
         break;
       case 'repost':
-          var repostSpell = Magic.castSpell(attackId)
+          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId)
           socket.emit(E.REPOST, repostSpell);
+          avatar.resetSpells(socket)
+          socket.incomingSpell = null
+          avatar.flashMessage('-'+spell.cost+' mana')
         break;
 
       case 'attack':
-          var attackSpell = Magic.castSpell(attack);
+          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name});
           socket.emit(E.ATTACK, attackSpell);
-          document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';
-          setTimeout(function() { document.getElementById(socket.id + '-spell-message').innerHTML = '' }, 1500);
+          avatar.flashMessage('-'+spell.cost+' mana')
         break;
     }
   };

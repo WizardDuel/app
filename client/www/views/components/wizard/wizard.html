@@ -11,6 +11,9 @@
           <span id="{{wizard.id}}-mana" class="mana-bar" style="width:{{mana}}%"></span>
         </div>
       </div>
+      <div id="{{wizard.id}}-avatar-overlay" class="avatar-overlay foe-overlay">
+        <span id="{{wizard.id}}-wizard-message" class="wizard-message"></span>
+      </div>
       <div class="row">
         <div class="col">
           <span id="{{wizard.id}}-spell-message" class="spell-message"></span>
@@ -24,9 +27,7 @@
       <div class="row">
         <div class="col" class="avatar-container">
           <img style="max-width: 75%; width: auto; height:auto" src="{{ wizard.avatar }}" alt="Avatar for {{ wizard.user }}" />
-          <div id="{{wizard.id}}-avatar-overlay" class="avatar-overlay">
-            <span id="{{wizard.id}}-wizard-message" class="wizard-message"></span>
-          </div>
+
         </div>
       </div>
     </div>

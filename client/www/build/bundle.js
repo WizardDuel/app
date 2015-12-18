@@ -533,7 +533,7 @@
 
 
 	// module
-	exports.push([module.id, "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\n/* view imports */\nheader {\n  height: 65px;\n  background-color: #c2b280;\n  position: fixed; }\n\ndiv.content-from-header.extra-specificity {\n  margin-top: 75px; }\n\n.game {\n  display: block;\n  background-color: tan;\n  hieght: 100%;\n  width: 200px;\n  border: solid 3px brown; }\n\n.stat-item {\n  display: block; }\n\n/* directive imports */\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n/* meter*/\n.spinner {\n  width: 250px;\n  height: 100px; }\n\n.section {\n  display: inline-block;\n  width: 2.5px;\n  hieght: 100px;\n  background-color: #222;\n  color: #222; }\n\n#section-id-0 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-1 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-2 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-3 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-4 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-5 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-6 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-7 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-8 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-9 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-10 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-11 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-12 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-13 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-14 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-15 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-16 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-17 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-18 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-19 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-20 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-21 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-22 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-23 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-24 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-25 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-26 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-27 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-28 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-29 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-30 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-31 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-32 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-33 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-34 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-35 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-36 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-37 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-38 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-39 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-40 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-41 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-42 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-43 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-44 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-45 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-46 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-47 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-48 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-49 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-50 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-51 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-52 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-53 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-54 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-55 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-56 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-57 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-58 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-59 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-60 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-61 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-62 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-63 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-64 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-65 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-66 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-67 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-68 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-69 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-70 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-71 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-72 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-73 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-74 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-75 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-76 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-77 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-78 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-79 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-80 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-81 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-82 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-83 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-84 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-85 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-86 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-87 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-88 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-89 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-90 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-91 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-92 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-93 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-94 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-95 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-96 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-97 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-98 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-99 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-100 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n.active-meter {\n  background-color: #000 !important;\n  color: #000 !important; }\n\n.enemy {\n  margin-bottom: 10%; }\n\n.avatar-container {\n  position: relative; }\n\n.avatar-overlay {\n  visibility: hidden;\n  position: absolute;\n  top: 250px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.application-settings {\n  font-family: Galindo; }\n\n.background-image {\n  background: url(" + __webpack_require__(14) + ") no-repeat center center;\n  min-height: 100%;\n  background-size: auto; }\n\n/* add from style.css */\n#status-bars {\n  min-width: 120px;\n  max-width: 200px;\n  min-height: 50px;\n  padding: 0; }\n\n#spells {\n  min-width: 366px; }\n\n.spell-panel {\n  min-width: 122px; }\n\n.btn-spell {\n  width: 60px;\n  height: 80px;\n  margin-bottom: 2px;\n  font-size: x-small;\n  line-height: 1; }\n\n#power-vessle {\n  min-height: 80px; }\n\n#powerbar {\n  width: 122px; }\n\n#powerbar button {\n  line-height: 1;\n  max-heigth: 100px;\n  font-size: small;\n  border-radius: 25px; }\n\n.red {\n  background-color: red; }\n\n.status-bar {\n  margin-bottom: 5px;\n  border-radius: 2px; }\n\n.purple {\n  background-color: purple; }\n\n.container {\n  margin-top: 200px; }\n\n.health-bar {\n  background: #FF5656;\n  display: block;\n  height: 1em; }\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em; }\n\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n.spell-message {\n  display: inline-block;\n  height: 1rem; }\n", ""]);
+	exports.push([module.id, "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\n/* view imports */\nheader {\n  height: 65px;\n  background-color: #c2b280;\n  position: fixed; }\n\ndiv.content-from-header.extra-specificity {\n  margin-top: 75px; }\n\n.game {\n  display: block;\n  background-color: tan;\n  hieght: 100%;\n  width: 200px;\n  border: solid 3px brown; }\n\n.stat-item {\n  display: block; }\n\n/* directive imports */\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n/* meter*/\n.spinner {\n  width: 250px;\n  height: 100px; }\n\n.section {\n  display: inline-block;\n  width: 2.5px;\n  hieght: 100px;\n  background-color: #222;\n  color: #222; }\n\n#section-id-0 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-1 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-2 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-3 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-4 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-5 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-6 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-7 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-8 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-9 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-10 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-11 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-12 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-13 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-14 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-15 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-16 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-17 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-18 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-19 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-20 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-21 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-22 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-23 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-24 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-25 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-26 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-27 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-28 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-29 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-30 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-31 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-32 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-33 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-34 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-35 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-36 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-37 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-38 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-39 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-40 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-41 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-42 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-43 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-44 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-45 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-46 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-47 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-48 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-49 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-50 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-51 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-52 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-53 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-54 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-55 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-56 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-57 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-58 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-59 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-60 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-61 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-62 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-63 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-64 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-65 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-66 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-67 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-68 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-69 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-70 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-71 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-72 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-73 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-74 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-75 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-76 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-77 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-78 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-79 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-80 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-81 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-82 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-83 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-84 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-85 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-86 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-87 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-88 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-89 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-90 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-91 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-92 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-93 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-94 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-95 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-96 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-97 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-98 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-99 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-100 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n.active-meter {\n  background-color: #000 !important;\n  color: #000 !important; }\n\n.enemy {\n  margin-bottom: 10%; }\n\n.avatar-container {\n  position: relative; }\n\n.avatar-overlay {\n  visibility: hidden;\n  position: absolute;\n  top: 250px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.foe {\n  visibility: hidden;\n  position: absolute;\n  top: 100px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.application-settings {\n  font-family: Galindo; }\n\n.background-image {\n  background: url(" + __webpack_require__(14) + ") no-repeat center center;\n  min-height: 100%;\n  background-size: auto; }\n\n/* add from style.css */\n#status-bars {\n  min-width: 120px;\n  max-width: 200px;\n  min-height: 50px;\n  padding: 0; }\n\n#spells {\n  min-width: 366px; }\n\n.spell-panel {\n  min-width: 122px; }\n\n.btn-spell {\n  width: 60px;\n  height: 80px;\n  margin-bottom: 2px;\n  font-size: x-small;\n  line-height: 1; }\n\n#power-vessle {\n  min-height: 80px; }\n\n#powerbar {\n  width: 122px; }\n\n#powerbar button {\n  line-height: 1;\n  max-heigth: 100px;\n  font-size: small;\n  border-radius: 25px; }\n\n.red {\n  background-color: red; }\n\n.status-bar {\n  margin-bottom: 5px;\n  border-radius: 2px; }\n\n.purple {\n  background-color: purple; }\n\n.container {\n  margin-top: 200px; }\n\n.health-bar {\n  background: #FF5656;\n  display: block;\n  height: 1em; }\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em; }\n\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n.spell-message {\n  display: inline-block;\n  height: 1rem; }\n", ""]);
 
 	// exports
 
@@ -47315,96 +47315,62 @@
 	  .name;
 
 	function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
+	  //initialize refs to dom els and socket references
 	  var socket = socketIO.socket;
 	  var E = socketIO.E;
 	  socket.attacking = false;
-	  socket.casting = false;
 
-	  wizard2 = Math.floor(Math.random() * wizardPhotos.length);
-
-	  $scope.foe = '';
-	  $scope.wizards = [
-	    { user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard2], id: socket.getFoeId() }
-	  ];
-
-	  var foe = {
-	    id: socket.getFoeId(),
-	    foeId: socket.id
-	  };
-	  var self = {
-	    id: socket.id,
-	    foeId: foe.id
-	  };
-
-	  [self, foe].map(function(wiz) {
-	    enableWorldUpdates(wiz)
-	  })
-
-	  var avatars = socket.avatars = {};
+	  var foe = { id: socket.getFoeId(), foeId: socket.id };
+	  var self = { id: socket.id, foeId: foe.id };
+	  [self, foe].map(function(wiz) { enableWorldUpdates(wiz) })
+	  var avatars = {}
 	  avatars[foe.id] = foe;
 	  avatars[self.id] = self;
+	  socket.avatars = avatars
+
+	   // Socket events
+	   angular.element(document).ready(function(){
+	     socket.emit(E.READY);
+	   });
+
+	   socket.on('Start', function(){
+	     $scope.counter = 3;
+	     $scope.countdown();
+	   });
+
+	   socket.on(E.UPDATE, function(data) {
+	     var wizStats = data.wizStats;
+	     for (wiz in wizStats) {
+	       avatars[wiz].setHealth(wizStats[wiz].health);
+	       avatars[wiz].setMana(wizStats[wiz].mana);
+	     }
+	   })
+
+	   socket.on(E.MANA_REGEN, function(data) {
+	     for (var wiz in data) {
+	       avatars[wiz].setMana(data[wiz].mana);
+	     }
+	   });
 
 	  socket.on(E.ATTACK_PU, function(data) {
+	    socket.incomingSpell = data;
 	    avatars[data.casterId].addClass('purple');
 	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
 	  });
 
 	  socket.on(E.RESOLVE_ATTACK, function(resolution) {
-	    // Allow access to spells
-	    console.log('casting:', socket.castingSpell)
-	    console.log(self.enableAttackSpells)
-	    if (!socket.castingSpell) {
-	      self.enableSpellsBy('type', 'attack');
-	      self.enableSpellsBy('role', 'enhancer')
-	      self.disableSpellsBy('role', 'counter')
-	    }
+	    // spell reset
+	    self.resetSpells(socket);
 	    // update world based on solution
 	    for (wiz in resolution.wizStats) {
-	      // avatars[wiz].setHealth(resolution.wizStats[wiz].health);
 	      var stats = resolution.wizStats[wiz];
+	      // send message
+	      var hDelta = avatars[wiz].getVital('health', true) - stats.health
+	      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health')
+	      // set vitals for combatants
 	      avatars[wiz].setVital('health', stats.health)
-	      avatars[wiz].setMana(resolution.wizStats[wiz].mana);
-	      avatars[wiz].displayAttackResolutionMessage(resolution);
+	      avatars[wiz].setMana(stats.mana);
 	    }
-	  });
-
-	  socket.on(E.UPDATE, function(data) {
-	    var wizStats = data.wizStats;
-	    for (wiz in wizStats) {
-	      avatars[wiz].setHealth(wizStats[wiz].health);
-	      avatars[wiz].setMana(wizStats[wiz].mana);
-	    }
-	  })
-
-	  socket.on(E.MANA_REGEN, function(data) {
-	    for (var wiz in data) {
-	      avatars[wiz].setMana(data[wiz].mana);
-	    }
-	  });
-
-	  angular.element(document).ready(function(){
-	    socket.emit(E.READY);
-	  });
-
-	  socket.on('Start', function(){
-	    $scope.counter = 3;
-	    $scope.countdown = function() {
-	      if($scope.counter === 0){
-	        $timeout.cancel(stopped);
-	        $scope.counter = "Duel!";
-	        $timeout(function() {
-	          $('.overlay').removeClass('overlay');
-	          $('.start-timer').hide();
-	        }, 1200);
-	      } else {
-	        stopped = $timeout(function() {
-	         $scope.counter--;
-	         $scope.countdown();
-	        }, 1000);
-	      }
-	    };
-
-	    $scope.countdown();
 	  });
 
 	  socket.on('End of battle', function(msg) {
@@ -47414,6 +47380,28 @@
 	      $window.location.reload();
 	    });
 	  })
+
+	  $scope.wizards = [
+	    {user: 'Opponent',
+	    avatar: '../../assets/imgs/' + wizardPhotos[Math.floor(Math.random() * wizardPhotos.length)],
+	    id: socket.getFoeId()
+	  }];
+
+	  $scope.countdown = function() {
+	    if($scope.counter === 0){
+	      $timeout.cancel(stopped);
+	      $scope.counter = "Duel!";
+	      $timeout(function() {
+	        $('.overlay').removeClass('overlay');
+	        $('.start-timer').hide();
+	      }, 1200);
+	    } else {
+	      stopped = $timeout(function() {
+	       $scope.counter--;
+	       $scope.countdown();
+	      }, 1000);
+	    }
+	  };
 	}
 
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(68)))
@@ -47491,6 +47479,7 @@
 	      socket.castingSpell = true;
 	      // Inspect spell
 	      $scope.spell = spell
+	      console.log(spell)
 	    } else {
 	      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
 	      socket.emit(E.ENHANCE, enhanceSpell);
@@ -47506,27 +47495,26 @@
 	  };
 
 	  $scope.castSpell = function(spell) {
-	    var attackId = spell.attackId;
-	    var attack = {
-	      attackId: attackId,
-	      spellName: spell.name
-	    };
-
 	    switch (spell.type) {
 	      case 'perry':
-	          var defensiveSpell = Magic.castSpell(attackId)
+	          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId)
 	          socket.emit(E.PERRY, defensiveSpell);
+	          avatar.resetSpells(socket)
+	          socket.incomingSpell = null;
+	          avatar.flashMessage('-'+spell.cost+' mana')
 	        break;
 	      case 'repost':
-	          var repostSpell = Magic.castSpell(attackId)
+	          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId)
 	          socket.emit(E.REPOST, repostSpell);
+	          avatar.resetSpells(socket)
+	          socket.incomingSpell = null
+	          avatar.flashMessage('-'+spell.cost+' mana')
 	        break;
 
 	      case 'attack':
-	          var attackSpell = Magic.castSpell(attack);
+	          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name});
 	          socket.emit(E.ATTACK, attackSpell);
-	          document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';
-	          setTimeout(function() { document.getElementById(socket.id + '-spell-message').innerHTML = '' }, 1500);
+	          avatar.flashMessage('-'+spell.cost+' mana')
 	        break;
 	    }
 	  };
@@ -47615,13 +47603,16 @@
 	      avatar.classList.remove(className)
 	    }
 	  }
-	  wiz.getVital = function(vital) {
-	    return document.getElementById(this.id+ '-' + vital);
+	  // set and get vitals
+	  wiz.getVital = function(vital, actual) {
+	    var el = document.getElementById(this.id+ '-' + vital);
+	    if (actual) return el.style.width.split('%')[0];
+	    return el;
 	  }
 	  wiz.setVital = function(vital, value) {
 	    this.getVital(vital).style.width = value +'%';
 	  }
-
+	  // spell access
 	  wiz.enableSpellsBy = function(spellAttr, value) {
 	    var spells = document.getElementsByClassName('btn-spell')
 	    for (var i = 0; i < spells.length; i++ ){
@@ -47631,7 +47622,6 @@
 	      }
 	    }
 	  }
-	  
 	  wiz.disableSpellsBy = function(spellAttr, value) {
 	    var spells = document.getElementsByClassName('btn-spell')
 	    for (var i = 0; i < spells.length; i++ ){
@@ -47641,83 +47631,37 @@
 	      }
 	    }
 	  }
-
-
-	  wiz.enableCounterSpells = function() {
-	    var buttons = document.getElementsByClassName('btn-spell')
-	    for (var i = 0; i < buttons.length; i++ ){
-	      if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-	        buttons[i].removeAttribute('disabled')
-	      }
+	  wiz.resetSpells = function(socket) {
+	    if (!socket.castingSpell) {
+	      this.enableSpellsBy('type', 'attack');
+	      this.enableSpellsBy('role', 'enhancer')
+	      this.disableSpellsBy('role', 'counter')
 	    }
 	  }
-	  wiz.disableCounterSpells = function() {
-	    var buttons = document.getElementsByClassName('btn-spell')
-	    for (var i = 0; i < buttons.length; i++ ){
-	      if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-	        buttons[i].setAttribute('disabled', 'disabled')
-	      }
-	    }
+	  // messages
+	  wiz.getMessageEl = function() {
+	    return document.getElementById(this.id + '-wizard-message')
 	  }
-	  wiz.enableAttackSpells = function() {
-	    var buttons = document.getElementsByClassName('btn-spell')
-	    for (var i = 0; i < buttons.length; i++ ){
-	      if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-	        buttons[i].removeAttribute('disabled')
-	      }
-	    }
+	  wiz.updateMessage = function(el, msg) {
+	    el.innerHTML = msg;
 	  }
-	  wiz.disableAttackSpells = function() {
-	    var buttons = document.getElementsByClassName('btn-spell')
-	    for (var i = 0; i < buttons.length; i++ ){
-	      if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-	        buttons[i].setAttribute('disabled', 'disabled')
-	      }
-	    }
+	  wiz.setAvatarOverlayVisibility = function(visibility) {
+	    var el = document.getElementById(this.id + '-avatar-overlay')
+	    el.style.visibility = visibility;
 	  }
-	  wiz.displayAttackResolutionMessage = function(resolution) {
-	    function updateView(wizId) {
-	      document.getElementById(wizId + '-wizard-message').innerHTML = resolution.spellName + ' (Damage: #)';
-	      document.getElementById(wizId + '-avatar-overlay').style.visibility = 'visible';
-	      setTimeout(function() {
-	        document.getElementById(wizId + '-avatar-overlay').style.visibility = 'hidden';
-	        document.getElementById(wizId + '-wizard-message').innerHTML = '';
-	      }, 1500);
-	    }
-	    switch (this.id) {
-	      case resolution.casterId:
-	        updateView(this.foeId);
-	        break;
-
-	      case resolution.targetId:
-	        updateView(this.id);
-	        break;
-	    }
+	  wiz.flashMessage = function(msg) {
+	    // write message to element
+	    var messageEl = this.getMessageEl();
+	    this.updateMessage(messageEl, msg)
+	    // show message
+	    this.setAvatarOverlayVisibility('visible')
+	    var ths = this;
+	    setTimeout(function() {
+	      ths.setAvatarOverlayVisibility('hidden')
+	      ths.updateMessage(messageEl, '')
+	    }, 1500)
 	  }
-	  //// refactored out
-	  wiz.addClass = function(cname){
-	    this.getAvatar().classList.add(cname)
-	  }
-	  wiz.removeClass = function(cname) {
-	    this.getAvatar().classList.remove(cname)
-	  }
-	  wiz.getHealth = function(){
-	    return document.getElementById(this.id+'-health');
-	  }
-	  wiz.getMana = function(){
-	    return document.getElementById(this.id+'-mana');
-	  }
-	  wiz.setHealth = function(health) {
-	    this.getHealth().style.width = health +'%';
-	  }
-	  wiz.setMana = function(mana) {
-	    this.getMana().style.width = mana+'%';
-	  }
-
-
-
-
-	return wiz
+	  return wiz
 	}
 	module.exports = enableWorldUpdates;
 

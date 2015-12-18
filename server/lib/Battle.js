@@ -185,7 +185,7 @@ Battle.prototype.resolveEnhance = function(spell) {
   switch (spell.effect) {
     case 'recover-health':
       this[spell.target].health += spell.power
-      if (this[spell.target].health >= 100) this.[spell.target].health = 100;
+      if (this[spell.target].health >= 100) this[spell.target].health = 100;
       msg = {target:spell.target, body:'recovered ' + spell.power + 'health!'}
       break;
     case 'buff-health':
