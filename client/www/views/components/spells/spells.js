@@ -1,5 +1,5 @@
 /* globals angular */
-var spellList = require('./spellList');
+var Magic = require('./Magic');
 
 module.exports = angular.module('wizardApp.spells', [
 
@@ -51,12 +51,9 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   var avatar = socket.avatars[socket.id]
   $scope.self = socket.id
 
-  console.log(spellList)
-  console.log(spellList.attacks)
-
-  $scope.attacks = spellList.attacks;
-  $scope.enhancers = spellList.counters;
-  $scope.counters = spellList.enhancers;
+  $scope.attacks = Magic.spellList.attacks;
+  $scope.enhancers = Magic.spellList.counters;
+  $scope.counters = Magic.spellList.enhancers;
   // set counterspells to disabled
   //avatar.disableCounterSpells()
 
@@ -93,16 +90,16 @@ function SpellsCtrl($scope, $timeout, socketIO) {
       case 'Defend':
         break;
       case 'Perry':
-          var defensiveSpell = magic.castSpell(attackId)
+          var defensiveSpell = Magic.castSpell(attackId)
           socket.emit(E.PERRY, defensiveSpell);
         break;
       case 'Repost':
-          var repostSpell = magic.castSpell(attackId)
+          var repostSpell = Magic.castSpell(attackId)
           socket.emit(E.REPOST, repostSpell);
         break;
 
       case 'Attack':
-          var attackSpell = magic.castSpell(attack);
+          var attackSpell = Magic.castSpell(attack);
           socket.emit(E.ATTACK, attackSpell);
           document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';
           setTimeout(function() { document.getElementById(socket.id + '-spell-message').innerHTML = '' }, 1500);
@@ -119,26 +116,3 @@ function SpellsCtrl($scope, $timeout, socketIO) {
 
 
 } // Spells controller
-
-var magic = {
-  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
-  setCrit: function() {
-    var roll = Math.floor(Math.random() * 20 + 1);
-    var crit = null;
-    if (roll > 17) return 1;
-    if (roll < 3) return -1;
-    return 0;
-  },
-  setTime: function() {return new Date().getTime();},
-
-  castSpell: function(attack, power, crit, timeShift) {
-    var spell = {
-      attackId: attack.attackId,
-      power: power ? power : this.setPower(),
-      crit: crit !== null ? crit : this.setCrit(),
-      time: this.setTime() + timeShift,
-      spellName: attack.spellName
-    };
-    return spell;
-  },
-};
