@@ -38,7 +38,6 @@ var Magic = {
       {name: 'Wind Swords', type: 'attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
     ],
     counters: [
-
       { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'perry', target: 'foe', role: 'counter', afinity: 'basic', cost: 5 },
       { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'repost', target: 'foe', role: 'counter', afinity: 'basic', cost: 6 },
     ],

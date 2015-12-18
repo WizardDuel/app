@@ -47318,6 +47318,7 @@
 	  var socket = socketIO.socket;
 	  var E = socketIO.E;
 	  socket.attacking = false;
+	  socket.casting = false;
 
 	  wizard2 = Math.floor(Math.random() * wizardPhotos.length);
 
@@ -47349,23 +47350,27 @@
 	  });
 
 	  socket.on(E.RESOLVE_ATTACK, function(resolution) {
+	    // Allow access to spells
+	    console.log('casting:', socket.castingSpell)
+	    console.log(self.enableAttackSpells)
+	    if (!socket.castingSpell) {
+	      self.enableSpellsBy('type', 'attack');
+	      self.enableSpellsBy('role', 'enhancer')
+	      self.disableSpellsBy('role', 'counter')
+	    }
 	    // update world based on solution
 	    for (wiz in resolution.wizStats) {
-	      avatars[wiz].setHealth(resolution.wizStats[wiz].health);
+	      // avatars[wiz].setHealth(resolution.wizStats[wiz].health);
+	      var stats = resolution.wizStats[wiz];
+	      avatars[wiz].setVital('health', stats.health)
 	      avatars[wiz].setMana(resolution.wizStats[wiz].mana);
 	      avatars[wiz].displayAttackResolutionMessage(resolution);
 	    }
-
-	    // Allow access to spells
-	    if (!socket.casting) {
-	      self.enableAttackSpells();
-	      self.disableCounterSpells();
-	    }
-
 	  });
+
 	  socket.on(E.UPDATE, function(data) {
 	    var wizStats = data.wizStats;
-	    for (wiz in resolution.wizStats) {
+	    for (wiz in wizStats) {
 	      avatars[wiz].setHealth(wizStats[wiz].health);
 	      avatars[wiz].setMana(wizStats[wiz].mana);
 	    }
@@ -47616,6 +47621,28 @@
 	  wiz.setVital = function(vital, value) {
 	    this.getVital(vital).style.width = value +'%';
 	  }
+
+	  wiz.enableSpellsBy = function(spellAttr, value) {
+	    var spells = document.getElementsByClassName('btn-spell')
+	    for (var i = 0; i < spells.length; i++ ){
+	      var spell = spells[i];
+	      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
+	        spell.removeAttribute('disabled')
+	      }
+	    }
+	  }
+	  
+	  wiz.disableSpellsBy = function(spellAttr, value) {
+	    var spells = document.getElementsByClassName('btn-spell')
+	    for (var i = 0; i < spells.length; i++ ){
+	      var spell = spells[i]
+	      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
+	        spell.setAttribute('disabled', 'disabled')
+	      }
+	    }
+	  }
+
+
 	  wiz.enableCounterSpells = function() {
 	    var buttons = document.getElementsByClassName('btn-spell')
 	    for (var i = 0; i < buttons.length; i++ ){
@@ -47740,7 +47767,6 @@
 	      {name: 'Wind Swords', type: 'attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
 	    ],
 	    counters: [
-
 	      { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'perry', target: 'foe', role: 'counter', afinity: 'basic', cost: 5 },
 	      { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'repost', target: 'foe', role: 'counter', afinity: 'basic', cost: 6 },
 	    ],

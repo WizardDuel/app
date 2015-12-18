@@ -22,6 +22,7 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   var socket = socketIO.socket;
   var E = socketIO.E;
   socket.attacking = false;
+  socket.casting = false;
 
   wizard2 = Math.floor(Math.random() * wizardPhotos.length);
 
@@ -53,23 +54,27 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   });
 
   socket.on(E.RESOLVE_ATTACK, function(resolution) {
+    // Allow access to spells
+    console.log('casting:', socket.castingSpell)
+    console.log(self.enableAttackSpells)
+    if (!socket.castingSpell) {
+      self.enableSpellsBy('type', 'attack');
+      self.enableSpellsBy('role', 'enhancer')
+      self.disableSpellsBy('role', 'counter')
+    }
     // update world based on solution
     for (wiz in resolution.wizStats) {
-      avatars[wiz].setHealth(resolution.wizStats[wiz].health);
+      // avatars[wiz].setHealth(resolution.wizStats[wiz].health);
+      var stats = resolution.wizStats[wiz];
+      avatars[wiz].setVital('health', stats.health)
       avatars[wiz].setMana(resolution.wizStats[wiz].mana);
       avatars[wiz].displayAttackResolutionMessage(resolution);
     }
-
-    // Allow access to spells
-    if (!socket.casting) {
-      self.enableAttackSpells();
-      self.disableCounterSpells();
-    }
-
   });
+
   socket.on(E.UPDATE, function(data) {
     var wizStats = data.wizStats;
-    for (wiz in resolution.wizStats) {
+    for (wiz in wizStats) {
       avatars[wiz].setHealth(wizStats[wiz].health);
       avatars[wiz].setMana(wizStats[wiz].mana);
     }

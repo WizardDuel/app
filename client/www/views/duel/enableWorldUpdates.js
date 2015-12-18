@@ -16,6 +16,28 @@ function enableWorldUpdates(wiz){
   wiz.setVital = function(vital, value) {
     this.getVital(vital).style.width = value +'%';
   }
+
+  wiz.enableSpellsBy = function(spellAttr, value) {
+    var spells = document.getElementsByClassName('btn-spell')
+    for (var i = 0; i < spells.length; i++ ){
+      var spell = spells[i];
+      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
+        spell.removeAttribute('disabled')
+      }
+    }
+  }
+  
+  wiz.disableSpellsBy = function(spellAttr, value) {
+    var spells = document.getElementsByClassName('btn-spell')
+    for (var i = 0; i < spells.length; i++ ){
+      var spell = spells[i]
+      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
+        spell.setAttribute('disabled', 'disabled')
+      }
+    }
+  }
+
+
   wiz.enableCounterSpells = function() {
     var buttons = document.getElementsByClassName('btn-spell')
     for (var i = 0; i < buttons.length; i++ ){
