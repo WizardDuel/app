@@ -2,8 +2,7 @@
   "name": "client",
   "app_id": "",
   "gulpStartupTasks": [
-    "sass",
-    "watch"
+    "webpack"
   ],
   "watchPatterns": [
     "www/**/*",

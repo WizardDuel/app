@@ -34,7 +34,7 @@
 /******/ 	__webpack_require__.c = installedModules;
 
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
+/******/ 	__webpack_require__.p = "/build/";
 
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(0);
@@ -44,21 +44,24 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	// require('./assets/scss/style.scss');
-	// require('./lib/ionic/css/ionic.css');
+	__webpack_require__(5);
+	__webpack_require__(7);
+	__webpack_require__(14);
 
-	var angular = __webpack_require__(1);
-	var io = __webpack_require__(3);
+	var angular = __webpack_require__(16);
+	var io = __webpack_require__(18);
 
 	angular.module('wizardApp', [
-	  __webpack_require__(53),
+	  __webpack_require__(68),
 	])
 	.factory('socketIO', function() {
 	    return {
 	      socket: io.connect('http://localhost:3000'),
 	      E: {
 	        DUEL: 'Duel',
-	        BEGIN: 'Begin',
+	        BEGIN: 'Begin',                     //Loads Duel View
+	        READY: 'Ready',                     // Waits for users to load
+	        START: 'Start',                     //Begins Duel
 	        ATTACK_PU: 'Attack Power Up',
 	        RESOLVE_ATTACK: 'Resolve Attack',
 	        PERRY: 'Perry',
@@ -66,22 +69,485 @@
 	        RECOVER: 'Recover',
 	        DEFEND: 'Defend',
 	        WIZ_ID: 'Wizard Id',
-	        ATTACK: 'Attack'
+	        ATTACK: 'Attack',
+	        MANA_REGEN: 'Mana Regen'
 	      }
 	    };
 	  });
 
 
 /***/ },
-/* 1 */
+/* 1 */,
+/* 2 */,
+/* 3 */
+/***/ function(module, exports) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	// css base code, injected by the css-loader
+	module.exports = function() {
+		var list = [];
+
+		// return the list of modules as css string
+		list.toString = function toString() {
+			var result = [];
+			for(var i = 0; i < this.length; i++) {
+				var item = this[i];
+				if(item[2]) {
+					result.push("@media " + item[2] + "{" + item[1] + "}");
+				} else {
+					result.push(item[1]);
+				}
+			}
+			return result.join("");
+		};
+
+		// import a list of modules into the list
+		list.i = function(modules, mediaQuery) {
+			if(typeof modules === "string")
+				modules = [[null, modules, ""]];
+			var alreadyImportedModules = {};
+			for(var i = 0; i < this.length; i++) {
+				var id = this[i][0];
+				if(typeof id === "number")
+					alreadyImportedModules[id] = true;
+			}
+			for(i = 0; i < modules.length; i++) {
+				var item = modules[i];
+				// skip already imported module
+				// this implementation is not 100% perfect for weird media query combinations
+				//  when a module is imported multiple times with different media queries.
+				//  I hope this will never occur (Hey this way we have smaller bundles)
+				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+					if(mediaQuery && !item[2]) {
+						item[2] = mediaQuery;
+					} else if(mediaQuery) {
+						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+					}
+					list.push(item);
+				}
+			}
+		};
+		return list;
+	};
+
+
+/***/ },
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(2);
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	var stylesInDom = {},
+		memoize = function(fn) {
+			var memo;
+			return function () {
+				if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+				return memo;
+			};
+		},
+		isOldIE = memoize(function() {
+			return /msie [6-9]\b/.test(window.navigator.userAgent.toLowerCase());
+		}),
+		getHeadElement = memoize(function () {
+			return document.head || document.getElementsByTagName("head")[0];
+		}),
+		singletonElement = null,
+		singletonCounter = 0,
+		styleElementsInsertedAtTop = [];
+
+	module.exports = function(list, options) {
+		if(false) {
+			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+		}
+
+		options = options || {};
+		// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+		// tags it will allow on a page
+		if (typeof options.singleton === "undefined") options.singleton = isOldIE();
+
+		// By default, add <style> tags to the bottom of <head>.
+		if (typeof options.insertAt === "undefined") options.insertAt = "bottom";
+
+		var styles = listToStyles(list);
+		addStylesToDom(styles, options);
+
+		return function update(newList) {
+			var mayRemove = [];
+			for(var i = 0; i < styles.length; i++) {
+				var item = styles[i];
+				var domStyle = stylesInDom[item.id];
+				domStyle.refs--;
+				mayRemove.push(domStyle);
+			}
+			if(newList) {
+				var newStyles = listToStyles(newList);
+				addStylesToDom(newStyles, options);
+			}
+			for(var i = 0; i < mayRemove.length; i++) {
+				var domStyle = mayRemove[i];
+				if(domStyle.refs === 0) {
+					for(var j = 0; j < domStyle.parts.length; j++)
+						domStyle.parts[j]();
+					delete stylesInDom[domStyle.id];
+				}
+			}
+		};
+	}
+
+	function addStylesToDom(styles, options) {
+		for(var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+			if(domStyle) {
+				domStyle.refs++;
+				for(var j = 0; j < domStyle.parts.length; j++) {
+					domStyle.parts[j](item.parts[j]);
+				}
+				for(; j < item.parts.length; j++) {
+					domStyle.parts.push(addStyle(item.parts[j], options));
+				}
+			} else {
+				var parts = [];
+				for(var j = 0; j < item.parts.length; j++) {
+					parts.push(addStyle(item.parts[j], options));
+				}
+				stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+			}
+		}
+	}
+
+	function listToStyles(list) {
+		var styles = [];
+		var newStyles = {};
+		for(var i = 0; i < list.length; i++) {
+			var item = list[i];
+			var id = item[0];
+			var css = item[1];
+			var media = item[2];
+			var sourceMap = item[3];
+			var part = {css: css, media: media, sourceMap: sourceMap};
+			if(!newStyles[id])
+				styles.push(newStyles[id] = {id: id, parts: [part]});
+			else
+				newStyles[id].parts.push(part);
+		}
+		return styles;
+	}
+
+	function insertStyleElement(options, styleElement) {
+		var head = getHeadElement();
+		var lastStyleElementInsertedAtTop = styleElementsInsertedAtTop[styleElementsInsertedAtTop.length - 1];
+		if (options.insertAt === "top") {
+			if(!lastStyleElementInsertedAtTop) {
+				head.insertBefore(styleElement, head.firstChild);
+			} else if(lastStyleElementInsertedAtTop.nextSibling) {
+				head.insertBefore(styleElement, lastStyleElementInsertedAtTop.nextSibling);
+			} else {
+				head.appendChild(styleElement);
+			}
+			styleElementsInsertedAtTop.push(styleElement);
+		} else if (options.insertAt === "bottom") {
+			head.appendChild(styleElement);
+		} else {
+			throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
+		}
+	}
+
+	function removeStyleElement(styleElement) {
+		styleElement.parentNode.removeChild(styleElement);
+		var idx = styleElementsInsertedAtTop.indexOf(styleElement);
+		if(idx >= 0) {
+			styleElementsInsertedAtTop.splice(idx, 1);
+		}
+	}
+
+	function createStyleElement(options) {
+		var styleElement = document.createElement("style");
+		styleElement.type = "text/css";
+		insertStyleElement(options, styleElement);
+		return styleElement;
+	}
+
+	function createLinkElement(options) {
+		var linkElement = document.createElement("link");
+		linkElement.rel = "stylesheet";
+		insertStyleElement(options, linkElement);
+		return linkElement;
+	}
+
+	function addStyle(obj, options) {
+		var styleElement, update, remove;
+
+		if (options.singleton) {
+			var styleIndex = singletonCounter++;
+			styleElement = singletonElement || (singletonElement = createStyleElement(options));
+			update = applyToSingletonTag.bind(null, styleElement, styleIndex, false);
+			remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true);
+		} else if(obj.sourceMap &&
+			typeof URL === "function" &&
+			typeof URL.createObjectURL === "function" &&
+			typeof URL.revokeObjectURL === "function" &&
+			typeof Blob === "function" &&
+			typeof btoa === "function") {
+			styleElement = createLinkElement(options);
+			update = updateLink.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+				if(styleElement.href)
+					URL.revokeObjectURL(styleElement.href);
+			};
+		} else {
+			styleElement = createStyleElement(options);
+			update = applyToTag.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+			};
+		}
+
+		update(obj);
+
+		return function updateStyle(newObj) {
+			if(newObj) {
+				if(newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap)
+					return;
+				update(obj = newObj);
+			} else {
+				remove();
+			}
+		};
+	}
+
+	var replaceText = (function () {
+		var textStore = [];
+
+		return function (index, replacement) {
+			textStore[index] = replacement;
+			return textStore.filter(Boolean).join('\n');
+		};
+	})();
+
+	function applyToSingletonTag(styleElement, index, remove, obj) {
+		var css = remove ? "" : obj.css;
+
+		if (styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = replaceText(index, css);
+		} else {
+			var cssNode = document.createTextNode(css);
+			var childNodes = styleElement.childNodes;
+			if (childNodes[index]) styleElement.removeChild(childNodes[index]);
+			if (childNodes.length) {
+				styleElement.insertBefore(cssNode, childNodes[index]);
+			} else {
+				styleElement.appendChild(cssNode);
+			}
+		}
+	}
+
+	function applyToTag(styleElement, obj) {
+		var css = obj.css;
+		var media = obj.media;
+		var sourceMap = obj.sourceMap;
+
+		if(media) {
+			styleElement.setAttribute("media", media)
+		}
+
+		if(styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = css;
+		} else {
+			while(styleElement.firstChild) {
+				styleElement.removeChild(styleElement.firstChild);
+			}
+			styleElement.appendChild(document.createTextNode(css));
+		}
+	}
+
+	function updateLink(linkElement, obj) {
+		var css = obj.css;
+		var media = obj.media;
+		var sourceMap = obj.sourceMap;
+
+		if(sourceMap) {
+			// http://stackoverflow.com/a/26603875
+			css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+		}
+
+		var blob = new Blob([css], { type: "text/css" });
+
+		var oldSrc = linkElement.href;
+
+		linkElement.href = URL.createObjectURL(blob);
+
+		if(oldSrc)
+			URL.revokeObjectURL(oldSrc);
+	}
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(6);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(4)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../../node_modules/css-loader/index.js?sourceMap!./style.css", function() {
+				var newContent = require("!!./../../../node_modules/css-loader/index.js?sourceMap!./style.css");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(3)();
+	// imports
+
+
+	// module
+	exports.push([module.id, ".red{\n  background-color: red;\n}\n.duel {\n  overflow: hidden;\n}\n\n\n\n.purple {\n  background-color: purple;\n}\n\n.container {\n  margin-top: 200px;\n}\n\n.spinner {\n  position: absolute;\n  margin-top: 200px;\n  margin-right: 200px;\n}\n\n.health-bar {\n  background: red;\n  display: block;\n  height: 1em\n}\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em\n}\n\n.spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.spell {\n  width: 15%;\n  text-align: center;\n}\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray; /* temporary (testing) */\n}\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue; /* temporary (testing) */\n}\n\n.wizard .avatar img {\n  display: block;\n  height: 100%; /* need to find better solution */\n  width: 100%; /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n/*body {\n  opacity: 0.2;\n}*/\n", "", {"version":3,"sources":["/./www/assets/css/style.css"],"names":[],"mappings":"AAAA;EACE,sBAAsB;CACvB;AACD;EACE,iBAAiB;CAClB;;;;AAID;EACE,yBAAyB;CAC1B;;AAED;EACE,kBAAkB;CACnB;;AAED;EACE,mBAAmB;EACnB,kBAAkB;EAClB,oBAAoB;CACrB;;AAED;EACE,gBAAgB;EAChB,eAAe;EACf,WAAW;CACZ;;AAED;EACE,oBAAoB;EACpB,eAAe;EACf,WAAW;CACZ;;AAED;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,8BAA8B;EAC9B,uBAAuB;EACvB,qBAAqB;EACrB,kBAAkB;EAClB,kBAAkB;EAClB,uBAAuB,CAAC,yBAAyB;CAClD;;AAED;EACE,WAAW;EACX,mBAAmB;CACpB;;AAED;EACE,WAAW;EACX,cAAc;EACd,oBAAoB;EACpB,+BAA+B;EAC/B,uBAAuB;EACvB,qBAAqB;EACrB,eAAe;EACf,uBAAuB,CAAC,yBAAyB;CAClD;;AAED;EACE,WAAW;EACX,uBAAuB,CAAC,yBAAyB;CAClD;;AAED;EACE,mBAAmB;EACnB,UAAU;EACV,cAAc;EACd,yBAAyB,CAAC,yBAAyB;EACnD,uBAAuB,CAAC,yBAAyB;EACjD,sBAAsB,CAAC,yBAAyB;CACjD;;AAED;EACE,cAAc;EACd,4BAA4B,CAAC,yBAAyB;CACvD;;AAED;EACE,eAAe;EACf,aAAa,CAAC,kCAAkC;EAChD,YAAY,CAAC,kCAAkC;EAC/C,eAAe;EACf,cAAc;EACd,uBAAuB,CAAC,yBAAyB;EACjD,sBAAsB,CAAC,yBAAyB;CACjD;;AAED;EACE,cAAc;EACd,uBAAuB,CAAC,yBAAyB;EACjD,uBAAuB,CAAC,yBAAyB;EACjD,sBAAsB,CAAC,yBAAyB;CACjD;;AAED;;GAEG","file":"style.css","sourcesContent":[".red{\n  background-color: red;\n}\n.duel {\n  overflow: hidden;\n}\n\n\n\n.purple {\n  background-color: purple;\n}\n\n.container {\n  margin-top: 200px;\n}\n\n.spinner {\n  position: absolute;\n  margin-top: 200px;\n  margin-right: 200px;\n}\n\n.health-bar {\n  background: red;\n  display: block;\n  height: 1em\n}\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em\n}\n\n.spells {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-around;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 1rem auto;\n  /*padding: 1rem;*/\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.spell {\n  width: 15%;\n  text-align: center;\n}\n\n.wizards {\n  width: 75%;\n  display: flex;\n  flex-flow: row wrap;\n  justify-content: space-between;\n  align-content: stretch;\n  align-items: stretch;\n  margin: 0 auto;\n  border: 1px solid blue; /* temporary (testing) */\n}\n\n.wizard {\n  width: 45%;\n  border: 5px solid gray; /* temporary (testing) */\n}\n\n.wizard h3 {\n  text-align: center;\n  margin: 0;\n  padding: 1rem;\n  background-color: purple; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .avatar {\n  height: 400px;\n  background-color: steelblue; /* temporary (testing) */\n}\n\n.wizard .avatar img {\n  display: block;\n  height: 100%; /* need to find better solution */\n  width: 100%; /* need to find better solution */\n  margin: 0 auto;\n  padding: 1rem;\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n.wizard .status {\n  padding: 1rem;\n  background-color: pink; /* temporary (testing) */\n  box-sizing: border-box; /* temporary (testing) */\n  border: 1px solid red; /* temporary (testing) */\n}\n\n/*body {\n  opacity: 0.2;\n}*/\n"],"sourceRoot":"webpack://"}]);
+
+	// exports
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(8);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(4)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../../../node_modules/css-loader/index.js?sourceMap!./ionic.css", function() {
+				var newContent = require("!!./../../../../node_modules/css-loader/index.js?sourceMap!./ionic.css");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(3)();
+	// imports
+
+
+	// module
+	exports.push([module.id, "@charset \"UTF-8\";\n/*!\n * Copyright 2014 Drifty Co.\n * http://drifty.com/\n *\n * Ionic, v1.1.1\n * A powerful HTML5 mobile app framework.\n * http://ionicframework.com/\n *\n * By @maxlynch, @benjsperry, @adamdbradley <3\n *\n * Licensed under the MIT license. Please see LICENSE for more information.\n *\n */\n/*!\n  Ionicons, v2.0.1\n  Created by Ben Sperry for the Ionic Framework, http://ionicons.com/\n  https://twitter.com/benjsperry  https://twitter.com/ionicframework\n  MIT License: https://github.com/driftyco/ionicons\n\n  Android-style icons originally built by Google’s\n  Material Design Icons: https://github.com/google/material-design-icons\n  used under CC BY http://creativecommons.org/licenses/by/4.0/\n  Modified icons to fit ionicon’s grid from original.\n*/\n@font-face {\n  font-family: \"Ionicons\";\n  src: url(" + __webpack_require__(9) + ");\n  src: url(" + __webpack_require__(9) + "#iefix) format(\"embedded-opentype\"), url(" + __webpack_require__(10) + ") format(\"truetype\"), url(" + __webpack_require__(11) + ") format(\"woff\"), url(" + __webpack_require__(12) + ") format(\"woff\"), url(" + __webpack_require__(13) + "#Ionicons) format(\"svg\");\n  font-weight: normal;\n  font-style: normal; }\n\n.ion, .ionicons,\n.ion-alert:before,\n.ion-alert-circled:before,\n.ion-android-add:before,\n.ion-android-add-circle:before,\n.ion-android-alarm-clock:before,\n.ion-android-alert:before,\n.ion-android-apps:before,\n.ion-android-archive:before,\n.ion-android-arrow-back:before,\n.ion-android-arrow-down:before,\n.ion-android-arrow-dropdown:before,\n.ion-android-arrow-dropdown-circle:before,\n.ion-android-arrow-dropleft:before,\n.ion-android-arrow-dropleft-circle:before,\n.ion-android-arrow-dropright:before,\n.ion-android-arrow-dropright-circle:before,\n.ion-android-arrow-dropup:before,\n.ion-android-arrow-dropup-circle:before,\n.ion-android-arrow-forward:before,\n.ion-android-arrow-up:before,\n.ion-android-attach:before,\n.ion-android-bar:before,\n.ion-android-bicycle:before,\n.ion-android-boat:before,\n.ion-android-bookmark:before,\n.ion-android-bulb:before,\n.ion-android-bus:before,\n.ion-android-calendar:before,\n.ion-android-call:before,\n.ion-android-camera:before,\n.ion-android-cancel:before,\n.ion-android-car:before,\n.ion-android-cart:before,\n.ion-android-chat:before,\n.ion-android-checkbox:before,\n.ion-android-checkbox-blank:before,\n.ion-android-checkbox-outline:before,\n.ion-android-checkbox-outline-blank:before,\n.ion-android-checkmark-circle:before,\n.ion-android-clipboard:before,\n.ion-android-close:before,\n.ion-android-cloud:before,\n.ion-android-cloud-circle:before,\n.ion-android-cloud-done:before,\n.ion-android-cloud-outline:before,\n.ion-android-color-palette:before,\n.ion-android-compass:before,\n.ion-android-contact:before,\n.ion-android-contacts:before,\n.ion-android-contract:before,\n.ion-android-create:before,\n.ion-android-delete:before,\n.ion-android-desktop:before,\n.ion-android-document:before,\n.ion-android-done:before,\n.ion-android-done-all:before,\n.ion-android-download:before,\n.ion-android-drafts:before,\n.ion-android-exit:before,\n.ion-android-expand:before,\n.ion-android-favorite:before,\n.ion-android-favorite-outline:before,\n.ion-android-film:before,\n.ion-android-folder:before,\n.ion-android-folder-open:before,\n.ion-android-funnel:before,\n.ion-android-globe:before,\n.ion-android-hand:before,\n.ion-android-hangout:before,\n.ion-android-happy:before,\n.ion-android-home:before,\n.ion-android-image:before,\n.ion-android-laptop:before,\n.ion-android-list:before,\n.ion-android-locate:before,\n.ion-android-lock:before,\n.ion-android-mail:before,\n.ion-android-map:before,\n.ion-android-menu:before,\n.ion-android-microphone:before,\n.ion-android-microphone-off:before,\n.ion-android-more-horizontal:before,\n.ion-android-more-vertical:before,\n.ion-android-navigate:before,\n.ion-android-notifications:before,\n.ion-android-notifications-none:before,\n.ion-android-notifications-off:before,\n.ion-android-open:before,\n.ion-android-options:before,\n.ion-android-people:before,\n.ion-android-person:before,\n.ion-android-person-add:before,\n.ion-android-phone-landscape:before,\n.ion-android-phone-portrait:before,\n.ion-android-pin:before,\n.ion-android-plane:before,\n.ion-android-playstore:before,\n.ion-android-print:before,\n.ion-android-radio-button-off:before,\n.ion-android-radio-button-on:before,\n.ion-android-refresh:before,\n.ion-android-remove:before,\n.ion-android-remove-circle:before,\n.ion-android-restaurant:before,\n.ion-android-sad:before,\n.ion-android-search:before,\n.ion-android-send:before,\n.ion-android-settings:before,\n.ion-android-share:before,\n.ion-android-share-alt:before,\n.ion-android-star:before,\n.ion-android-star-half:before,\n.ion-android-star-outline:before,\n.ion-android-stopwatch:before,\n.ion-android-subway:before,\n.ion-android-sunny:before,\n.ion-android-sync:before,\n.ion-android-textsms:before,\n.ion-android-time:before,\n.ion-android-train:before,\n.ion-android-unlock:before,\n.ion-android-upload:before,\n.ion-android-volume-down:before,\n.ion-android-volume-mute:before,\n.ion-android-volume-off:before,\n.ion-android-volume-up:before,\n.ion-android-walk:before,\n.ion-android-warning:before,\n.ion-android-watch:before,\n.ion-android-wifi:before,\n.ion-aperture:before,\n.ion-archive:before,\n.ion-arrow-down-a:before,\n.ion-arrow-down-b:before,\n.ion-arrow-down-c:before,\n.ion-arrow-expand:before,\n.ion-arrow-graph-down-left:before,\n.ion-arrow-graph-down-right:before,\n.ion-arrow-graph-up-left:before,\n.ion-arrow-graph-up-right:before,\n.ion-arrow-left-a:before,\n.ion-arrow-left-b:before,\n.ion-arrow-left-c:before,\n.ion-arrow-move:before,\n.ion-arrow-resize:before,\n.ion-arrow-return-left:before,\n.ion-arrow-return-right:before,\n.ion-arrow-right-a:before,\n.ion-arrow-right-b:before,\n.ion-arrow-right-c:before,\n.ion-arrow-shrink:before,\n.ion-arrow-swap:before,\n.ion-arrow-up-a:before,\n.ion-arrow-up-b:before,\n.ion-arrow-up-c:before,\n.ion-asterisk:before,\n.ion-at:before,\n.ion-backspace:before,\n.ion-backspace-outline:before,\n.ion-bag:before,\n.ion-battery-charging:before,\n.ion-battery-empty:before,\n.ion-battery-full:before,\n.ion-battery-half:before,\n.ion-battery-low:before,\n.ion-beaker:before,\n.ion-beer:before,\n.ion-bluetooth:before,\n.ion-bonfire:before,\n.ion-bookmark:before,\n.ion-bowtie:before,\n.ion-briefcase:before,\n.ion-bug:before,\n.ion-calculator:before,\n.ion-calendar:before,\n.ion-camera:before,\n.ion-card:before,\n.ion-cash:before,\n.ion-chatbox:before,\n.ion-chatbox-working:before,\n.ion-chatboxes:before,\n.ion-chatbubble:before,\n.ion-chatbubble-working:before,\n.ion-chatbubbles:before,\n.ion-checkmark:before,\n.ion-checkmark-circled:before,\n.ion-checkmark-round:before,\n.ion-chevron-down:before,\n.ion-chevron-left:before,\n.ion-chevron-right:before,\n.ion-chevron-up:before,\n.ion-clipboard:before,\n.ion-clock:before,\n.ion-close:before,\n.ion-close-circled:before,\n.ion-close-round:before,\n.ion-closed-captioning:before,\n.ion-cloud:before,\n.ion-code:before,\n.ion-code-download:before,\n.ion-code-working:before,\n.ion-coffee:before,\n.ion-compass:before,\n.ion-compose:before,\n.ion-connection-bars:before,\n.ion-contrast:before,\n.ion-crop:before,\n.ion-cube:before,\n.ion-disc:before,\n.ion-document:before,\n.ion-document-text:before,\n.ion-drag:before,\n.ion-earth:before,\n.ion-easel:before,\n.ion-edit:before,\n.ion-egg:before,\n.ion-eject:before,\n.ion-email:before,\n.ion-email-unread:before,\n.ion-erlenmeyer-flask:before,\n.ion-erlenmeyer-flask-bubbles:before,\n.ion-eye:before,\n.ion-eye-disabled:before,\n.ion-female:before,\n.ion-filing:before,\n.ion-film-marker:before,\n.ion-fireball:before,\n.ion-flag:before,\n.ion-flame:before,\n.ion-flash:before,\n.ion-flash-off:before,\n.ion-folder:before,\n.ion-fork:before,\n.ion-fork-repo:before,\n.ion-forward:before,\n.ion-funnel:before,\n.ion-gear-a:before,\n.ion-gear-b:before,\n.ion-grid:before,\n.ion-hammer:before,\n.ion-happy:before,\n.ion-happy-outline:before,\n.ion-headphone:before,\n.ion-heart:before,\n.ion-heart-broken:before,\n.ion-help:before,\n.ion-help-buoy:before,\n.ion-help-circled:before,\n.ion-home:before,\n.ion-icecream:before,\n.ion-image:before,\n.ion-images:before,\n.ion-information:before,\n.ion-information-circled:before,\n.ion-ionic:before,\n.ion-ios-alarm:before,\n.ion-ios-alarm-outline:before,\n.ion-ios-albums:before,\n.ion-ios-albums-outline:before,\n.ion-ios-americanfootball:before,\n.ion-ios-americanfootball-outline:before,\n.ion-ios-analytics:before,\n.ion-ios-analytics-outline:before,\n.ion-ios-arrow-back:before,\n.ion-ios-arrow-down:before,\n.ion-ios-arrow-forward:before,\n.ion-ios-arrow-left:before,\n.ion-ios-arrow-right:before,\n.ion-ios-arrow-thin-down:before,\n.ion-ios-arrow-thin-left:before,\n.ion-ios-arrow-thin-right:before,\n.ion-ios-arrow-thin-up:before,\n.ion-ios-arrow-up:before,\n.ion-ios-at:before,\n.ion-ios-at-outline:before,\n.ion-ios-barcode:before,\n.ion-ios-barcode-outline:before,\n.ion-ios-baseball:before,\n.ion-ios-baseball-outline:before,\n.ion-ios-basketball:before,\n.ion-ios-basketball-outline:before,\n.ion-ios-bell:before,\n.ion-ios-bell-outline:before,\n.ion-ios-body:before,\n.ion-ios-body-outline:before,\n.ion-ios-bolt:before,\n.ion-ios-bolt-outline:before,\n.ion-ios-book:before,\n.ion-ios-book-outline:before,\n.ion-ios-bookmarks:before,\n.ion-ios-bookmarks-outline:before,\n.ion-ios-box:before,\n.ion-ios-box-outline:before,\n.ion-ios-briefcase:before,\n.ion-ios-briefcase-outline:before,\n.ion-ios-browsers:before,\n.ion-ios-browsers-outline:before,\n.ion-ios-calculator:before,\n.ion-ios-calculator-outline:before,\n.ion-ios-calendar:before,\n.ion-ios-calendar-outline:before,\n.ion-ios-camera:before,\n.ion-ios-camera-outline:before,\n.ion-ios-cart:before,\n.ion-ios-cart-outline:before,\n.ion-ios-chatboxes:before,\n.ion-ios-chatboxes-outline:before,\n.ion-ios-chatbubble:before,\n.ion-ios-chatbubble-outline:before,\n.ion-ios-checkmark:before,\n.ion-ios-checkmark-empty:before,\n.ion-ios-checkmark-outline:before,\n.ion-ios-circle-filled:before,\n.ion-ios-circle-outline:before,\n.ion-ios-clock:before,\n.ion-ios-clock-outline:before,\n.ion-ios-close:before,\n.ion-ios-close-empty:before,\n.ion-ios-close-outline:before,\n.ion-ios-cloud:before,\n.ion-ios-cloud-download:before,\n.ion-ios-cloud-download-outline:before,\n.ion-ios-cloud-outline:before,\n.ion-ios-cloud-upload:before,\n.ion-ios-cloud-upload-outline:before,\n.ion-ios-cloudy:before,\n.ion-ios-cloudy-night:before,\n.ion-ios-cloudy-night-outline:before,\n.ion-ios-cloudy-outline:before,\n.ion-ios-cog:before,\n.ion-ios-cog-outline:before,\n.ion-ios-color-filter:before,\n.ion-ios-color-filter-outline:before,\n.ion-ios-color-wand:before,\n.ion-ios-color-wand-outline:before,\n.ion-ios-compose:before,\n.ion-ios-compose-outline:before,\n.ion-ios-contact:before,\n.ion-ios-contact-outline:before,\n.ion-ios-copy:before,\n.ion-ios-copy-outline:before,\n.ion-ios-crop:before,\n.ion-ios-crop-strong:before,\n.ion-ios-download:before,\n.ion-ios-download-outline:before,\n.ion-ios-drag:before,\n.ion-ios-email:before,\n.ion-ios-email-outline:before,\n.ion-ios-eye:before,\n.ion-ios-eye-outline:before,\n.ion-ios-fastforward:before,\n.ion-ios-fastforward-outline:before,\n.ion-ios-filing:before,\n.ion-ios-filing-outline:before,\n.ion-ios-film:before,\n.ion-ios-film-outline:before,\n.ion-ios-flag:before,\n.ion-ios-flag-outline:before,\n.ion-ios-flame:before,\n.ion-ios-flame-outline:before,\n.ion-ios-flask:before,\n.ion-ios-flask-outline:before,\n.ion-ios-flower:before,\n.ion-ios-flower-outline:before,\n.ion-ios-folder:before,\n.ion-ios-folder-outline:before,\n.ion-ios-football:before,\n.ion-ios-football-outline:before,\n.ion-ios-game-controller-a:before,\n.ion-ios-game-controller-a-outline:before,\n.ion-ios-game-controller-b:before,\n.ion-ios-game-controller-b-outline:before,\n.ion-ios-gear:before,\n.ion-ios-gear-outline:before,\n.ion-ios-glasses:before,\n.ion-ios-glasses-outline:before,\n.ion-ios-grid-view:before,\n.ion-ios-grid-view-outline:before,\n.ion-ios-heart:before,\n.ion-ios-heart-outline:before,\n.ion-ios-help:before,\n.ion-ios-help-empty:before,\n.ion-ios-help-outline:before,\n.ion-ios-home:before,\n.ion-ios-home-outline:before,\n.ion-ios-infinite:before,\n.ion-ios-infinite-outline:before,\n.ion-ios-information:before,\n.ion-ios-information-empty:before,\n.ion-ios-information-outline:before,\n.ion-ios-ionic-outline:before,\n.ion-ios-keypad:before,\n.ion-ios-keypad-outline:before,\n.ion-ios-lightbulb:before,\n.ion-ios-lightbulb-outline:before,\n.ion-ios-list:before,\n.ion-ios-list-outline:before,\n.ion-ios-location:before,\n.ion-ios-location-outline:before,\n.ion-ios-locked:before,\n.ion-ios-locked-outline:before,\n.ion-ios-loop:before,\n.ion-ios-loop-strong:before,\n.ion-ios-medical:before,\n.ion-ios-medical-outline:before,\n.ion-ios-medkit:before,\n.ion-ios-medkit-outline:before,\n.ion-ios-mic:before,\n.ion-ios-mic-off:before,\n.ion-ios-mic-outline:before,\n.ion-ios-minus:before,\n.ion-ios-minus-empty:before,\n.ion-ios-minus-outline:before,\n.ion-ios-monitor:before,\n.ion-ios-monitor-outline:before,\n.ion-ios-moon:before,\n.ion-ios-moon-outline:before,\n.ion-ios-more:before,\n.ion-ios-more-outline:before,\n.ion-ios-musical-note:before,\n.ion-ios-musical-notes:before,\n.ion-ios-navigate:before,\n.ion-ios-navigate-outline:before,\n.ion-ios-nutrition:before,\n.ion-ios-nutrition-outline:before,\n.ion-ios-paper:before,\n.ion-ios-paper-outline:before,\n.ion-ios-paperplane:before,\n.ion-ios-paperplane-outline:before,\n.ion-ios-partlysunny:before,\n.ion-ios-partlysunny-outline:before,\n.ion-ios-pause:before,\n.ion-ios-pause-outline:before,\n.ion-ios-paw:before,\n.ion-ios-paw-outline:before,\n.ion-ios-people:before,\n.ion-ios-people-outline:before,\n.ion-ios-person:before,\n.ion-ios-person-outline:before,\n.ion-ios-personadd:before,\n.ion-ios-personadd-outline:before,\n.ion-ios-photos:before,\n.ion-ios-photos-outline:before,\n.ion-ios-pie:before,\n.ion-ios-pie-outline:before,\n.ion-ios-pint:before,\n.ion-ios-pint-outline:before,\n.ion-ios-play:before,\n.ion-ios-play-outline:before,\n.ion-ios-plus:before,\n.ion-ios-plus-empty:before,\n.ion-ios-plus-outline:before,\n.ion-ios-pricetag:before,\n.ion-ios-pricetag-outline:before,\n.ion-ios-pricetags:before,\n.ion-ios-pricetags-outline:before,\n.ion-ios-printer:before,\n.ion-ios-printer-outline:before,\n.ion-ios-pulse:before,\n.ion-ios-pulse-strong:before,\n.ion-ios-rainy:before,\n.ion-ios-rainy-outline:before,\n.ion-ios-recording:before,\n.ion-ios-recording-outline:before,\n.ion-ios-redo:before,\n.ion-ios-redo-outline:before,\n.ion-ios-refresh:before,\n.ion-ios-refresh-empty:before,\n.ion-ios-refresh-outline:before,\n.ion-ios-reload:before,\n.ion-ios-reverse-camera:before,\n.ion-ios-reverse-camera-outline:before,\n.ion-ios-rewind:before,\n.ion-ios-rewind-outline:before,\n.ion-ios-rose:before,\n.ion-ios-rose-outline:before,\n.ion-ios-search:before,\n.ion-ios-search-strong:before,\n.ion-ios-settings:before,\n.ion-ios-settings-strong:before,\n.ion-ios-shuffle:before,\n.ion-ios-shuffle-strong:before,\n.ion-ios-skipbackward:before,\n.ion-ios-skipbackward-outline:before,\n.ion-ios-skipforward:before,\n.ion-ios-skipforward-outline:before,\n.ion-ios-snowy:before,\n.ion-ios-speedometer:before,\n.ion-ios-speedometer-outline:before,\n.ion-ios-star:before,\n.ion-ios-star-half:before,\n.ion-ios-star-outline:before,\n.ion-ios-stopwatch:before,\n.ion-ios-stopwatch-outline:before,\n.ion-ios-sunny:before,\n.ion-ios-sunny-outline:before,\n.ion-ios-telephone:before,\n.ion-ios-telephone-outline:before,\n.ion-ios-tennisball:before,\n.ion-ios-tennisball-outline:before,\n.ion-ios-thunderstorm:before,\n.ion-ios-thunderstorm-outline:before,\n.ion-ios-time:before,\n.ion-ios-time-outline:before,\n.ion-ios-timer:before,\n.ion-ios-timer-outline:before,\n.ion-ios-toggle:before,\n.ion-ios-toggle-outline:before,\n.ion-ios-trash:before,\n.ion-ios-trash-outline:before,\n.ion-ios-undo:before,\n.ion-ios-undo-outline:before,\n.ion-ios-unlocked:before,\n.ion-ios-unlocked-outline:before,\n.ion-ios-upload:before,\n.ion-ios-upload-outline:before,\n.ion-ios-videocam:before,\n.ion-ios-videocam-outline:before,\n.ion-ios-volume-high:before,\n.ion-ios-volume-low:before,\n.ion-ios-wineglass:before,\n.ion-ios-wineglass-outline:before,\n.ion-ios-world:before,\n.ion-ios-world-outline:before,\n.ion-ipad:before,\n.ion-iphone:before,\n.ion-ipod:before,\n.ion-jet:before,\n.ion-key:before,\n.ion-knife:before,\n.ion-laptop:before,\n.ion-leaf:before,\n.ion-levels:before,\n.ion-lightbulb:before,\n.ion-link:before,\n.ion-load-a:before,\n.ion-load-b:before,\n.ion-load-c:before,\n.ion-load-d:before,\n.ion-location:before,\n.ion-lock-combination:before,\n.ion-locked:before,\n.ion-log-in:before,\n.ion-log-out:before,\n.ion-loop:before,\n.ion-magnet:before,\n.ion-male:before,\n.ion-man:before,\n.ion-map:before,\n.ion-medkit:before,\n.ion-merge:before,\n.ion-mic-a:before,\n.ion-mic-b:before,\n.ion-mic-c:before,\n.ion-minus:before,\n.ion-minus-circled:before,\n.ion-minus-round:before,\n.ion-model-s:before,\n.ion-monitor:before,\n.ion-more:before,\n.ion-mouse:before,\n.ion-music-note:before,\n.ion-navicon:before,\n.ion-navicon-round:before,\n.ion-navigate:before,\n.ion-network:before,\n.ion-no-smoking:before,\n.ion-nuclear:before,\n.ion-outlet:before,\n.ion-paintbrush:before,\n.ion-paintbucket:before,\n.ion-paper-airplane:before,\n.ion-paperclip:before,\n.ion-pause:before,\n.ion-person:before,\n.ion-person-add:before,\n.ion-person-stalker:before,\n.ion-pie-graph:before,\n.ion-pin:before,\n.ion-pinpoint:before,\n.ion-pizza:before,\n.ion-plane:before,\n.ion-planet:before,\n.ion-play:before,\n.ion-playstation:before,\n.ion-plus:before,\n.ion-plus-circled:before,\n.ion-plus-round:before,\n.ion-podium:before,\n.ion-pound:before,\n.ion-power:before,\n.ion-pricetag:before,\n.ion-pricetags:before,\n.ion-printer:before,\n.ion-pull-request:before,\n.ion-qr-scanner:before,\n.ion-quote:before,\n.ion-radio-waves:before,\n.ion-record:before,\n.ion-refresh:before,\n.ion-reply:before,\n.ion-reply-all:before,\n.ion-ribbon-a:before,\n.ion-ribbon-b:before,\n.ion-sad:before,\n.ion-sad-outline:before,\n.ion-scissors:before,\n.ion-search:before,\n.ion-settings:before,\n.ion-share:before,\n.ion-shuffle:before,\n.ion-skip-backward:before,\n.ion-skip-forward:before,\n.ion-social-android:before,\n.ion-social-android-outline:before,\n.ion-social-angular:before,\n.ion-social-angular-outline:before,\n.ion-social-apple:before,\n.ion-social-apple-outline:before,\n.ion-social-bitcoin:before,\n.ion-social-bitcoin-outline:before,\n.ion-social-buffer:before,\n.ion-social-buffer-outline:before,\n.ion-social-chrome:before,\n.ion-social-chrome-outline:before,\n.ion-social-codepen:before,\n.ion-social-codepen-outline:before,\n.ion-social-css3:before,\n.ion-social-css3-outline:before,\n.ion-social-designernews:before,\n.ion-social-designernews-outline:before,\n.ion-social-dribbble:before,\n.ion-social-dribbble-outline:before,\n.ion-social-dropbox:before,\n.ion-social-dropbox-outline:before,\n.ion-social-euro:before,\n.ion-social-euro-outline:before,\n.ion-social-facebook:before,\n.ion-social-facebook-outline:before,\n.ion-social-foursquare:before,\n.ion-social-foursquare-outline:before,\n.ion-social-freebsd-devil:before,\n.ion-social-github:before,\n.ion-social-github-outline:before,\n.ion-social-google:before,\n.ion-social-google-outline:before,\n.ion-social-googleplus:before,\n.ion-social-googleplus-outline:before,\n.ion-social-hackernews:before,\n.ion-social-hackernews-outline:before,\n.ion-social-html5:before,\n.ion-social-html5-outline:before,\n.ion-social-instagram:before,\n.ion-social-instagram-outline:before,\n.ion-social-javascript:before,\n.ion-social-javascript-outline:before,\n.ion-social-linkedin:before,\n.ion-social-linkedin-outline:before,\n.ion-social-markdown:before,\n.ion-social-nodejs:before,\n.ion-social-octocat:before,\n.ion-social-pinterest:before,\n.ion-social-pinterest-outline:before,\n.ion-social-python:before,\n.ion-social-reddit:before,\n.ion-social-reddit-outline:before,\n.ion-social-rss:before,\n.ion-social-rss-outline:before,\n.ion-social-sass:before,\n.ion-social-skype:before,\n.ion-social-skype-outline:before,\n.ion-social-snapchat:before,\n.ion-social-snapchat-outline:before,\n.ion-social-tumblr:before,\n.ion-social-tumblr-outline:before,\n.ion-social-tux:before,\n.ion-social-twitch:before,\n.ion-social-twitch-outline:before,\n.ion-social-twitter:before,\n.ion-social-twitter-outline:before,\n.ion-social-usd:before,\n.ion-social-usd-outline:before,\n.ion-social-vimeo:before,\n.ion-social-vimeo-outline:before,\n.ion-social-whatsapp:before,\n.ion-social-whatsapp-outline:before,\n.ion-social-windows:before,\n.ion-social-windows-outline:before,\n.ion-social-wordpress:before,\n.ion-social-wordpress-outline:before,\n.ion-social-yahoo:before,\n.ion-social-yahoo-outline:before,\n.ion-social-yen:before,\n.ion-social-yen-outline:before,\n.ion-social-youtube:before,\n.ion-social-youtube-outline:before,\n.ion-soup-can:before,\n.ion-soup-can-outline:before,\n.ion-speakerphone:before,\n.ion-speedometer:before,\n.ion-spoon:before,\n.ion-star:before,\n.ion-stats-bars:before,\n.ion-steam:before,\n.ion-stop:before,\n.ion-thermometer:before,\n.ion-thumbsdown:before,\n.ion-thumbsup:before,\n.ion-toggle:before,\n.ion-toggle-filled:before,\n.ion-transgender:before,\n.ion-trash-a:before,\n.ion-trash-b:before,\n.ion-trophy:before,\n.ion-tshirt:before,\n.ion-tshirt-outline:before,\n.ion-umbrella:before,\n.ion-university:before,\n.ion-unlocked:before,\n.ion-upload:before,\n.ion-usb:before,\n.ion-videocamera:before,\n.ion-volume-high:before,\n.ion-volume-low:before,\n.ion-volume-medium:before,\n.ion-volume-mute:before,\n.ion-wand:before,\n.ion-waterdrop:before,\n.ion-wifi:before,\n.ion-wineglass:before,\n.ion-woman:before,\n.ion-wrench:before,\n.ion-xbox:before {\n  display: inline-block;\n  font-family: \"Ionicons\";\n  speak: none;\n  font-style: normal;\n  font-weight: normal;\n  font-variant: normal;\n  text-transform: none;\n  text-rendering: auto;\n  line-height: 1;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n.ion-alert:before {\n  content: \"\\F101\"; }\n\n.ion-alert-circled:before {\n  content: \"\\F100\"; }\n\n.ion-android-add:before {\n  content: \"\\F2C7\"; }\n\n.ion-android-add-circle:before {\n  content: \"\\F359\"; }\n\n.ion-android-alarm-clock:before {\n  content: \"\\F35A\"; }\n\n.ion-android-alert:before {\n  content: \"\\F35B\"; }\n\n.ion-android-apps:before {\n  content: \"\\F35C\"; }\n\n.ion-android-archive:before {\n  content: \"\\F2C9\"; }\n\n.ion-android-arrow-back:before {\n  content: \"\\F2CA\"; }\n\n.ion-android-arrow-down:before {\n  content: \"\\F35D\"; }\n\n.ion-android-arrow-dropdown:before {\n  content: \"\\F35F\"; }\n\n.ion-android-arrow-dropdown-circle:before {\n  content: \"\\F35E\"; }\n\n.ion-android-arrow-dropleft:before {\n  content: \"\\F361\"; }\n\n.ion-android-arrow-dropleft-circle:before {\n  content: \"\\F360\"; }\n\n.ion-android-arrow-dropright:before {\n  content: \"\\F363\"; }\n\n.ion-android-arrow-dropright-circle:before {\n  content: \"\\F362\"; }\n\n.ion-android-arrow-dropup:before {\n  content: \"\\F365\"; }\n\n.ion-android-arrow-dropup-circle:before {\n  content: \"\\F364\"; }\n\n.ion-android-arrow-forward:before {\n  content: \"\\F30F\"; }\n\n.ion-android-arrow-up:before {\n  content: \"\\F366\"; }\n\n.ion-android-attach:before {\n  content: \"\\F367\"; }\n\n.ion-android-bar:before {\n  content: \"\\F368\"; }\n\n.ion-android-bicycle:before {\n  content: \"\\F369\"; }\n\n.ion-android-boat:before {\n  content: \"\\F36A\"; }\n\n.ion-android-bookmark:before {\n  content: \"\\F36B\"; }\n\n.ion-android-bulb:before {\n  content: \"\\F36C\"; }\n\n.ion-android-bus:before {\n  content: \"\\F36D\"; }\n\n.ion-android-calendar:before {\n  content: \"\\F2D1\"; }\n\n.ion-android-call:before {\n  content: \"\\F2D2\"; }\n\n.ion-android-camera:before {\n  content: \"\\F2D3\"; }\n\n.ion-android-cancel:before {\n  content: \"\\F36E\"; }\n\n.ion-android-car:before {\n  content: \"\\F36F\"; }\n\n.ion-android-cart:before {\n  content: \"\\F370\"; }\n\n.ion-android-chat:before {\n  content: \"\\F2D4\"; }\n\n.ion-android-checkbox:before {\n  content: \"\\F374\"; }\n\n.ion-android-checkbox-blank:before {\n  content: \"\\F371\"; }\n\n.ion-android-checkbox-outline:before {\n  content: \"\\F373\"; }\n\n.ion-android-checkbox-outline-blank:before {\n  content: \"\\F372\"; }\n\n.ion-android-checkmark-circle:before {\n  content: \"\\F375\"; }\n\n.ion-android-clipboard:before {\n  content: \"\\F376\"; }\n\n.ion-android-close:before {\n  content: \"\\F2D7\"; }\n\n.ion-android-cloud:before {\n  content: \"\\F37A\"; }\n\n.ion-android-cloud-circle:before {\n  content: \"\\F377\"; }\n\n.ion-android-cloud-done:before {\n  content: \"\\F378\"; }\n\n.ion-android-cloud-outline:before {\n  content: \"\\F379\"; }\n\n.ion-android-color-palette:before {\n  content: \"\\F37B\"; }\n\n.ion-android-compass:before {\n  content: \"\\F37C\"; }\n\n.ion-android-contact:before {\n  content: \"\\F2D8\"; }\n\n.ion-android-contacts:before {\n  content: \"\\F2D9\"; }\n\n.ion-android-contract:before {\n  content: \"\\F37D\"; }\n\n.ion-android-create:before {\n  content: \"\\F37E\"; }\n\n.ion-android-delete:before {\n  content: \"\\F37F\"; }\n\n.ion-android-desktop:before {\n  content: \"\\F380\"; }\n\n.ion-android-document:before {\n  content: \"\\F381\"; }\n\n.ion-android-done:before {\n  content: \"\\F383\"; }\n\n.ion-android-done-all:before {\n  content: \"\\F382\"; }\n\n.ion-android-download:before {\n  content: \"\\F2DD\"; }\n\n.ion-android-drafts:before {\n  content: \"\\F384\"; }\n\n.ion-android-exit:before {\n  content: \"\\F385\"; }\n\n.ion-android-expand:before {\n  content: \"\\F386\"; }\n\n.ion-android-favorite:before {\n  content: \"\\F388\"; }\n\n.ion-android-favorite-outline:before {\n  content: \"\\F387\"; }\n\n.ion-android-film:before {\n  content: \"\\F389\"; }\n\n.ion-android-folder:before {\n  content: \"\\F2E0\"; }\n\n.ion-android-folder-open:before {\n  content: \"\\F38A\"; }\n\n.ion-android-funnel:before {\n  content: \"\\F38B\"; }\n\n.ion-android-globe:before {\n  content: \"\\F38C\"; }\n\n.ion-android-hand:before {\n  content: \"\\F2E3\"; }\n\n.ion-android-hangout:before {\n  content: \"\\F38D\"; }\n\n.ion-android-happy:before {\n  content: \"\\F38E\"; }\n\n.ion-android-home:before {\n  content: \"\\F38F\"; }\n\n.ion-android-image:before {\n  content: \"\\F2E4\"; }\n\n.ion-android-laptop:before {\n  content: \"\\F390\"; }\n\n.ion-android-list:before {\n  content: \"\\F391\"; }\n\n.ion-android-locate:before {\n  content: \"\\F2E9\"; }\n\n.ion-android-lock:before {\n  content: \"\\F392\"; }\n\n.ion-android-mail:before {\n  content: \"\\F2EB\"; }\n\n.ion-android-map:before {\n  content: \"\\F393\"; }\n\n.ion-android-menu:before {\n  content: \"\\F394\"; }\n\n.ion-android-microphone:before {\n  content: \"\\F2EC\"; }\n\n.ion-android-microphone-off:before {\n  content: \"\\F395\"; }\n\n.ion-android-more-horizontal:before {\n  content: \"\\F396\"; }\n\n.ion-android-more-vertical:before {\n  content: \"\\F397\"; }\n\n.ion-android-navigate:before {\n  content: \"\\F398\"; }\n\n.ion-android-notifications:before {\n  content: \"\\F39B\"; }\n\n.ion-android-notifications-none:before {\n  content: \"\\F399\"; }\n\n.ion-android-notifications-off:before {\n  content: \"\\F39A\"; }\n\n.ion-android-open:before {\n  content: \"\\F39C\"; }\n\n.ion-android-options:before {\n  content: \"\\F39D\"; }\n\n.ion-android-people:before {\n  content: \"\\F39E\"; }\n\n.ion-android-person:before {\n  content: \"\\F3A0\"; }\n\n.ion-android-person-add:before {\n  content: \"\\F39F\"; }\n\n.ion-android-phone-landscape:before {\n  content: \"\\F3A1\"; }\n\n.ion-android-phone-portrait:before {\n  content: \"\\F3A2\"; }\n\n.ion-android-pin:before {\n  content: \"\\F3A3\"; }\n\n.ion-android-plane:before {\n  content: \"\\F3A4\"; }\n\n.ion-android-playstore:before {\n  content: \"\\F2F0\"; }\n\n.ion-android-print:before {\n  content: \"\\F3A5\"; }\n\n.ion-android-radio-button-off:before {\n  content: \"\\F3A6\"; }\n\n.ion-android-radio-button-on:before {\n  content: \"\\F3A7\"; }\n\n.ion-android-refresh:before {\n  content: \"\\F3A8\"; }\n\n.ion-android-remove:before {\n  content: \"\\F2F4\"; }\n\n.ion-android-remove-circle:before {\n  content: \"\\F3A9\"; }\n\n.ion-android-restaurant:before {\n  content: \"\\F3AA\"; }\n\n.ion-android-sad:before {\n  content: \"\\F3AB\"; }\n\n.ion-android-search:before {\n  content: \"\\F2F5\"; }\n\n.ion-android-send:before {\n  content: \"\\F2F6\"; }\n\n.ion-android-settings:before {\n  content: \"\\F2F7\"; }\n\n.ion-android-share:before {\n  content: \"\\F2F8\"; }\n\n.ion-android-share-alt:before {\n  content: \"\\F3AC\"; }\n\n.ion-android-star:before {\n  content: \"\\F2FC\"; }\n\n.ion-android-star-half:before {\n  content: \"\\F3AD\"; }\n\n.ion-android-star-outline:before {\n  content: \"\\F3AE\"; }\n\n.ion-android-stopwatch:before {\n  content: \"\\F2FD\"; }\n\n.ion-android-subway:before {\n  content: \"\\F3AF\"; }\n\n.ion-android-sunny:before {\n  content: \"\\F3B0\"; }\n\n.ion-android-sync:before {\n  content: \"\\F3B1\"; }\n\n.ion-android-textsms:before {\n  content: \"\\F3B2\"; }\n\n.ion-android-time:before {\n  content: \"\\F3B3\"; }\n\n.ion-android-train:before {\n  content: \"\\F3B4\"; }\n\n.ion-android-unlock:before {\n  content: \"\\F3B5\"; }\n\n.ion-android-upload:before {\n  content: \"\\F3B6\"; }\n\n.ion-android-volume-down:before {\n  content: \"\\F3B7\"; }\n\n.ion-android-volume-mute:before {\n  content: \"\\F3B8\"; }\n\n.ion-android-volume-off:before {\n  content: \"\\F3B9\"; }\n\n.ion-android-volume-up:before {\n  content: \"\\F3BA\"; }\n\n.ion-android-walk:before {\n  content: \"\\F3BB\"; }\n\n.ion-android-warning:before {\n  content: \"\\F3BC\"; }\n\n.ion-android-watch:before {\n  content: \"\\F3BD\"; }\n\n.ion-android-wifi:before {\n  content: \"\\F305\"; }\n\n.ion-aperture:before {\n  content: \"\\F313\"; }\n\n.ion-archive:before {\n  content: \"\\F102\"; }\n\n.ion-arrow-down-a:before {\n  content: \"\\F103\"; }\n\n.ion-arrow-down-b:before {\n  content: \"\\F104\"; }\n\n.ion-arrow-down-c:before {\n  content: \"\\F105\"; }\n\n.ion-arrow-expand:before {\n  content: \"\\F25E\"; }\n\n.ion-arrow-graph-down-left:before {\n  content: \"\\F25F\"; }\n\n.ion-arrow-graph-down-right:before {\n  content: \"\\F260\"; }\n\n.ion-arrow-graph-up-left:before {\n  content: \"\\F261\"; }\n\n.ion-arrow-graph-up-right:before {\n  content: \"\\F262\"; }\n\n.ion-arrow-left-a:before {\n  content: \"\\F106\"; }\n\n.ion-arrow-left-b:before {\n  content: \"\\F107\"; }\n\n.ion-arrow-left-c:before {\n  content: \"\\F108\"; }\n\n.ion-arrow-move:before {\n  content: \"\\F263\"; }\n\n.ion-arrow-resize:before {\n  content: \"\\F264\"; }\n\n.ion-arrow-return-left:before {\n  content: \"\\F265\"; }\n\n.ion-arrow-return-right:before {\n  content: \"\\F266\"; }\n\n.ion-arrow-right-a:before {\n  content: \"\\F109\"; }\n\n.ion-arrow-right-b:before {\n  content: \"\\F10A\"; }\n\n.ion-arrow-right-c:before {\n  content: \"\\F10B\"; }\n\n.ion-arrow-shrink:before {\n  content: \"\\F267\"; }\n\n.ion-arrow-swap:before {\n  content: \"\\F268\"; }\n\n.ion-arrow-up-a:before {\n  content: \"\\F10C\"; }\n\n.ion-arrow-up-b:before {\n  content: \"\\F10D\"; }\n\n.ion-arrow-up-c:before {\n  content: \"\\F10E\"; }\n\n.ion-asterisk:before {\n  content: \"\\F314\"; }\n\n.ion-at:before {\n  content: \"\\F10F\"; }\n\n.ion-backspace:before {\n  content: \"\\F3BF\"; }\n\n.ion-backspace-outline:before {\n  content: \"\\F3BE\"; }\n\n.ion-bag:before {\n  content: \"\\F110\"; }\n\n.ion-battery-charging:before {\n  content: \"\\F111\"; }\n\n.ion-battery-empty:before {\n  content: \"\\F112\"; }\n\n.ion-battery-full:before {\n  content: \"\\F113\"; }\n\n.ion-battery-half:before {\n  content: \"\\F114\"; }\n\n.ion-battery-low:before {\n  content: \"\\F115\"; }\n\n.ion-beaker:before {\n  content: \"\\F269\"; }\n\n.ion-beer:before {\n  content: \"\\F26A\"; }\n\n.ion-bluetooth:before {\n  content: \"\\F116\"; }\n\n.ion-bonfire:before {\n  content: \"\\F315\"; }\n\n.ion-bookmark:before {\n  content: \"\\F26B\"; }\n\n.ion-bowtie:before {\n  content: \"\\F3C0\"; }\n\n.ion-briefcase:before {\n  content: \"\\F26C\"; }\n\n.ion-bug:before {\n  content: \"\\F2BE\"; }\n\n.ion-calculator:before {\n  content: \"\\F26D\"; }\n\n.ion-calendar:before {\n  content: \"\\F117\"; }\n\n.ion-camera:before {\n  content: \"\\F118\"; }\n\n.ion-card:before {\n  content: \"\\F119\"; }\n\n.ion-cash:before {\n  content: \"\\F316\"; }\n\n.ion-chatbox:before {\n  content: \"\\F11B\"; }\n\n.ion-chatbox-working:before {\n  content: \"\\F11A\"; }\n\n.ion-chatboxes:before {\n  content: \"\\F11C\"; }\n\n.ion-chatbubble:before {\n  content: \"\\F11E\"; }\n\n.ion-chatbubble-working:before {\n  content: \"\\F11D\"; }\n\n.ion-chatbubbles:before {\n  content: \"\\F11F\"; }\n\n.ion-checkmark:before {\n  content: \"\\F122\"; }\n\n.ion-checkmark-circled:before {\n  content: \"\\F120\"; }\n\n.ion-checkmark-round:before {\n  content: \"\\F121\"; }\n\n.ion-chevron-down:before {\n  content: \"\\F123\"; }\n\n.ion-chevron-left:before {\n  content: \"\\F124\"; }\n\n.ion-chevron-right:before {\n  content: \"\\F125\"; }\n\n.ion-chevron-up:before {\n  content: \"\\F126\"; }\n\n.ion-clipboard:before {\n  content: \"\\F127\"; }\n\n.ion-clock:before {\n  content: \"\\F26E\"; }\n\n.ion-close:before {\n  content: \"\\F12A\"; }\n\n.ion-close-circled:before {\n  content: \"\\F128\"; }\n\n.ion-close-round:before {\n  content: \"\\F129\"; }\n\n.ion-closed-captioning:before {\n  content: \"\\F317\"; }\n\n.ion-cloud:before {\n  content: \"\\F12B\"; }\n\n.ion-code:before {\n  content: \"\\F271\"; }\n\n.ion-code-download:before {\n  content: \"\\F26F\"; }\n\n.ion-code-working:before {\n  content: \"\\F270\"; }\n\n.ion-coffee:before {\n  content: \"\\F272\"; }\n\n.ion-compass:before {\n  content: \"\\F273\"; }\n\n.ion-compose:before {\n  content: \"\\F12C\"; }\n\n.ion-connection-bars:before {\n  content: \"\\F274\"; }\n\n.ion-contrast:before {\n  content: \"\\F275\"; }\n\n.ion-crop:before {\n  content: \"\\F3C1\"; }\n\n.ion-cube:before {\n  content: \"\\F318\"; }\n\n.ion-disc:before {\n  content: \"\\F12D\"; }\n\n.ion-document:before {\n  content: \"\\F12F\"; }\n\n.ion-document-text:before {\n  content: \"\\F12E\"; }\n\n.ion-drag:before {\n  content: \"\\F130\"; }\n\n.ion-earth:before {\n  content: \"\\F276\"; }\n\n.ion-easel:before {\n  content: \"\\F3C2\"; }\n\n.ion-edit:before {\n  content: \"\\F2BF\"; }\n\n.ion-egg:before {\n  content: \"\\F277\"; }\n\n.ion-eject:before {\n  content: \"\\F131\"; }\n\n.ion-email:before {\n  content: \"\\F132\"; }\n\n.ion-email-unread:before {\n  content: \"\\F3C3\"; }\n\n.ion-erlenmeyer-flask:before {\n  content: \"\\F3C5\"; }\n\n.ion-erlenmeyer-flask-bubbles:before {\n  content: \"\\F3C4\"; }\n\n.ion-eye:before {\n  content: \"\\F133\"; }\n\n.ion-eye-disabled:before {\n  content: \"\\F306\"; }\n\n.ion-female:before {\n  content: \"\\F278\"; }\n\n.ion-filing:before {\n  content: \"\\F134\"; }\n\n.ion-film-marker:before {\n  content: \"\\F135\"; }\n\n.ion-fireball:before {\n  content: \"\\F319\"; }\n\n.ion-flag:before {\n  content: \"\\F279\"; }\n\n.ion-flame:before {\n  content: \"\\F31A\"; }\n\n.ion-flash:before {\n  content: \"\\F137\"; }\n\n.ion-flash-off:before {\n  content: \"\\F136\"; }\n\n.ion-folder:before {\n  content: \"\\F139\"; }\n\n.ion-fork:before {\n  content: \"\\F27A\"; }\n\n.ion-fork-repo:before {\n  content: \"\\F2C0\"; }\n\n.ion-forward:before {\n  content: \"\\F13A\"; }\n\n.ion-funnel:before {\n  content: \"\\F31B\"; }\n\n.ion-gear-a:before {\n  content: \"\\F13D\"; }\n\n.ion-gear-b:before {\n  content: \"\\F13E\"; }\n\n.ion-grid:before {\n  content: \"\\F13F\"; }\n\n.ion-hammer:before {\n  content: \"\\F27B\"; }\n\n.ion-happy:before {\n  content: \"\\F31C\"; }\n\n.ion-happy-outline:before {\n  content: \"\\F3C6\"; }\n\n.ion-headphone:before {\n  content: \"\\F140\"; }\n\n.ion-heart:before {\n  content: \"\\F141\"; }\n\n.ion-heart-broken:before {\n  content: \"\\F31D\"; }\n\n.ion-help:before {\n  content: \"\\F143\"; }\n\n.ion-help-buoy:before {\n  content: \"\\F27C\"; }\n\n.ion-help-circled:before {\n  content: \"\\F142\"; }\n\n.ion-home:before {\n  content: \"\\F144\"; }\n\n.ion-icecream:before {\n  content: \"\\F27D\"; }\n\n.ion-image:before {\n  content: \"\\F147\"; }\n\n.ion-images:before {\n  content: \"\\F148\"; }\n\n.ion-information:before {\n  content: \"\\F14A\"; }\n\n.ion-information-circled:before {\n  content: \"\\F149\"; }\n\n.ion-ionic:before {\n  content: \"\\F14B\"; }\n\n.ion-ios-alarm:before {\n  content: \"\\F3C8\"; }\n\n.ion-ios-alarm-outline:before {\n  content: \"\\F3C7\"; }\n\n.ion-ios-albums:before {\n  content: \"\\F3CA\"; }\n\n.ion-ios-albums-outline:before {\n  content: \"\\F3C9\"; }\n\n.ion-ios-americanfootball:before {\n  content: \"\\F3CC\"; }\n\n.ion-ios-americanfootball-outline:before {\n  content: \"\\F3CB\"; }\n\n.ion-ios-analytics:before {\n  content: \"\\F3CE\"; }\n\n.ion-ios-analytics-outline:before {\n  content: \"\\F3CD\"; }\n\n.ion-ios-arrow-back:before {\n  content: \"\\F3CF\"; }\n\n.ion-ios-arrow-down:before {\n  content: \"\\F3D0\"; }\n\n.ion-ios-arrow-forward:before {\n  content: \"\\F3D1\"; }\n\n.ion-ios-arrow-left:before {\n  content: \"\\F3D2\"; }\n\n.ion-ios-arrow-right:before {\n  content: \"\\F3D3\"; }\n\n.ion-ios-arrow-thin-down:before {\n  content: \"\\F3D4\"; }\n\n.ion-ios-arrow-thin-left:before {\n  content: \"\\F3D5\"; }\n\n.ion-ios-arrow-thin-right:before {\n  content: \"\\F3D6\"; }\n\n.ion-ios-arrow-thin-up:before {\n  content: \"\\F3D7\"; }\n\n.ion-ios-arrow-up:before {\n  content: \"\\F3D8\"; }\n\n.ion-ios-at:before {\n  content: \"\\F3DA\"; }\n\n.ion-ios-at-outline:before {\n  content: \"\\F3D9\"; }\n\n.ion-ios-barcode:before {\n  content: \"\\F3DC\"; }\n\n.ion-ios-barcode-outline:before {\n  content: \"\\F3DB\"; }\n\n.ion-ios-baseball:before {\n  content: \"\\F3DE\"; }\n\n.ion-ios-baseball-outline:before {\n  content: \"\\F3DD\"; }\n\n.ion-ios-basketball:before {\n  content: \"\\F3E0\"; }\n\n.ion-ios-basketball-outline:before {\n  content: \"\\F3DF\"; }\n\n.ion-ios-bell:before {\n  content: \"\\F3E2\"; }\n\n.ion-ios-bell-outline:before {\n  content: \"\\F3E1\"; }\n\n.ion-ios-body:before {\n  content: \"\\F3E4\"; }\n\n.ion-ios-body-outline:before {\n  content: \"\\F3E3\"; }\n\n.ion-ios-bolt:before {\n  content: \"\\F3E6\"; }\n\n.ion-ios-bolt-outline:before {\n  content: \"\\F3E5\"; }\n\n.ion-ios-book:before {\n  content: \"\\F3E8\"; }\n\n.ion-ios-book-outline:before {\n  content: \"\\F3E7\"; }\n\n.ion-ios-bookmarks:before {\n  content: \"\\F3EA\"; }\n\n.ion-ios-bookmarks-outline:before {\n  content: \"\\F3E9\"; }\n\n.ion-ios-box:before {\n  content: \"\\F3EC\"; }\n\n.ion-ios-box-outline:before {\n  content: \"\\F3EB\"; }\n\n.ion-ios-briefcase:before {\n  content: \"\\F3EE\"; }\n\n.ion-ios-briefcase-outline:before {\n  content: \"\\F3ED\"; }\n\n.ion-ios-browsers:before {\n  content: \"\\F3F0\"; }\n\n.ion-ios-browsers-outline:before {\n  content: \"\\F3EF\"; }\n\n.ion-ios-calculator:before {\n  content: \"\\F3F2\"; }\n\n.ion-ios-calculator-outline:before {\n  content: \"\\F3F1\"; }\n\n.ion-ios-calendar:before {\n  content: \"\\F3F4\"; }\n\n.ion-ios-calendar-outline:before {\n  content: \"\\F3F3\"; }\n\n.ion-ios-camera:before {\n  content: \"\\F3F6\"; }\n\n.ion-ios-camera-outline:before {\n  content: \"\\F3F5\"; }\n\n.ion-ios-cart:before {\n  content: \"\\F3F8\"; }\n\n.ion-ios-cart-outline:before {\n  content: \"\\F3F7\"; }\n\n.ion-ios-chatboxes:before {\n  content: \"\\F3FA\"; }\n\n.ion-ios-chatboxes-outline:before {\n  content: \"\\F3F9\"; }\n\n.ion-ios-chatbubble:before {\n  content: \"\\F3FC\"; }\n\n.ion-ios-chatbubble-outline:before {\n  content: \"\\F3FB\"; }\n\n.ion-ios-checkmark:before {\n  content: \"\\F3FF\"; }\n\n.ion-ios-checkmark-empty:before {\n  content: \"\\F3FD\"; }\n\n.ion-ios-checkmark-outline:before {\n  content: \"\\F3FE\"; }\n\n.ion-ios-circle-filled:before {\n  content: \"\\F400\"; }\n\n.ion-ios-circle-outline:before {\n  content: \"\\F401\"; }\n\n.ion-ios-clock:before {\n  content: \"\\F403\"; }\n\n.ion-ios-clock-outline:before {\n  content: \"\\F402\"; }\n\n.ion-ios-close:before {\n  content: \"\\F406\"; }\n\n.ion-ios-close-empty:before {\n  content: \"\\F404\"; }\n\n.ion-ios-close-outline:before {\n  content: \"\\F405\"; }\n\n.ion-ios-cloud:before {\n  content: \"\\F40C\"; }\n\n.ion-ios-cloud-download:before {\n  content: \"\\F408\"; }\n\n.ion-ios-cloud-download-outline:before {\n  content: \"\\F407\"; }\n\n.ion-ios-cloud-outline:before {\n  content: \"\\F409\"; }\n\n.ion-ios-cloud-upload:before {\n  content: \"\\F40B\"; }\n\n.ion-ios-cloud-upload-outline:before {\n  content: \"\\F40A\"; }\n\n.ion-ios-cloudy:before {\n  content: \"\\F410\"; }\n\n.ion-ios-cloudy-night:before {\n  content: \"\\F40E\"; }\n\n.ion-ios-cloudy-night-outline:before {\n  content: \"\\F40D\"; }\n\n.ion-ios-cloudy-outline:before {\n  content: \"\\F40F\"; }\n\n.ion-ios-cog:before {\n  content: \"\\F412\"; }\n\n.ion-ios-cog-outline:before {\n  content: \"\\F411\"; }\n\n.ion-ios-color-filter:before {\n  content: \"\\F414\"; }\n\n.ion-ios-color-filter-outline:before {\n  content: \"\\F413\"; }\n\n.ion-ios-color-wand:before {\n  content: \"\\F416\"; }\n\n.ion-ios-color-wand-outline:before {\n  content: \"\\F415\"; }\n\n.ion-ios-compose:before {\n  content: \"\\F418\"; }\n\n.ion-ios-compose-outline:before {\n  content: \"\\F417\"; }\n\n.ion-ios-contact:before {\n  content: \"\\F41A\"; }\n\n.ion-ios-contact-outline:before {\n  content: \"\\F419\"; }\n\n.ion-ios-copy:before {\n  content: \"\\F41C\"; }\n\n.ion-ios-copy-outline:before {\n  content: \"\\F41B\"; }\n\n.ion-ios-crop:before {\n  content: \"\\F41E\"; }\n\n.ion-ios-crop-strong:before {\n  content: \"\\F41D\"; }\n\n.ion-ios-download:before {\n  content: \"\\F420\"; }\n\n.ion-ios-download-outline:before {\n  content: \"\\F41F\"; }\n\n.ion-ios-drag:before {\n  content: \"\\F421\"; }\n\n.ion-ios-email:before {\n  content: \"\\F423\"; }\n\n.ion-ios-email-outline:before {\n  content: \"\\F422\"; }\n\n.ion-ios-eye:before {\n  content: \"\\F425\"; }\n\n.ion-ios-eye-outline:before {\n  content: \"\\F424\"; }\n\n.ion-ios-fastforward:before {\n  content: \"\\F427\"; }\n\n.ion-ios-fastforward-outline:before {\n  content: \"\\F426\"; }\n\n.ion-ios-filing:before {\n  content: \"\\F429\"; }\n\n.ion-ios-filing-outline:before {\n  content: \"\\F428\"; }\n\n.ion-ios-film:before {\n  content: \"\\F42B\"; }\n\n.ion-ios-film-outline:before {\n  content: \"\\F42A\"; }\n\n.ion-ios-flag:before {\n  content: \"\\F42D\"; }\n\n.ion-ios-flag-outline:before {\n  content: \"\\F42C\"; }\n\n.ion-ios-flame:before {\n  content: \"\\F42F\"; }\n\n.ion-ios-flame-outline:before {\n  content: \"\\F42E\"; }\n\n.ion-ios-flask:before {\n  content: \"\\F431\"; }\n\n.ion-ios-flask-outline:before {\n  content: \"\\F430\"; }\n\n.ion-ios-flower:before {\n  content: \"\\F433\"; }\n\n.ion-ios-flower-outline:before {\n  content: \"\\F432\"; }\n\n.ion-ios-folder:before {\n  content: \"\\F435\"; }\n\n.ion-ios-folder-outline:before {\n  content: \"\\F434\"; }\n\n.ion-ios-football:before {\n  content: \"\\F437\"; }\n\n.ion-ios-football-outline:before {\n  content: \"\\F436\"; }\n\n.ion-ios-game-controller-a:before {\n  content: \"\\F439\"; }\n\n.ion-ios-game-controller-a-outline:before {\n  content: \"\\F438\"; }\n\n.ion-ios-game-controller-b:before {\n  content: \"\\F43B\"; }\n\n.ion-ios-game-controller-b-outline:before {\n  content: \"\\F43A\"; }\n\n.ion-ios-gear:before {\n  content: \"\\F43D\"; }\n\n.ion-ios-gear-outline:before {\n  content: \"\\F43C\"; }\n\n.ion-ios-glasses:before {\n  content: \"\\F43F\"; }\n\n.ion-ios-glasses-outline:before {\n  content: \"\\F43E\"; }\n\n.ion-ios-grid-view:before {\n  content: \"\\F441\"; }\n\n.ion-ios-grid-view-outline:before {\n  content: \"\\F440\"; }\n\n.ion-ios-heart:before {\n  content: \"\\F443\"; }\n\n.ion-ios-heart-outline:before {\n  content: \"\\F442\"; }\n\n.ion-ios-help:before {\n  content: \"\\F446\"; }\n\n.ion-ios-help-empty:before {\n  content: \"\\F444\"; }\n\n.ion-ios-help-outline:before {\n  content: \"\\F445\"; }\n\n.ion-ios-home:before {\n  content: \"\\F448\"; }\n\n.ion-ios-home-outline:before {\n  content: \"\\F447\"; }\n\n.ion-ios-infinite:before {\n  content: \"\\F44A\"; }\n\n.ion-ios-infinite-outline:before {\n  content: \"\\F449\"; }\n\n.ion-ios-information:before {\n  content: \"\\F44D\"; }\n\n.ion-ios-information-empty:before {\n  content: \"\\F44B\"; }\n\n.ion-ios-information-outline:before {\n  content: \"\\F44C\"; }\n\n.ion-ios-ionic-outline:before {\n  content: \"\\F44E\"; }\n\n.ion-ios-keypad:before {\n  content: \"\\F450\"; }\n\n.ion-ios-keypad-outline:before {\n  content: \"\\F44F\"; }\n\n.ion-ios-lightbulb:before {\n  content: \"\\F452\"; }\n\n.ion-ios-lightbulb-outline:before {\n  content: \"\\F451\"; }\n\n.ion-ios-list:before {\n  content: \"\\F454\"; }\n\n.ion-ios-list-outline:before {\n  content: \"\\F453\"; }\n\n.ion-ios-location:before {\n  content: \"\\F456\"; }\n\n.ion-ios-location-outline:before {\n  content: \"\\F455\"; }\n\n.ion-ios-locked:before {\n  content: \"\\F458\"; }\n\n.ion-ios-locked-outline:before {\n  content: \"\\F457\"; }\n\n.ion-ios-loop:before {\n  content: \"\\F45A\"; }\n\n.ion-ios-loop-strong:before {\n  content: \"\\F459\"; }\n\n.ion-ios-medical:before {\n  content: \"\\F45C\"; }\n\n.ion-ios-medical-outline:before {\n  content: \"\\F45B\"; }\n\n.ion-ios-medkit:before {\n  content: \"\\F45E\"; }\n\n.ion-ios-medkit-outline:before {\n  content: \"\\F45D\"; }\n\n.ion-ios-mic:before {\n  content: \"\\F461\"; }\n\n.ion-ios-mic-off:before {\n  content: \"\\F45F\"; }\n\n.ion-ios-mic-outline:before {\n  content: \"\\F460\"; }\n\n.ion-ios-minus:before {\n  content: \"\\F464\"; }\n\n.ion-ios-minus-empty:before {\n  content: \"\\F462\"; }\n\n.ion-ios-minus-outline:before {\n  content: \"\\F463\"; }\n\n.ion-ios-monitor:before {\n  content: \"\\F466\"; }\n\n.ion-ios-monitor-outline:before {\n  content: \"\\F465\"; }\n\n.ion-ios-moon:before {\n  content: \"\\F468\"; }\n\n.ion-ios-moon-outline:before {\n  content: \"\\F467\"; }\n\n.ion-ios-more:before {\n  content: \"\\F46A\"; }\n\n.ion-ios-more-outline:before {\n  content: \"\\F469\"; }\n\n.ion-ios-musical-note:before {\n  content: \"\\F46B\"; }\n\n.ion-ios-musical-notes:before {\n  content: \"\\F46C\"; }\n\n.ion-ios-navigate:before {\n  content: \"\\F46E\"; }\n\n.ion-ios-navigate-outline:before {\n  content: \"\\F46D\"; }\n\n.ion-ios-nutrition:before {\n  content: \"\\F470\"; }\n\n.ion-ios-nutrition-outline:before {\n  content: \"\\F46F\"; }\n\n.ion-ios-paper:before {\n  content: \"\\F472\"; }\n\n.ion-ios-paper-outline:before {\n  content: \"\\F471\"; }\n\n.ion-ios-paperplane:before {\n  content: \"\\F474\"; }\n\n.ion-ios-paperplane-outline:before {\n  content: \"\\F473\"; }\n\n.ion-ios-partlysunny:before {\n  content: \"\\F476\"; }\n\n.ion-ios-partlysunny-outline:before {\n  content: \"\\F475\"; }\n\n.ion-ios-pause:before {\n  content: \"\\F478\"; }\n\n.ion-ios-pause-outline:before {\n  content: \"\\F477\"; }\n\n.ion-ios-paw:before {\n  content: \"\\F47A\"; }\n\n.ion-ios-paw-outline:before {\n  content: \"\\F479\"; }\n\n.ion-ios-people:before {\n  content: \"\\F47C\"; }\n\n.ion-ios-people-outline:before {\n  content: \"\\F47B\"; }\n\n.ion-ios-person:before {\n  content: \"\\F47E\"; }\n\n.ion-ios-person-outline:before {\n  content: \"\\F47D\"; }\n\n.ion-ios-personadd:before {\n  content: \"\\F480\"; }\n\n.ion-ios-personadd-outline:before {\n  content: \"\\F47F\"; }\n\n.ion-ios-photos:before {\n  content: \"\\F482\"; }\n\n.ion-ios-photos-outline:before {\n  content: \"\\F481\"; }\n\n.ion-ios-pie:before {\n  content: \"\\F484\"; }\n\n.ion-ios-pie-outline:before {\n  content: \"\\F483\"; }\n\n.ion-ios-pint:before {\n  content: \"\\F486\"; }\n\n.ion-ios-pint-outline:before {\n  content: \"\\F485\"; }\n\n.ion-ios-play:before {\n  content: \"\\F488\"; }\n\n.ion-ios-play-outline:before {\n  content: \"\\F487\"; }\n\n.ion-ios-plus:before {\n  content: \"\\F48B\"; }\n\n.ion-ios-plus-empty:before {\n  content: \"\\F489\"; }\n\n.ion-ios-plus-outline:before {\n  content: \"\\F48A\"; }\n\n.ion-ios-pricetag:before {\n  content: \"\\F48D\"; }\n\n.ion-ios-pricetag-outline:before {\n  content: \"\\F48C\"; }\n\n.ion-ios-pricetags:before {\n  content: \"\\F48F\"; }\n\n.ion-ios-pricetags-outline:before {\n  content: \"\\F48E\"; }\n\n.ion-ios-printer:before {\n  content: \"\\F491\"; }\n\n.ion-ios-printer-outline:before {\n  content: \"\\F490\"; }\n\n.ion-ios-pulse:before {\n  content: \"\\F493\"; }\n\n.ion-ios-pulse-strong:before {\n  content: \"\\F492\"; }\n\n.ion-ios-rainy:before {\n  content: \"\\F495\"; }\n\n.ion-ios-rainy-outline:before {\n  content: \"\\F494\"; }\n\n.ion-ios-recording:before {\n  content: \"\\F497\"; }\n\n.ion-ios-recording-outline:before {\n  content: \"\\F496\"; }\n\n.ion-ios-redo:before {\n  content: \"\\F499\"; }\n\n.ion-ios-redo-outline:before {\n  content: \"\\F498\"; }\n\n.ion-ios-refresh:before {\n  content: \"\\F49C\"; }\n\n.ion-ios-refresh-empty:before {\n  content: \"\\F49A\"; }\n\n.ion-ios-refresh-outline:before {\n  content: \"\\F49B\"; }\n\n.ion-ios-reload:before {\n  content: \"\\F49D\"; }\n\n.ion-ios-reverse-camera:before {\n  content: \"\\F49F\"; }\n\n.ion-ios-reverse-camera-outline:before {\n  content: \"\\F49E\"; }\n\n.ion-ios-rewind:before {\n  content: \"\\F4A1\"; }\n\n.ion-ios-rewind-outline:before {\n  content: \"\\F4A0\"; }\n\n.ion-ios-rose:before {\n  content: \"\\F4A3\"; }\n\n.ion-ios-rose-outline:before {\n  content: \"\\F4A2\"; }\n\n.ion-ios-search:before {\n  content: \"\\F4A5\"; }\n\n.ion-ios-search-strong:before {\n  content: \"\\F4A4\"; }\n\n.ion-ios-settings:before {\n  content: \"\\F4A7\"; }\n\n.ion-ios-settings-strong:before {\n  content: \"\\F4A6\"; }\n\n.ion-ios-shuffle:before {\n  content: \"\\F4A9\"; }\n\n.ion-ios-shuffle-strong:before {\n  content: \"\\F4A8\"; }\n\n.ion-ios-skipbackward:before {\n  content: \"\\F4AB\"; }\n\n.ion-ios-skipbackward-outline:before {\n  content: \"\\F4AA\"; }\n\n.ion-ios-skipforward:before {\n  content: \"\\F4AD\"; }\n\n.ion-ios-skipforward-outline:before {\n  content: \"\\F4AC\"; }\n\n.ion-ios-snowy:before {\n  content: \"\\F4AE\"; }\n\n.ion-ios-speedometer:before {\n  content: \"\\F4B0\"; }\n\n.ion-ios-speedometer-outline:before {\n  content: \"\\F4AF\"; }\n\n.ion-ios-star:before {\n  content: \"\\F4B3\"; }\n\n.ion-ios-star-half:before {\n  content: \"\\F4B1\"; }\n\n.ion-ios-star-outline:before {\n  content: \"\\F4B2\"; }\n\n.ion-ios-stopwatch:before {\n  content: \"\\F4B5\"; }\n\n.ion-ios-stopwatch-outline:before {\n  content: \"\\F4B4\"; }\n\n.ion-ios-sunny:before {\n  content: \"\\F4B7\"; }\n\n.ion-ios-sunny-outline:before {\n  content: \"\\F4B6\"; }\n\n.ion-ios-telephone:before {\n  content: \"\\F4B9\"; }\n\n.ion-ios-telephone-outline:before {\n  content: \"\\F4B8\"; }\n\n.ion-ios-tennisball:before {\n  content: \"\\F4BB\"; }\n\n.ion-ios-tennisball-outline:before {\n  content: \"\\F4BA\"; }\n\n.ion-ios-thunderstorm:before {\n  content: \"\\F4BD\"; }\n\n.ion-ios-thunderstorm-outline:before {\n  content: \"\\F4BC\"; }\n\n.ion-ios-time:before {\n  content: \"\\F4BF\"; }\n\n.ion-ios-time-outline:before {\n  content: \"\\F4BE\"; }\n\n.ion-ios-timer:before {\n  content: \"\\F4C1\"; }\n\n.ion-ios-timer-outline:before {\n  content: \"\\F4C0\"; }\n\n.ion-ios-toggle:before {\n  content: \"\\F4C3\"; }\n\n.ion-ios-toggle-outline:before {\n  content: \"\\F4C2\"; }\n\n.ion-ios-trash:before {\n  content: \"\\F4C5\"; }\n\n.ion-ios-trash-outline:before {\n  content: \"\\F4C4\"; }\n\n.ion-ios-undo:before {\n  content: \"\\F4C7\"; }\n\n.ion-ios-undo-outline:before {\n  content: \"\\F4C6\"; }\n\n.ion-ios-unlocked:before {\n  content: \"\\F4C9\"; }\n\n.ion-ios-unlocked-outline:before {\n  content: \"\\F4C8\"; }\n\n.ion-ios-upload:before {\n  content: \"\\F4CB\"; }\n\n.ion-ios-upload-outline:before {\n  content: \"\\F4CA\"; }\n\n.ion-ios-videocam:before {\n  content: \"\\F4CD\"; }\n\n.ion-ios-videocam-outline:before {\n  content: \"\\F4CC\"; }\n\n.ion-ios-volume-high:before {\n  content: \"\\F4CE\"; }\n\n.ion-ios-volume-low:before {\n  content: \"\\F4CF\"; }\n\n.ion-ios-wineglass:before {\n  content: \"\\F4D1\"; }\n\n.ion-ios-wineglass-outline:before {\n  content: \"\\F4D0\"; }\n\n.ion-ios-world:before {\n  content: \"\\F4D3\"; }\n\n.ion-ios-world-outline:before {\n  content: \"\\F4D2\"; }\n\n.ion-ipad:before {\n  content: \"\\F1F9\"; }\n\n.ion-iphone:before {\n  content: \"\\F1FA\"; }\n\n.ion-ipod:before {\n  content: \"\\F1FB\"; }\n\n.ion-jet:before {\n  content: \"\\F295\"; }\n\n.ion-key:before {\n  content: \"\\F296\"; }\n\n.ion-knife:before {\n  content: \"\\F297\"; }\n\n.ion-laptop:before {\n  content: \"\\F1FC\"; }\n\n.ion-leaf:before {\n  content: \"\\F1FD\"; }\n\n.ion-levels:before {\n  content: \"\\F298\"; }\n\n.ion-lightbulb:before {\n  content: \"\\F299\"; }\n\n.ion-link:before {\n  content: \"\\F1FE\"; }\n\n.ion-load-a:before {\n  content: \"\\F29A\"; }\n\n.ion-load-b:before {\n  content: \"\\F29B\"; }\n\n.ion-load-c:before {\n  content: \"\\F29C\"; }\n\n.ion-load-d:before {\n  content: \"\\F29D\"; }\n\n.ion-location:before {\n  content: \"\\F1FF\"; }\n\n.ion-lock-combination:before {\n  content: \"\\F4D4\"; }\n\n.ion-locked:before {\n  content: \"\\F200\"; }\n\n.ion-log-in:before {\n  content: \"\\F29E\"; }\n\n.ion-log-out:before {\n  content: \"\\F29F\"; }\n\n.ion-loop:before {\n  content: \"\\F201\"; }\n\n.ion-magnet:before {\n  content: \"\\F2A0\"; }\n\n.ion-male:before {\n  content: \"\\F2A1\"; }\n\n.ion-man:before {\n  content: \"\\F202\"; }\n\n.ion-map:before {\n  content: \"\\F203\"; }\n\n.ion-medkit:before {\n  content: \"\\F2A2\"; }\n\n.ion-merge:before {\n  content: \"\\F33F\"; }\n\n.ion-mic-a:before {\n  content: \"\\F204\"; }\n\n.ion-mic-b:before {\n  content: \"\\F205\"; }\n\n.ion-mic-c:before {\n  content: \"\\F206\"; }\n\n.ion-minus:before {\n  content: \"\\F209\"; }\n\n.ion-minus-circled:before {\n  content: \"\\F207\"; }\n\n.ion-minus-round:before {\n  content: \"\\F208\"; }\n\n.ion-model-s:before {\n  content: \"\\F2C1\"; }\n\n.ion-monitor:before {\n  content: \"\\F20A\"; }\n\n.ion-more:before {\n  content: \"\\F20B\"; }\n\n.ion-mouse:before {\n  content: \"\\F340\"; }\n\n.ion-music-note:before {\n  content: \"\\F20C\"; }\n\n.ion-navicon:before {\n  content: \"\\F20E\"; }\n\n.ion-navicon-round:before {\n  content: \"\\F20D\"; }\n\n.ion-navigate:before {\n  content: \"\\F2A3\"; }\n\n.ion-network:before {\n  content: \"\\F341\"; }\n\n.ion-no-smoking:before {\n  content: \"\\F2C2\"; }\n\n.ion-nuclear:before {\n  content: \"\\F2A4\"; }\n\n.ion-outlet:before {\n  content: \"\\F342\"; }\n\n.ion-paintbrush:before {\n  content: \"\\F4D5\"; }\n\n.ion-paintbucket:before {\n  content: \"\\F4D6\"; }\n\n.ion-paper-airplane:before {\n  content: \"\\F2C3\"; }\n\n.ion-paperclip:before {\n  content: \"\\F20F\"; }\n\n.ion-pause:before {\n  content: \"\\F210\"; }\n\n.ion-person:before {\n  content: \"\\F213\"; }\n\n.ion-person-add:before {\n  content: \"\\F211\"; }\n\n.ion-person-stalker:before {\n  content: \"\\F212\"; }\n\n.ion-pie-graph:before {\n  content: \"\\F2A5\"; }\n\n.ion-pin:before {\n  content: \"\\F2A6\"; }\n\n.ion-pinpoint:before {\n  content: \"\\F2A7\"; }\n\n.ion-pizza:before {\n  content: \"\\F2A8\"; }\n\n.ion-plane:before {\n  content: \"\\F214\"; }\n\n.ion-planet:before {\n  content: \"\\F343\"; }\n\n.ion-play:before {\n  content: \"\\F215\"; }\n\n.ion-playstation:before {\n  content: \"\\F30A\"; }\n\n.ion-plus:before {\n  content: \"\\F218\"; }\n\n.ion-plus-circled:before {\n  content: \"\\F216\"; }\n\n.ion-plus-round:before {\n  content: \"\\F217\"; }\n\n.ion-podium:before {\n  content: \"\\F344\"; }\n\n.ion-pound:before {\n  content: \"\\F219\"; }\n\n.ion-power:before {\n  content: \"\\F2A9\"; }\n\n.ion-pricetag:before {\n  content: \"\\F2AA\"; }\n\n.ion-pricetags:before {\n  content: \"\\F2AB\"; }\n\n.ion-printer:before {\n  content: \"\\F21A\"; }\n\n.ion-pull-request:before {\n  content: \"\\F345\"; }\n\n.ion-qr-scanner:before {\n  content: \"\\F346\"; }\n\n.ion-quote:before {\n  content: \"\\F347\"; }\n\n.ion-radio-waves:before {\n  content: \"\\F2AC\"; }\n\n.ion-record:before {\n  content: \"\\F21B\"; }\n\n.ion-refresh:before {\n  content: \"\\F21C\"; }\n\n.ion-reply:before {\n  content: \"\\F21E\"; }\n\n.ion-reply-all:before {\n  content: \"\\F21D\"; }\n\n.ion-ribbon-a:before {\n  content: \"\\F348\"; }\n\n.ion-ribbon-b:before {\n  content: \"\\F349\"; }\n\n.ion-sad:before {\n  content: \"\\F34A\"; }\n\n.ion-sad-outline:before {\n  content: \"\\F4D7\"; }\n\n.ion-scissors:before {\n  content: \"\\F34B\"; }\n\n.ion-search:before {\n  content: \"\\F21F\"; }\n\n.ion-settings:before {\n  content: \"\\F2AD\"; }\n\n.ion-share:before {\n  content: \"\\F220\"; }\n\n.ion-shuffle:before {\n  content: \"\\F221\"; }\n\n.ion-skip-backward:before {\n  content: \"\\F222\"; }\n\n.ion-skip-forward:before {\n  content: \"\\F223\"; }\n\n.ion-social-android:before {\n  content: \"\\F225\"; }\n\n.ion-social-android-outline:before {\n  content: \"\\F224\"; }\n\n.ion-social-angular:before {\n  content: \"\\F4D9\"; }\n\n.ion-social-angular-outline:before {\n  content: \"\\F4D8\"; }\n\n.ion-social-apple:before {\n  content: \"\\F227\"; }\n\n.ion-social-apple-outline:before {\n  content: \"\\F226\"; }\n\n.ion-social-bitcoin:before {\n  content: \"\\F2AF\"; }\n\n.ion-social-bitcoin-outline:before {\n  content: \"\\F2AE\"; }\n\n.ion-social-buffer:before {\n  content: \"\\F229\"; }\n\n.ion-social-buffer-outline:before {\n  content: \"\\F228\"; }\n\n.ion-social-chrome:before {\n  content: \"\\F4DB\"; }\n\n.ion-social-chrome-outline:before {\n  content: \"\\F4DA\"; }\n\n.ion-social-codepen:before {\n  content: \"\\F4DD\"; }\n\n.ion-social-codepen-outline:before {\n  content: \"\\F4DC\"; }\n\n.ion-social-css3:before {\n  content: \"\\F4DF\"; }\n\n.ion-social-css3-outline:before {\n  content: \"\\F4DE\"; }\n\n.ion-social-designernews:before {\n  content: \"\\F22B\"; }\n\n.ion-social-designernews-outline:before {\n  content: \"\\F22A\"; }\n\n.ion-social-dribbble:before {\n  content: \"\\F22D\"; }\n\n.ion-social-dribbble-outline:before {\n  content: \"\\F22C\"; }\n\n.ion-social-dropbox:before {\n  content: \"\\F22F\"; }\n\n.ion-social-dropbox-outline:before {\n  content: \"\\F22E\"; }\n\n.ion-social-euro:before {\n  content: \"\\F4E1\"; }\n\n.ion-social-euro-outline:before {\n  content: \"\\F4E0\"; }\n\n.ion-social-facebook:before {\n  content: \"\\F231\"; }\n\n.ion-social-facebook-outline:before {\n  content: \"\\F230\"; }\n\n.ion-social-foursquare:before {\n  content: \"\\F34D\"; }\n\n.ion-social-foursquare-outline:before {\n  content: \"\\F34C\"; }\n\n.ion-social-freebsd-devil:before {\n  content: \"\\F2C4\"; }\n\n.ion-social-github:before {\n  content: \"\\F233\"; }\n\n.ion-social-github-outline:before {\n  content: \"\\F232\"; }\n\n.ion-social-google:before {\n  content: \"\\F34F\"; }\n\n.ion-social-google-outline:before {\n  content: \"\\F34E\"; }\n\n.ion-social-googleplus:before {\n  content: \"\\F235\"; }\n\n.ion-social-googleplus-outline:before {\n  content: \"\\F234\"; }\n\n.ion-social-hackernews:before {\n  content: \"\\F237\"; }\n\n.ion-social-hackernews-outline:before {\n  content: \"\\F236\"; }\n\n.ion-social-html5:before {\n  content: \"\\F4E3\"; }\n\n.ion-social-html5-outline:before {\n  content: \"\\F4E2\"; }\n\n.ion-social-instagram:before {\n  content: \"\\F351\"; }\n\n.ion-social-instagram-outline:before {\n  content: \"\\F350\"; }\n\n.ion-social-javascript:before {\n  content: \"\\F4E5\"; }\n\n.ion-social-javascript-outline:before {\n  content: \"\\F4E4\"; }\n\n.ion-social-linkedin:before {\n  content: \"\\F239\"; }\n\n.ion-social-linkedin-outline:before {\n  content: \"\\F238\"; }\n\n.ion-social-markdown:before {\n  content: \"\\F4E6\"; }\n\n.ion-social-nodejs:before {\n  content: \"\\F4E7\"; }\n\n.ion-social-octocat:before {\n  content: \"\\F4E8\"; }\n\n.ion-social-pinterest:before {\n  content: \"\\F2B1\"; }\n\n.ion-social-pinterest-outline:before {\n  content: \"\\F2B0\"; }\n\n.ion-social-python:before {\n  content: \"\\F4E9\"; }\n\n.ion-social-reddit:before {\n  content: \"\\F23B\"; }\n\n.ion-social-reddit-outline:before {\n  content: \"\\F23A\"; }\n\n.ion-social-rss:before {\n  content: \"\\F23D\"; }\n\n.ion-social-rss-outline:before {\n  content: \"\\F23C\"; }\n\n.ion-social-sass:before {\n  content: \"\\F4EA\"; }\n\n.ion-social-skype:before {\n  content: \"\\F23F\"; }\n\n.ion-social-skype-outline:before {\n  content: \"\\F23E\"; }\n\n.ion-social-snapchat:before {\n  content: \"\\F4EC\"; }\n\n.ion-social-snapchat-outline:before {\n  content: \"\\F4EB\"; }\n\n.ion-social-tumblr:before {\n  content: \"\\F241\"; }\n\n.ion-social-tumblr-outline:before {\n  content: \"\\F240\"; }\n\n.ion-social-tux:before {\n  content: \"\\F2C5\"; }\n\n.ion-social-twitch:before {\n  content: \"\\F4EE\"; }\n\n.ion-social-twitch-outline:before {\n  content: \"\\F4ED\"; }\n\n.ion-social-twitter:before {\n  content: \"\\F243\"; }\n\n.ion-social-twitter-outline:before {\n  content: \"\\F242\"; }\n\n.ion-social-usd:before {\n  content: \"\\F353\"; }\n\n.ion-social-usd-outline:before {\n  content: \"\\F352\"; }\n\n.ion-social-vimeo:before {\n  content: \"\\F245\"; }\n\n.ion-social-vimeo-outline:before {\n  content: \"\\F244\"; }\n\n.ion-social-whatsapp:before {\n  content: \"\\F4F0\"; }\n\n.ion-social-whatsapp-outline:before {\n  content: \"\\F4EF\"; }\n\n.ion-social-windows:before {\n  content: \"\\F247\"; }\n\n.ion-social-windows-outline:before {\n  content: \"\\F246\"; }\n\n.ion-social-wordpress:before {\n  content: \"\\F249\"; }\n\n.ion-social-wordpress-outline:before {\n  content: \"\\F248\"; }\n\n.ion-social-yahoo:before {\n  content: \"\\F24B\"; }\n\n.ion-social-yahoo-outline:before {\n  content: \"\\F24A\"; }\n\n.ion-social-yen:before {\n  content: \"\\F4F2\"; }\n\n.ion-social-yen-outline:before {\n  content: \"\\F4F1\"; }\n\n.ion-social-youtube:before {\n  content: \"\\F24D\"; }\n\n.ion-social-youtube-outline:before {\n  content: \"\\F24C\"; }\n\n.ion-soup-can:before {\n  content: \"\\F4F4\"; }\n\n.ion-soup-can-outline:before {\n  content: \"\\F4F3\"; }\n\n.ion-speakerphone:before {\n  content: \"\\F2B2\"; }\n\n.ion-speedometer:before {\n  content: \"\\F2B3\"; }\n\n.ion-spoon:before {\n  content: \"\\F2B4\"; }\n\n.ion-star:before {\n  content: \"\\F24E\"; }\n\n.ion-stats-bars:before {\n  content: \"\\F2B5\"; }\n\n.ion-steam:before {\n  content: \"\\F30B\"; }\n\n.ion-stop:before {\n  content: \"\\F24F\"; }\n\n.ion-thermometer:before {\n  content: \"\\F2B6\"; }\n\n.ion-thumbsdown:before {\n  content: \"\\F250\"; }\n\n.ion-thumbsup:before {\n  content: \"\\F251\"; }\n\n.ion-toggle:before {\n  content: \"\\F355\"; }\n\n.ion-toggle-filled:before {\n  content: \"\\F354\"; }\n\n.ion-transgender:before {\n  content: \"\\F4F5\"; }\n\n.ion-trash-a:before {\n  content: \"\\F252\"; }\n\n.ion-trash-b:before {\n  content: \"\\F253\"; }\n\n.ion-trophy:before {\n  content: \"\\F356\"; }\n\n.ion-tshirt:before {\n  content: \"\\F4F7\"; }\n\n.ion-tshirt-outline:before {\n  content: \"\\F4F6\"; }\n\n.ion-umbrella:before {\n  content: \"\\F2B7\"; }\n\n.ion-university:before {\n  content: \"\\F357\"; }\n\n.ion-unlocked:before {\n  content: \"\\F254\"; }\n\n.ion-upload:before {\n  content: \"\\F255\"; }\n\n.ion-usb:before {\n  content: \"\\F2B8\"; }\n\n.ion-videocamera:before {\n  content: \"\\F256\"; }\n\n.ion-volume-high:before {\n  content: \"\\F257\"; }\n\n.ion-volume-low:before {\n  content: \"\\F258\"; }\n\n.ion-volume-medium:before {\n  content: \"\\F259\"; }\n\n.ion-volume-mute:before {\n  content: \"\\F25A\"; }\n\n.ion-wand:before {\n  content: \"\\F358\"; }\n\n.ion-waterdrop:before {\n  content: \"\\F25B\"; }\n\n.ion-wifi:before {\n  content: \"\\F25C\"; }\n\n.ion-wineglass:before {\n  content: \"\\F2B9\"; }\n\n.ion-woman:before {\n  content: \"\\F25D\"; }\n\n.ion-wrench:before {\n  content: \"\\F2BA\"; }\n\n.ion-xbox:before {\n  content: \"\\F30C\"; }\n\n/**\n * Resets\n * --------------------------------------------------\n * Adapted from normalize.css and some reset.css. We don't care even one\n * bit about old IE, so we don't need any hacks for that in here.\n *\n * There are probably other things we could remove here, as well.\n *\n * normalize.css v2.1.2 | MIT License | git.io/normalize\n\n * Eric Meyer's Reset CSS v2.0 (http://meyerweb.com/eric/tools/css/reset/)\n * http://cssreset.com\n */\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, i, u, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed, fieldset,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  vertical-align: baseline;\n  font: inherit;\n  font-size: 100%; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\n/**\n * Prevent modern browsers from displaying `audio` without controls.\n * Remove excess height in iOS 5 devices.\n */\naudio:not([controls]) {\n  display: none;\n  height: 0; }\n\n/**\n * Hide the `template` element in IE, Safari, and Firefox < 22.\n */\n[hidden],\ntemplate {\n  display: none; }\n\nscript {\n  display: none !important; }\n\n/* ==========================================================================\n   Base\n   ========================================================================== */\n/**\n * 1. Set default font family to sans-serif.\n * 2. Prevent iOS text size adjust after orientation change, without disabling\n *  user zoom.\n */\nhtml {\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  font-family: sans-serif;\n  /* 1 */\n  -webkit-text-size-adjust: 100%;\n  -ms-text-size-adjust: 100%;\n  /* 2 */\n  -webkit-text-size-adjust: 100%;\n  /* 2 */ }\n\n/**\n * Remove default margin.\n */\nbody {\n  margin: 0;\n  line-height: 1; }\n\n/**\n * Remove default outlines.\n */\na,\nbutton,\n:focus,\na:focus,\nbutton:focus,\na:active,\na:hover {\n  outline: 0; }\n\n/* *\n * Remove tap highlight color\n */\na {\n  -webkit-user-drag: none;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-tap-highlight-color: transparent; }\n  a[href]:hover {\n    cursor: pointer; }\n\n/* ==========================================================================\n   Typography\n   ========================================================================== */\n/**\n * Address style set to `bolder` in Firefox 4+, Safari 5, and Chrome.\n */\nb,\nstrong {\n  font-weight: bold; }\n\n/**\n * Address styling not present in Safari 5 and Chrome.\n */\ndfn {\n  font-style: italic; }\n\n/**\n * Address differences between Firefox and other browsers.\n */\nhr {\n  -moz-box-sizing: content-box;\n  box-sizing: content-box;\n  height: 0; }\n\n/**\n * Correct font family set oddly in Safari 5 and Chrome.\n */\ncode,\nkbd,\npre,\nsamp {\n  font-size: 1em;\n  font-family: monospace, serif; }\n\n/**\n * Improve readability of pre-formatted text in all browsers.\n */\npre {\n  white-space: pre-wrap; }\n\n/**\n * Set consistent quote types.\n */\nq {\n  quotes: \"\\201C\" \"\\201D\" \"\\2018\" \"\\2019\"; }\n\n/**\n * Address inconsistent and variable font size in all browsers.\n */\nsmall {\n  font-size: 80%; }\n\n/**\n * Prevent `sub` and `sup` affecting `line-height` in all browsers.\n */\nsub,\nsup {\n  position: relative;\n  vertical-align: baseline;\n  font-size: 75%;\n  line-height: 0; }\n\nsup {\n  top: -0.5em; }\n\nsub {\n  bottom: -0.25em; }\n\n/**\n * Define consistent border, margin, and padding.\n */\nfieldset {\n  margin: 0 2px;\n  padding: 0.35em 0.625em 0.75em;\n  border: 1px solid #c0c0c0; }\n\n/**\n * 1. Correct `color` not being inherited in IE 8/9.\n * 2. Remove padding so people aren't caught out if they zero out fieldsets.\n */\nlegend {\n  padding: 0;\n  /* 2 */\n  border: 0;\n  /* 1 */ }\n\n/**\n * 1. Correct font family not being inherited in all browsers.\n * 2. Correct font size not being inherited in all browsers.\n * 3. Address margins set differently in Firefox 4+, Safari 5, and Chrome.\n * 4. Remove any default :focus styles\n * 5. Make sure webkit font smoothing is being inherited\n * 6. Remove default gradient in Android Firefox / FirefoxOS\n */\nbutton,\ninput,\nselect,\ntextarea {\n  margin: 0;\n  /* 3 */\n  font-size: 100%;\n  /* 2 */\n  font-family: inherit;\n  /* 1 */\n  outline-offset: 0;\n  /* 4 */\n  outline-style: none;\n  /* 4 */\n  outline-width: 0;\n  /* 4 */\n  -webkit-font-smoothing: inherit;\n  /* 5 */\n  background-image: none;\n  /* 6 */ }\n\n/**\n * Address Firefox 4+ setting `line-height` on `input` using `importnt` in\n * the UA stylesheet.\n */\nbutton,\ninput {\n  line-height: normal; }\n\n/**\n * Address inconsistent `text-transform` inheritance for `button` and `select`.\n * All other form control elements do not inherit `text-transform` values.\n * Correct `button` style inheritance in Chrome, Safari 5+, and IE 8+.\n * Correct `select` style inheritance in Firefox 4+ and Opera.\n */\nbutton,\nselect {\n  text-transform: none; }\n\n/**\n * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`\n *  and `video` controls.\n * 2. Correct inability to style clickable `input` types in iOS.\n * 3. Improve usability and consistency of cursor style between image-type\n *  `input` and others.\n */\nbutton,\nhtml input[type=\"button\"], input[type=\"reset\"],\ninput[type=\"submit\"] {\n  cursor: pointer;\n  /* 3 */\n  -webkit-appearance: button;\n  /* 2 */ }\n\n/**\n * Re-set default cursor for disabled elements.\n */\nbutton[disabled],\nhtml input[disabled] {\n  cursor: default; }\n\n/**\n * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.\n * 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome\n *  (include `-moz` to future-proof).\n */\ninput[type=\"search\"] {\n  -webkit-box-sizing: content-box;\n  /* 2 */\n  -moz-box-sizing: content-box;\n  box-sizing: content-box;\n  -webkit-appearance: textfield;\n  /* 1 */ }\n\n/**\n * Remove inner padding and search cancel button in Safari 5 and Chrome\n * on OS X.\n */\ninput[type=\"search\"]::-webkit-search-cancel-button,\ninput[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none; }\n\n/**\n * Remove inner padding and border in Firefox 4+.\n */\nbutton::-moz-focus-inner,\ninput::-moz-focus-inner {\n  padding: 0;\n  border: 0; }\n\n/**\n * 1. Remove default vertical scrollbar in IE 8/9.\n * 2. Improve readability and alignment in all browsers.\n */\ntextarea {\n  overflow: auto;\n  /* 1 */\n  vertical-align: top;\n  /* 2 */ }\n\nimg {\n  -webkit-user-drag: none; }\n\n/* ==========================================================================\n   Tables\n   ========================================================================== */\n/**\n * Remove most spacing between table cells.\n */\ntable {\n  border-spacing: 0;\n  border-collapse: collapse; }\n\n/**\n * Scaffolding\n * --------------------------------------------------\n */\n*,\n*:before,\n*:after {\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box; }\n\nhtml {\n  overflow: hidden;\n  -ms-touch-action: pan-y;\n  touch-action: pan-y; }\n\nbody,\n.ionic-body {\n  -webkit-touch-callout: none;\n  -webkit-font-smoothing: antialiased;\n  font-smoothing: antialiased;\n  -webkit-text-size-adjust: none;\n  -moz-text-size-adjust: none;\n  text-size-adjust: none;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  color: #000;\n  word-wrap: break-word;\n  font-size: 14px;\n  font-family: \"Helvetica Neue\", \"Roboto\", \"Segoe UI\", sans-serif;\n  line-height: 20px;\n  text-rendering: optimizeLegibility;\n  -webkit-backface-visibility: hidden;\n  -webkit-user-drag: none;\n  -ms-content-zooming: none; }\n\nbody.grade-b,\nbody.grade-c {\n  text-rendering: auto; }\n\n.content {\n  position: relative; }\n\n.scroll-content {\n  position: absolute;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  overflow: hidden;\n  margin-top: -1px;\n  padding-top: 1px;\n  margin-bottom: -1px;\n  width: auto;\n  height: auto; }\n\n.menu .scroll-content.scroll-content-false {\n  z-index: 11; }\n\n.scroll-view {\n  position: relative;\n  display: block;\n  overflow: hidden;\n  margin-top: -1px; }\n\n/**\n * Scroll is the scroll view component available for complex and custom\n * scroll view functionality.\n */\n.scroll {\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  -webkit-touch-callout: none;\n  -webkit-text-size-adjust: none;\n  -moz-text-size-adjust: none;\n  text-size-adjust: none;\n  -webkit-transform-origin: left top;\n  transform-origin: left top; }\n\n/**\n * Set ms-viewport to prevent MS \"page squish\" and allow fluid scrolling\n * https://msdn.microsoft.com/en-us/library/ie/hh869615(v=vs.85).aspx\n */\n@-ms-viewport {\n  width: device-width; }\n\n.scroll-bar {\n  position: absolute;\n  z-index: 9999; }\n\n.ng-animate .scroll-bar {\n  visibility: hidden; }\n\n.scroll-bar-h {\n  right: 2px;\n  bottom: 3px;\n  left: 2px;\n  height: 3px; }\n  .scroll-bar-h .scroll-bar-indicator {\n    height: 100%; }\n\n.scroll-bar-v {\n  top: 2px;\n  right: 3px;\n  bottom: 2px;\n  width: 3px; }\n  .scroll-bar-v .scroll-bar-indicator {\n    width: 100%; }\n\n.scroll-bar-indicator {\n  position: absolute;\n  border-radius: 4px;\n  background: rgba(0, 0, 0, 0.3);\n  opacity: 1;\n  -webkit-transition: opacity 0.3s linear;\n  transition: opacity 0.3s linear; }\n  .scroll-bar-indicator.scroll-bar-fade-out {\n    opacity: 0; }\n\n.platform-android .scroll-bar-indicator {\n  border-radius: 0; }\n\n.grade-b .scroll-bar-indicator,\n.grade-c .scroll-bar-indicator {\n  background: #aaa; }\n  .grade-b .scroll-bar-indicator.scroll-bar-fade-out,\n  .grade-c .scroll-bar-indicator.scroll-bar-fade-out {\n    -webkit-transition: none;\n    transition: none; }\n\nion-infinite-scroll {\n  height: 60px;\n  width: 100%;\n  display: block;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-direction: normal;\n  -webkit-box-orient: horizontal;\n  -webkit-flex-direction: row;\n  -moz-flex-direction: row;\n  -ms-flex-direction: row;\n  flex-direction: row;\n  -webkit-box-pack: center;\n  -ms-flex-pack: center;\n  -webkit-justify-content: center;\n  -moz-justify-content: center;\n  justify-content: center;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center; }\n  ion-infinite-scroll .icon {\n    color: #666666;\n    font-size: 30px;\n    color: #666666; }\n  ion-infinite-scroll:not(.active) .spinner,\n  ion-infinite-scroll:not(.active) .icon:before {\n    display: none; }\n\n.overflow-scroll {\n  overflow-x: hidden;\n  overflow-y: scroll;\n  -webkit-overflow-scrolling: touch;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  position: absolute; }\n  .overflow-scroll .scroll {\n    position: static;\n    height: 100%;\n    -webkit-transform: translate3d(0, 0, 0); }\n\n/* If you change these, change platform.scss as well */\n.has-header {\n  top: 44px; }\n\n.no-header {\n  top: 0; }\n\n.has-subheader {\n  top: 88px; }\n\n.has-tabs-top {\n  top: 93px; }\n\n.has-header.has-subheader.has-tabs-top {\n  top: 137px; }\n\n.has-footer {\n  bottom: 44px; }\n\n.has-subfooter {\n  bottom: 88px; }\n\n.has-tabs,\n.bar-footer.has-tabs {\n  bottom: 49px; }\n  .has-tabs.pane,\n  .bar-footer.has-tabs.pane {\n    bottom: 49px;\n    height: auto; }\n\n.has-footer.has-tabs {\n  bottom: 93px; }\n\n.pane {\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0);\n  -webkit-transition-duration: 0;\n  transition-duration: 0;\n  z-index: 1; }\n\n.view {\n  z-index: 1; }\n\n.pane,\n.view {\n  position: absolute;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: #fff;\n  overflow: hidden; }\n\n.view-container {\n  position: absolute;\n  display: block;\n  width: 100%;\n  height: 100%; }\n\n/**\n * Typography\n * --------------------------------------------------\n */\np {\n  margin: 0 0 10px; }\n\nsmall {\n  font-size: 85%; }\n\ncite {\n  font-style: normal; }\n\n.text-left {\n  text-align: left; }\n\n.text-right {\n  text-align: right; }\n\n.text-center {\n  text-align: center; }\n\nh1, h2, h3, h4, h5, h6,\n.h1, .h2, .h3, .h4, .h5, .h6 {\n  color: #000;\n  font-weight: 500;\n  font-family: \"Helvetica Neue\", \"Roboto\", \"Segoe UI\", sans-serif;\n  line-height: 1.2; }\n  h1 small, h2 small, h3 small, h4 small, h5 small, h6 small,\n  .h1 small, .h2 small, .h3 small, .h4 small, .h5 small, .h6 small {\n    font-weight: normal;\n    line-height: 1; }\n\nh1, .h1,\nh2, .h2,\nh3, .h3 {\n  margin-top: 20px;\n  margin-bottom: 10px; }\n  h1:first-child, .h1:first-child,\n  h2:first-child, .h2:first-child,\n  h3:first-child, .h3:first-child {\n    margin-top: 0; }\n  h1 + h1, h1 + .h1,\n  h1 + h2, h1 + .h2,\n  h1 + h3, h1 + .h3, .h1 + h1,\n  .h1 + .h1,\n  .h1 + h2,\n  .h1 + .h2,\n  .h1 + h3,\n  .h1 + .h3,\n  h2 + h1, h2 + .h1,\n  h2 + h2, h2 + .h2,\n  h2 + h3, h2 + .h3, .h2 + h1,\n  .h2 + .h1,\n  .h2 + h2,\n  .h2 + .h2,\n  .h2 + h3,\n  .h2 + .h3,\n  h3 + h1, h3 + .h1,\n  h3 + h2, h3 + .h2,\n  h3 + h3, h3 + .h3, .h3 + h1, .h3 + .h1,\n  .h3 + h2, .h3 + .h2,\n  .h3 + h3, .h3 + .h3 {\n    margin-top: 10px; }\n\nh4, .h4,\nh5, .h5,\nh6, .h6 {\n  margin-top: 10px;\n  margin-bottom: 10px; }\n\nh1, .h1 {\n  font-size: 36px; }\n\nh2, .h2 {\n  font-size: 30px; }\n\nh3, .h3 {\n  font-size: 24px; }\n\nh4, .h4 {\n  font-size: 18px; }\n\nh5, .h5 {\n  font-size: 14px; }\n\nh6, .h6 {\n  font-size: 12px; }\n\nh1 small, .h1 small {\n  font-size: 24px; }\n\nh2 small, .h2 small {\n  font-size: 18px; }\n\nh3 small, .h3 small,\nh4 small, .h4 small {\n  font-size: 14px; }\n\ndl {\n  margin-bottom: 20px; }\n\ndt,\ndd {\n  line-height: 1.42857; }\n\ndt {\n  font-weight: bold; }\n\nblockquote {\n  margin: 0 0 20px;\n  padding: 10px 20px;\n  border-left: 5px solid gray; }\n  blockquote p {\n    font-weight: 300;\n    font-size: 17.5px;\n    line-height: 1.25; }\n  blockquote p:last-child {\n    margin-bottom: 0; }\n  blockquote small {\n    display: block;\n    line-height: 1.42857; }\n    blockquote small:before {\n      content: '\\2014   \\A0'; }\n\nq:before,\nq:after,\nblockquote:before,\nblockquote:after {\n  content: \"\"; }\n\naddress {\n  display: block;\n  margin-bottom: 20px;\n  font-style: normal;\n  line-height: 1.42857; }\n\na.subdued {\n  padding-right: 10px;\n  color: #888;\n  text-decoration: none; }\n  a.subdued:hover {\n    text-decoration: none; }\n  a.subdued:last-child {\n    padding-right: 0; }\n\n/**\n * Action Sheets\n * --------------------------------------------------\n */\n.action-sheet-backdrop {\n  -webkit-transition: background-color 150ms ease-in-out;\n  transition: background-color 150ms ease-in-out;\n  position: fixed;\n  top: 0;\n  left: 0;\n  z-index: 11;\n  width: 100%;\n  height: 100%;\n  background-color: transparent; }\n  .action-sheet-backdrop.active {\n    background-color: rgba(0, 0, 0, 0.4); }\n\n.action-sheet-wrapper {\n  -webkit-transform: translate3d(0, 100%, 0);\n  transform: translate3d(0, 100%, 0);\n  -webkit-transition: all cubic-bezier(0.36, 0.66, 0.04, 1) 500ms;\n  transition: all cubic-bezier(0.36, 0.66, 0.04, 1) 500ms;\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  width: 100%;\n  max-width: 500px;\n  margin: auto; }\n\n.action-sheet-up {\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0); }\n\n.action-sheet {\n  margin-left: 8px;\n  margin-right: 8px;\n  width: auto;\n  z-index: 11;\n  overflow: hidden; }\n  .action-sheet .button {\n    display: block;\n    padding: 1px;\n    width: 100%;\n    border-radius: 0;\n    border-color: #d1d3d6;\n    background-color: transparent;\n    color: #007aff;\n    font-size: 21px; }\n    .action-sheet .button:hover {\n      color: #007aff; }\n    .action-sheet .button.destructive {\n      color: #ff3b30; }\n      .action-sheet .button.destructive:hover {\n        color: #ff3b30; }\n  .action-sheet .button.active, .action-sheet .button.activated {\n    box-shadow: none;\n    border-color: #d1d3d6;\n    color: #007aff;\n    background: #e4e5e7; }\n\n.action-sheet-has-icons .icon {\n  position: absolute;\n  left: 16px; }\n\n.action-sheet-title {\n  padding: 16px;\n  color: #8f8f8f;\n  text-align: center;\n  font-size: 13px; }\n\n.action-sheet-group {\n  margin-bottom: 8px;\n  border-radius: 4px;\n  background-color: #fff;\n  overflow: hidden; }\n  .action-sheet-group .button {\n    border-width: 1px 0px 0px 0px; }\n  .action-sheet-group .button:first-child:last-child {\n    border-width: 0; }\n\n.action-sheet-options {\n  background: #f1f2f3; }\n\n.action-sheet-cancel .button {\n  font-weight: 500; }\n\n.action-sheet-open {\n  pointer-events: none; }\n  .action-sheet-open.modal-open .modal {\n    pointer-events: none; }\n  .action-sheet-open .action-sheet-backdrop {\n    pointer-events: auto; }\n\n.platform-android .action-sheet-backdrop.active {\n  background-color: rgba(0, 0, 0, 0.2); }\n\n.platform-android .action-sheet {\n  margin: 0; }\n  .platform-android .action-sheet .action-sheet-title,\n  .platform-android .action-sheet .button {\n    text-align: left;\n    border-color: transparent;\n    font-size: 16px;\n    color: inherit; }\n  .platform-android .action-sheet .action-sheet-title {\n    font-size: 14px;\n    padding: 16px;\n    color: #666; }\n  .platform-android .action-sheet .button.active,\n  .platform-android .action-sheet .button.activated {\n    background: #e8e8e8; }\n\n.platform-android .action-sheet-group {\n  margin: 0;\n  border-radius: 0;\n  background-color: #fafafa; }\n\n.platform-android .action-sheet-cancel {\n  display: none; }\n\n.platform-android .action-sheet-has-icons .button {\n  padding-left: 56px; }\n\n.backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  z-index: 11;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.4);\n  visibility: hidden;\n  opacity: 0;\n  -webkit-transition: 0.1s opacity linear;\n  transition: 0.1s opacity linear; }\n  .backdrop.visible {\n    visibility: visible; }\n  .backdrop.active {\n    opacity: 1; }\n\n/**\n * Bar (Headers and Footers)\n * --------------------------------------------------\n */\n.bar {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0);\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  position: absolute;\n  right: 0;\n  left: 0;\n  z-index: 9;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  padding: 5px;\n  width: 100%;\n  height: 44px;\n  border-width: 0;\n  border-style: solid;\n  border-top: 1px solid transparent;\n  border-bottom: 1px solid #ddd;\n  background-color: white;\n  /* border-width: 1px will actually create 2 device pixels on retina */\n  /* this nifty trick sets an actual 1px border on hi-res displays */\n  background-size: 0; }\n  @media (min--moz-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi), (min-resolution: 1.5dppx) {\n    .bar {\n      border: none;\n      background-image: linear-gradient(0deg, #ddd, #ddd 50%, transparent 50%);\n      background-position: bottom;\n      background-size: 100% 1px;\n      background-repeat: no-repeat; } }\n  .bar.bar-clear {\n    border: none;\n    background: none;\n    color: #fff; }\n    .bar.bar-clear .button {\n      color: #fff; }\n    .bar.bar-clear .title {\n      color: #fff; }\n  .bar.item-input-inset .item-input-wrapper {\n    margin-top: -1px; }\n    .bar.item-input-inset .item-input-wrapper input {\n      padding-left: 8px;\n      width: 94%;\n      height: 28px;\n      background: transparent; }\n  .bar.bar-light {\n    border-color: #ddd;\n    background-color: white;\n    background-image: linear-gradient(0deg, #ddd, #ddd 50%, transparent 50%);\n    color: #444; }\n    .bar.bar-light .title {\n      color: #444; }\n    .bar.bar-light.bar-footer {\n      background-image: linear-gradient(180deg, #ddd, #ddd 50%, transparent 50%); }\n  .bar.bar-stable {\n    border-color: #b2b2b2;\n    background-color: #f8f8f8;\n    background-image: linear-gradient(0deg, #b2b2b2, #b2b2b2 50%, transparent 50%);\n    color: #444; }\n    .bar.bar-stable .title {\n      color: #444; }\n    .bar.bar-stable.bar-footer {\n      background-image: linear-gradient(180deg, #b2b2b2, #b2b2b2 50%, transparent 50%); }\n  .bar.bar-positive {\n    border-color: #0c60ee;\n    background-color: #387ef5;\n    background-image: linear-gradient(0deg, #0c60ee, #0c60ee 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-positive .title {\n      color: #fff; }\n    .bar.bar-positive.bar-footer {\n      background-image: linear-gradient(180deg, #0c60ee, #0c60ee 50%, transparent 50%); }\n  .bar.bar-calm {\n    border-color: #0a9dc7;\n    background-color: #11c1f3;\n    background-image: linear-gradient(0deg, #0a9dc7, #0a9dc7 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-calm .title {\n      color: #fff; }\n    .bar.bar-calm.bar-footer {\n      background-image: linear-gradient(180deg, #0a9dc7, #0a9dc7 50%, transparent 50%); }\n  .bar.bar-assertive {\n    border-color: #e42112;\n    background-color: #ef473a;\n    background-image: linear-gradient(0deg, #e42112, #e42112 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-assertive .title {\n      color: #fff; }\n    .bar.bar-assertive.bar-footer {\n      background-image: linear-gradient(180deg, #e42112, #e42112 50%, transparent 50%); }\n  .bar.bar-balanced {\n    border-color: #28a54c;\n    background-color: #33cd5f;\n    background-image: linear-gradient(0deg, #28a54c, #28a54c 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-balanced .title {\n      color: #fff; }\n    .bar.bar-balanced.bar-footer {\n      background-image: linear-gradient(180deg, #28a54c, #0c60ee 50%, transparent 50%); }\n  .bar.bar-energized {\n    border-color: #e6b500;\n    background-color: #ffc900;\n    background-image: linear-gradient(0deg, #e6b500, #e6b500 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-energized .title {\n      color: #fff; }\n    .bar.bar-energized.bar-footer {\n      background-image: linear-gradient(180deg, #e6b500, #e6b500 50%, transparent 50%); }\n  .bar.bar-royal {\n    border-color: #6b46e5;\n    background-color: #886aea;\n    background-image: linear-gradient(0deg, #6b46e5, #6b46e5 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-royal .title {\n      color: #fff; }\n    .bar.bar-royal.bar-footer {\n      background-image: linear-gradient(180deg, #6b46e5, #6b46e5 50%, transparent 50%); }\n  .bar.bar-dark {\n    border-color: #111;\n    background-color: #444444;\n    background-image: linear-gradient(0deg, #111, #111 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-dark .title {\n      color: #fff; }\n    .bar.bar-dark.bar-footer {\n      background-image: linear-gradient(180deg, #111, #111 50%, transparent 50%); }\n  .bar .title {\n    position: absolute;\n    top: 0;\n    right: 0;\n    left: 0;\n    z-index: 0;\n    overflow: hidden;\n    margin: 0 10px;\n    min-width: 30px;\n    height: 43px;\n    text-align: center;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    font-size: 17px;\n    font-weight: 500;\n    line-height: 44px; }\n    .bar .title.title-left {\n      text-align: left; }\n    .bar .title.title-right {\n      text-align: right; }\n  .bar .title a {\n    color: inherit; }\n  .bar .button {\n    z-index: 1;\n    padding: 0 8px;\n    min-width: initial;\n    min-height: 31px;\n    font-weight: 400;\n    font-size: 13px;\n    line-height: 32px; }\n    .bar .button.button-icon:before,\n    .bar .button .icon:before,\n    .bar .button.icon:before,\n    .bar .button.icon-left:before,\n    .bar .button.icon-right:before {\n      padding-right: 2px;\n      padding-left: 2px;\n      font-size: 20px;\n      line-height: 32px; }\n    .bar .button.button-icon {\n      font-size: 17px; }\n      .bar .button.button-icon .icon:before,\n      .bar .button.button-icon:before,\n      .bar .button.button-icon.icon-left:before,\n      .bar .button.button-icon.icon-right:before {\n        vertical-align: top;\n        font-size: 32px;\n        line-height: 32px; }\n    .bar .button.button-clear {\n      padding-right: 2px;\n      padding-left: 2px;\n      font-weight: 300;\n      font-size: 17px; }\n      .bar .button.button-clear .icon:before,\n      .bar .button.button-clear.icon:before,\n      .bar .button.button-clear.icon-left:before,\n      .bar .button.button-clear.icon-right:before {\n        font-size: 32px;\n        line-height: 32px; }\n    .bar .button.back-button {\n      display: block;\n      margin-right: 5px;\n      padding: 0;\n      white-space: nowrap;\n      font-weight: 400; }\n    .bar .button.back-button.active,\n    .bar .button.back-button.activated {\n      opacity: 0.2; }\n  .bar .button-bar > .button,\n  .bar .buttons > .button {\n    min-height: 31px;\n    line-height: 32px; }\n  .bar .button-bar + .button,\n  .bar .button + .button-bar {\n    margin-left: 5px; }\n  .bar .buttons,\n  .bar .buttons.primary-buttons,\n  .bar .buttons.secondary-buttons {\n    display: inherit; }\n  .bar .buttons span {\n    display: inline-block; }\n  .bar .buttons-left span {\n    margin-right: 5px;\n    display: inherit; }\n  .bar .buttons-right span {\n    margin-left: 5px;\n    display: inherit; }\n  .bar .title + .button:last-child,\n  .bar > .button + .button:last-child,\n  .bar > .button.pull-right,\n  .bar .buttons.pull-right,\n  .bar .title + .buttons {\n    position: absolute;\n    top: 5px;\n    right: 5px;\n    bottom: 5px; }\n\n.platform-android .nav-bar-has-subheader .bar {\n  background-image: none; }\n\n.platform-android .bar .back-button .icon:before {\n  font-size: 24px; }\n\n.platform-android .bar .title {\n  font-size: 19px;\n  line-height: 44px; }\n\n.bar-light .button {\n  border-color: #ddd;\n  background-color: white;\n  color: #444; }\n  .bar-light .button:hover {\n    color: #444;\n    text-decoration: none; }\n  .bar-light .button.active,\n  .bar-light .button.activated {\n    border-color: #ccc;\n    background-color: #fafafa;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-light .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #444;\n    font-size: 17px; }\n  .bar-light .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-stable .button {\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  color: #444; }\n  .bar-stable .button:hover {\n    color: #444;\n    text-decoration: none; }\n  .bar-stable .button.active,\n  .bar-stable .button.activated {\n    border-color: #a2a2a2;\n    background-color: #e5e5e5;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-stable .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #444;\n    font-size: 17px; }\n  .bar-stable .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-positive .button {\n  border-color: #0c60ee;\n  background-color: #387ef5;\n  color: #fff; }\n  .bar-positive .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-positive .button.active,\n  .bar-positive .button.activated {\n    border-color: #0c60ee;\n    background-color: #0c60ee;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-positive .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-positive .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-calm .button {\n  border-color: #0a9dc7;\n  background-color: #11c1f3;\n  color: #fff; }\n  .bar-calm .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-calm .button.active,\n  .bar-calm .button.activated {\n    border-color: #0a9dc7;\n    background-color: #0a9dc7;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-calm .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-calm .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-assertive .button {\n  border-color: #e42112;\n  background-color: #ef473a;\n  color: #fff; }\n  .bar-assertive .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-assertive .button.active,\n  .bar-assertive .button.activated {\n    border-color: #e42112;\n    background-color: #e42112;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-assertive .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-assertive .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-balanced .button {\n  border-color: #28a54c;\n  background-color: #33cd5f;\n  color: #fff; }\n  .bar-balanced .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-balanced .button.active,\n  .bar-balanced .button.activated {\n    border-color: #28a54c;\n    background-color: #28a54c;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-balanced .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-balanced .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-energized .button {\n  border-color: #e6b500;\n  background-color: #ffc900;\n  color: #fff; }\n  .bar-energized .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-energized .button.active,\n  .bar-energized .button.activated {\n    border-color: #e6b500;\n    background-color: #e6b500;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-energized .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-energized .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-royal .button {\n  border-color: #6b46e5;\n  background-color: #886aea;\n  color: #fff; }\n  .bar-royal .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-royal .button.active,\n  .bar-royal .button.activated {\n    border-color: #6b46e5;\n    background-color: #6b46e5;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-royal .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-royal .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-dark .button {\n  border-color: #111;\n  background-color: #444444;\n  color: #fff; }\n  .bar-dark .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-dark .button.active,\n  .bar-dark .button.activated {\n    border-color: #000;\n    background-color: #262626;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-dark .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-dark .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-header {\n  top: 0;\n  border-top-width: 0;\n  border-bottom-width: 1px; }\n  .bar-header.has-tabs-top {\n    border-bottom-width: 0px;\n    background-image: none; }\n\n.tabs-top .bar-header {\n  border-bottom-width: 0px;\n  background-image: none; }\n\n.bar-footer {\n  bottom: 0;\n  border-top-width: 1px;\n  border-bottom-width: 0;\n  background-position: top;\n  height: 44px; }\n  .bar-footer.item-input-inset {\n    position: absolute; }\n\n.bar-tabs {\n  padding: 0; }\n\n.bar-subheader {\n  top: 44px;\n  display: block;\n  height: 44px; }\n\n.bar-subfooter {\n  bottom: 44px;\n  display: block;\n  height: 44px; }\n\n.nav-bar-block {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: 9; }\n\n.bar .back-button.hide,\n.bar .buttons .hide {\n  display: none; }\n\n.nav-bar-tabs-top .bar {\n  background-image: none; }\n\n/**\n * Tabs\n * --------------------------------------------------\n * A navigation bar with any number of tab items supported.\n */\n.tabs {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-direction: normal;\n  -webkit-box-orient: horizontal;\n  -webkit-flex-direction: horizontal;\n  -moz-flex-direction: horizontal;\n  -ms-flex-direction: horizontal;\n  flex-direction: horizontal;\n  -webkit-box-pack: center;\n  -ms-flex-pack: center;\n  -webkit-justify-content: center;\n  -moz-justify-content: center;\n  justify-content: center;\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0);\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  background-image: linear-gradient(0deg, #b2b2b2, #b2b2b2 50%, transparent 50%);\n  color: #444;\n  position: absolute;\n  bottom: 0;\n  z-index: 5;\n  width: 100%;\n  height: 49px;\n  border-style: solid;\n  border-top-width: 1px;\n  background-size: 0;\n  line-height: 49px; }\n  .tabs .tab-item .badge {\n    background-color: #444;\n    color: #f8f8f8; }\n  @media (min--moz-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi), (min-resolution: 1.5dppx) {\n    .tabs {\n      padding-top: 2px;\n      border-top: none !important;\n      border-bottom: none;\n      background-position: top;\n      background-size: 100% 1px;\n      background-repeat: no-repeat; } }\n\n/* Allow parent element of tabs to define color, or just the tab itself */\n.tabs-light > .tabs,\n.tabs.tabs-light {\n  border-color: #ddd;\n  background-color: #fff;\n  background-image: linear-gradient(0deg, #ddd, #ddd 50%, transparent 50%);\n  color: #444; }\n  .tabs-light > .tabs .tab-item .badge,\n  .tabs.tabs-light .tab-item .badge {\n    background-color: #444;\n    color: #fff; }\n\n.tabs-stable > .tabs,\n.tabs.tabs-stable {\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  background-image: linear-gradient(0deg, #b2b2b2, #b2b2b2 50%, transparent 50%);\n  color: #444; }\n  .tabs-stable > .tabs .tab-item .badge,\n  .tabs.tabs-stable .tab-item .badge {\n    background-color: #444;\n    color: #f8f8f8; }\n\n.tabs-positive > .tabs,\n.tabs.tabs-positive {\n  border-color: #0c60ee;\n  background-color: #387ef5;\n  background-image: linear-gradient(0deg, #0c60ee, #0c60ee 50%, transparent 50%);\n  color: #fff; }\n  .tabs-positive > .tabs .tab-item .badge,\n  .tabs.tabs-positive .tab-item .badge {\n    background-color: #fff;\n    color: #387ef5; }\n\n.tabs-calm > .tabs,\n.tabs.tabs-calm {\n  border-color: #0a9dc7;\n  background-color: #11c1f3;\n  background-image: linear-gradient(0deg, #0a9dc7, #0a9dc7 50%, transparent 50%);\n  color: #fff; }\n  .tabs-calm > .tabs .tab-item .badge,\n  .tabs.tabs-calm .tab-item .badge {\n    background-color: #fff;\n    color: #11c1f3; }\n\n.tabs-assertive > .tabs,\n.tabs.tabs-assertive {\n  border-color: #e42112;\n  background-color: #ef473a;\n  background-image: linear-gradient(0deg, #e42112, #e42112 50%, transparent 50%);\n  color: #fff; }\n  .tabs-assertive > .tabs .tab-item .badge,\n  .tabs.tabs-assertive .tab-item .badge {\n    background-color: #fff;\n    color: #ef473a; }\n\n.tabs-balanced > .tabs,\n.tabs.tabs-balanced {\n  border-color: #28a54c;\n  background-color: #33cd5f;\n  background-image: linear-gradient(0deg, #28a54c, #28a54c 50%, transparent 50%);\n  color: #fff; }\n  .tabs-balanced > .tabs .tab-item .badge,\n  .tabs.tabs-balanced .tab-item .badge {\n    background-color: #fff;\n    color: #33cd5f; }\n\n.tabs-energized > .tabs,\n.tabs.tabs-energized {\n  border-color: #e6b500;\n  background-color: #ffc900;\n  background-image: linear-gradient(0deg, #e6b500, #e6b500 50%, transparent 50%);\n  color: #fff; }\n  .tabs-energized > .tabs .tab-item .badge,\n  .tabs.tabs-energized .tab-item .badge {\n    background-color: #fff;\n    color: #ffc900; }\n\n.tabs-royal > .tabs,\n.tabs.tabs-royal {\n  border-color: #6b46e5;\n  background-color: #886aea;\n  background-image: linear-gradient(0deg, #6b46e5, #6b46e5 50%, transparent 50%);\n  color: #fff; }\n  .tabs-royal > .tabs .tab-item .badge,\n  .tabs.tabs-royal .tab-item .badge {\n    background-color: #fff;\n    color: #886aea; }\n\n.tabs-dark > .tabs,\n.tabs.tabs-dark {\n  border-color: #111;\n  background-color: #444;\n  background-image: linear-gradient(0deg, #111, #111 50%, transparent 50%);\n  color: #fff; }\n  .tabs-dark > .tabs .tab-item .badge,\n  .tabs.tabs-dark .tab-item .badge {\n    background-color: #fff;\n    color: #444; }\n\n.tabs-striped .tabs {\n  background-color: white;\n  background-image: none;\n  border: none;\n  border-bottom: 1px solid #ddd;\n  padding-top: 2px; }\n\n.tabs-striped .tab-item.tab-item-active,\n.tabs-striped .tab-item.active,\n.tabs-striped .tab-item.activated {\n  margin-top: -2px;\n  border-style: solid;\n  border-width: 2px 0 0 0;\n  border-color: #444; }\n  .tabs-striped .tab-item.tab-item-active .badge,\n  .tabs-striped .tab-item.active .badge,\n  .tabs-striped .tab-item.activated .badge {\n    top: 2px;\n    opacity: 1; }\n\n.tabs-striped.tabs-light .tabs {\n  background-color: #fff; }\n\n.tabs-striped.tabs-light .tab-item {\n  color: rgba(68, 68, 68, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-light .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-light .tab-item.tab-item-active,\n  .tabs-striped.tabs-light .tab-item.active,\n  .tabs-striped.tabs-light .tab-item.activated {\n    margin-top: -2px;\n    color: #444;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #444; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-stable .tabs {\n  background-color: #f8f8f8; }\n\n.tabs-striped.tabs-stable .tab-item {\n  color: rgba(68, 68, 68, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-stable .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-stable .tab-item.tab-item-active,\n  .tabs-striped.tabs-stable .tab-item.active,\n  .tabs-striped.tabs-stable .tab-item.activated {\n    margin-top: -2px;\n    color: #444;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #444; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-positive .tabs {\n  background-color: #387ef5; }\n\n.tabs-striped.tabs-positive .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-positive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-positive .tab-item.tab-item-active,\n  .tabs-striped.tabs-positive .tab-item.active,\n  .tabs-striped.tabs-positive .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-calm .tabs {\n  background-color: #11c1f3; }\n\n.tabs-striped.tabs-calm .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-calm .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-calm .tab-item.tab-item-active,\n  .tabs-striped.tabs-calm .tab-item.active,\n  .tabs-striped.tabs-calm .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-assertive .tabs {\n  background-color: #ef473a; }\n\n.tabs-striped.tabs-assertive .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-assertive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-assertive .tab-item.tab-item-active,\n  .tabs-striped.tabs-assertive .tab-item.active,\n  .tabs-striped.tabs-assertive .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-balanced .tabs {\n  background-color: #33cd5f; }\n\n.tabs-striped.tabs-balanced .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-balanced .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-balanced .tab-item.tab-item-active,\n  .tabs-striped.tabs-balanced .tab-item.active,\n  .tabs-striped.tabs-balanced .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-energized .tabs {\n  background-color: #ffc900; }\n\n.tabs-striped.tabs-energized .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-energized .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-energized .tab-item.tab-item-active,\n  .tabs-striped.tabs-energized .tab-item.active,\n  .tabs-striped.tabs-energized .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-royal .tabs {\n  background-color: #886aea; }\n\n.tabs-striped.tabs-royal .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-royal .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-royal .tab-item.tab-item-active,\n  .tabs-striped.tabs-royal .tab-item.active,\n  .tabs-striped.tabs-royal .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-dark .tabs {\n  background-color: #444; }\n\n.tabs-striped.tabs-dark .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-dark .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-dark .tab-item.tab-item-active,\n  .tabs-striped.tabs-dark .tab-item.active,\n  .tabs-striped.tabs-dark .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-background-light .tabs {\n  background-color: #fff;\n  background-image: none; }\n\n.tabs-striped.tabs-background-stable .tabs {\n  background-color: #f8f8f8;\n  background-image: none; }\n\n.tabs-striped.tabs-background-positive .tabs {\n  background-color: #387ef5;\n  background-image: none; }\n\n.tabs-striped.tabs-background-calm .tabs {\n  background-color: #11c1f3;\n  background-image: none; }\n\n.tabs-striped.tabs-background-assertive .tabs {\n  background-color: #ef473a;\n  background-image: none; }\n\n.tabs-striped.tabs-background-balanced .tabs {\n  background-color: #33cd5f;\n  background-image: none; }\n\n.tabs-striped.tabs-background-energized .tabs {\n  background-color: #ffc900;\n  background-image: none; }\n\n.tabs-striped.tabs-background-royal .tabs {\n  background-color: #886aea;\n  background-image: none; }\n\n.tabs-striped.tabs-background-dark .tabs {\n  background-color: #444;\n  background-image: none; }\n\n.tabs-striped.tabs-color-light .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-light .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-light .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-light .tab-item.active,\n  .tabs-striped.tabs-color-light .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border: 0 solid #fff;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-light .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-light .tab-item.active .badge,\n    .tabs-striped.tabs-color-light .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-stable .tab-item {\n  color: rgba(248, 248, 248, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-stable .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-stable .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-stable .tab-item.active,\n  .tabs-striped.tabs-color-stable .tab-item.activated {\n    margin-top: -2px;\n    color: #f8f8f8;\n    border: 0 solid #f8f8f8;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-stable .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-stable .tab-item.active .badge,\n    .tabs-striped.tabs-color-stable .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-positive .tab-item {\n  color: rgba(56, 126, 245, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-positive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-positive .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-positive .tab-item.active,\n  .tabs-striped.tabs-color-positive .tab-item.activated {\n    margin-top: -2px;\n    color: #387ef5;\n    border: 0 solid #387ef5;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-positive .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-positive .tab-item.active .badge,\n    .tabs-striped.tabs-color-positive .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-calm .tab-item {\n  color: rgba(17, 193, 243, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-calm .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-calm .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-calm .tab-item.active,\n  .tabs-striped.tabs-color-calm .tab-item.activated {\n    margin-top: -2px;\n    color: #11c1f3;\n    border: 0 solid #11c1f3;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-calm .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-calm .tab-item.active .badge,\n    .tabs-striped.tabs-color-calm .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-assertive .tab-item {\n  color: rgba(239, 71, 58, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-assertive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-assertive .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-assertive .tab-item.active,\n  .tabs-striped.tabs-color-assertive .tab-item.activated {\n    margin-top: -2px;\n    color: #ef473a;\n    border: 0 solid #ef473a;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-assertive .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-assertive .tab-item.active .badge,\n    .tabs-striped.tabs-color-assertive .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-balanced .tab-item {\n  color: rgba(51, 205, 95, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-balanced .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-balanced .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-balanced .tab-item.active,\n  .tabs-striped.tabs-color-balanced .tab-item.activated {\n    margin-top: -2px;\n    color: #33cd5f;\n    border: 0 solid #33cd5f;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-balanced .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-balanced .tab-item.active .badge,\n    .tabs-striped.tabs-color-balanced .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-energized .tab-item {\n  color: rgba(255, 201, 0, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-energized .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-energized .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-energized .tab-item.active,\n  .tabs-striped.tabs-color-energized .tab-item.activated {\n    margin-top: -2px;\n    color: #ffc900;\n    border: 0 solid #ffc900;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-energized .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-energized .tab-item.active .badge,\n    .tabs-striped.tabs-color-energized .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-royal .tab-item {\n  color: rgba(136, 106, 234, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-royal .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-royal .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-royal .tab-item.active,\n  .tabs-striped.tabs-color-royal .tab-item.activated {\n    margin-top: -2px;\n    color: #886aea;\n    border: 0 solid #886aea;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-royal .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-royal .tab-item.active .badge,\n    .tabs-striped.tabs-color-royal .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-dark .tab-item {\n  color: rgba(68, 68, 68, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-dark .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-dark .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-dark .tab-item.active,\n  .tabs-striped.tabs-color-dark .tab-item.activated {\n    margin-top: -2px;\n    color: #444;\n    border: 0 solid #444;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-dark .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-dark .tab-item.active .badge,\n    .tabs-striped.tabs-color-dark .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-background-light .tabs,\n.tabs-background-light > .tabs {\n  background-color: #fff;\n  background-image: linear-gradient(0deg, #ddd, #ddd 50%, transparent 50%);\n  border-color: #ddd; }\n\n.tabs-background-stable .tabs,\n.tabs-background-stable > .tabs {\n  background-color: #f8f8f8;\n  background-image: linear-gradient(0deg, #b2b2b2, #b2b2b2 50%, transparent 50%);\n  border-color: #b2b2b2; }\n\n.tabs-background-positive .tabs,\n.tabs-background-positive > .tabs {\n  background-color: #387ef5;\n  background-image: linear-gradient(0deg, #0c60ee, #0c60ee 50%, transparent 50%);\n  border-color: #0c60ee; }\n\n.tabs-background-calm .tabs,\n.tabs-background-calm > .tabs {\n  background-color: #11c1f3;\n  background-image: linear-gradient(0deg, #0a9dc7, #0a9dc7 50%, transparent 50%);\n  border-color: #0a9dc7; }\n\n.tabs-background-assertive .tabs,\n.tabs-background-assertive > .tabs {\n  background-color: #ef473a;\n  background-image: linear-gradient(0deg, #e42112, #e42112 50%, transparent 50%);\n  border-color: #e42112; }\n\n.tabs-background-balanced .tabs,\n.tabs-background-balanced > .tabs {\n  background-color: #33cd5f;\n  background-image: linear-gradient(0deg, #28a54c, #28a54c 50%, transparent 50%);\n  border-color: #28a54c; }\n\n.tabs-background-energized .tabs,\n.tabs-background-energized > .tabs {\n  background-color: #ffc900;\n  background-image: linear-gradient(0deg, #e6b500, #e6b500 50%, transparent 50%);\n  border-color: #e6b500; }\n\n.tabs-background-royal .tabs,\n.tabs-background-royal > .tabs {\n  background-color: #886aea;\n  background-image: linear-gradient(0deg, #6b46e5, #6b46e5 50%, transparent 50%);\n  border-color: #6b46e5; }\n\n.tabs-background-dark .tabs,\n.tabs-background-dark > .tabs {\n  background-color: #444;\n  background-image: linear-gradient(0deg, #111, #111 50%, transparent 50%);\n  border-color: #111; }\n\n.tabs-color-light .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-color-light .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-light .tab-item.tab-item-active,\n  .tabs-color-light .tab-item.active,\n  .tabs-color-light .tab-item.activated {\n    color: #fff;\n    border: 0 solid #fff; }\n    .tabs-color-light .tab-item.tab-item-active .badge,\n    .tabs-color-light .tab-item.active .badge,\n    .tabs-color-light .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-stable .tab-item {\n  color: rgba(248, 248, 248, 0.4);\n  opacity: 1; }\n  .tabs-color-stable .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-stable .tab-item.tab-item-active,\n  .tabs-color-stable .tab-item.active,\n  .tabs-color-stable .tab-item.activated {\n    color: #f8f8f8;\n    border: 0 solid #f8f8f8; }\n    .tabs-color-stable .tab-item.tab-item-active .badge,\n    .tabs-color-stable .tab-item.active .badge,\n    .tabs-color-stable .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-positive .tab-item {\n  color: rgba(56, 126, 245, 0.4);\n  opacity: 1; }\n  .tabs-color-positive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-positive .tab-item.tab-item-active,\n  .tabs-color-positive .tab-item.active,\n  .tabs-color-positive .tab-item.activated {\n    color: #387ef5;\n    border: 0 solid #387ef5; }\n    .tabs-color-positive .tab-item.tab-item-active .badge,\n    .tabs-color-positive .tab-item.active .badge,\n    .tabs-color-positive .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-calm .tab-item {\n  color: rgba(17, 193, 243, 0.4);\n  opacity: 1; }\n  .tabs-color-calm .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-calm .tab-item.tab-item-active,\n  .tabs-color-calm .tab-item.active,\n  .tabs-color-calm .tab-item.activated {\n    color: #11c1f3;\n    border: 0 solid #11c1f3; }\n    .tabs-color-calm .tab-item.tab-item-active .badge,\n    .tabs-color-calm .tab-item.active .badge,\n    .tabs-color-calm .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-assertive .tab-item {\n  color: rgba(239, 71, 58, 0.4);\n  opacity: 1; }\n  .tabs-color-assertive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-assertive .tab-item.tab-item-active,\n  .tabs-color-assertive .tab-item.active,\n  .tabs-color-assertive .tab-item.activated {\n    color: #ef473a;\n    border: 0 solid #ef473a; }\n    .tabs-color-assertive .tab-item.tab-item-active .badge,\n    .tabs-color-assertive .tab-item.active .badge,\n    .tabs-color-assertive .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-balanced .tab-item {\n  color: rgba(51, 205, 95, 0.4);\n  opacity: 1; }\n  .tabs-color-balanced .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-balanced .tab-item.tab-item-active,\n  .tabs-color-balanced .tab-item.active,\n  .tabs-color-balanced .tab-item.activated {\n    color: #33cd5f;\n    border: 0 solid #33cd5f; }\n    .tabs-color-balanced .tab-item.tab-item-active .badge,\n    .tabs-color-balanced .tab-item.active .badge,\n    .tabs-color-balanced .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-energized .tab-item {\n  color: rgba(255, 201, 0, 0.4);\n  opacity: 1; }\n  .tabs-color-energized .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-energized .tab-item.tab-item-active,\n  .tabs-color-energized .tab-item.active,\n  .tabs-color-energized .tab-item.activated {\n    color: #ffc900;\n    border: 0 solid #ffc900; }\n    .tabs-color-energized .tab-item.tab-item-active .badge,\n    .tabs-color-energized .tab-item.active .badge,\n    .tabs-color-energized .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-royal .tab-item {\n  color: rgba(136, 106, 234, 0.4);\n  opacity: 1; }\n  .tabs-color-royal .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-royal .tab-item.tab-item-active,\n  .tabs-color-royal .tab-item.active,\n  .tabs-color-royal .tab-item.activated {\n    color: #886aea;\n    border: 0 solid #886aea; }\n    .tabs-color-royal .tab-item.tab-item-active .badge,\n    .tabs-color-royal .tab-item.active .badge,\n    .tabs-color-royal .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-dark .tab-item {\n  color: rgba(68, 68, 68, 0.4);\n  opacity: 1; }\n  .tabs-color-dark .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-dark .tab-item.tab-item-active,\n  .tabs-color-dark .tab-item.active,\n  .tabs-color-dark .tab-item.activated {\n    color: #444;\n    border: 0 solid #444; }\n    .tabs-color-dark .tab-item.tab-item-active .badge,\n    .tabs-color-dark .tab-item.active .badge,\n    .tabs-color-dark .tab-item.activated .badge {\n      opacity: 1; }\n\nion-tabs.tabs-color-active-light .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-light .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-light .tab-item.active,\n  ion-tabs.tabs-color-active-light .tab-item.activated {\n    color: #fff; }\n\nion-tabs.tabs-color-active-stable .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-stable .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-stable .tab-item.active,\n  ion-tabs.tabs-color-active-stable .tab-item.activated {\n    color: #f8f8f8; }\n\nion-tabs.tabs-color-active-positive .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-positive .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-positive .tab-item.active,\n  ion-tabs.tabs-color-active-positive .tab-item.activated {\n    color: #387ef5; }\n\nion-tabs.tabs-color-active-calm .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-calm .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-calm .tab-item.active,\n  ion-tabs.tabs-color-active-calm .tab-item.activated {\n    color: #11c1f3; }\n\nion-tabs.tabs-color-active-assertive .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-assertive .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-assertive .tab-item.active,\n  ion-tabs.tabs-color-active-assertive .tab-item.activated {\n    color: #ef473a; }\n\nion-tabs.tabs-color-active-balanced .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-balanced .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-balanced .tab-item.active,\n  ion-tabs.tabs-color-active-balanced .tab-item.activated {\n    color: #33cd5f; }\n\nion-tabs.tabs-color-active-energized .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-energized .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-energized .tab-item.active,\n  ion-tabs.tabs-color-active-energized .tab-item.activated {\n    color: #ffc900; }\n\nion-tabs.tabs-color-active-royal .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-royal .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-royal .tab-item.active,\n  ion-tabs.tabs-color-active-royal .tab-item.activated {\n    color: #886aea; }\n\nion-tabs.tabs-color-active-dark .tab-item {\n  color: #fff; }\n  ion-tabs.tabs-color-active-dark .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-dark .tab-item.active,\n  ion-tabs.tabs-color-active-dark .tab-item.activated {\n    color: #444; }\n\n.tabs-top.tabs-striped {\n  padding-bottom: 0; }\n  .tabs-top.tabs-striped .tab-item {\n    background: transparent;\n    -webkit-transition: color 0.1s ease;\n    -moz-transition: color 0.1s ease;\n    -ms-transition: color 0.1s ease;\n    -o-transition: color 0.1s ease;\n    transition: color 0.1s ease; }\n    .tabs-top.tabs-striped .tab-item.tab-item-active,\n    .tabs-top.tabs-striped .tab-item.active,\n    .tabs-top.tabs-striped .tab-item.activated {\n      margin-top: 1px;\n      border-width: 0px 0px 2px 0px !important;\n      border-style: solid; }\n      .tabs-top.tabs-striped .tab-item.tab-item-active > .badge,\n      .tabs-top.tabs-striped .tab-item.tab-item-active > i,\n      .tabs-top.tabs-striped .tab-item.active > .badge,\n      .tabs-top.tabs-striped .tab-item.active > i,\n      .tabs-top.tabs-striped .tab-item.activated > .badge, .tabs-top.tabs-striped .tab-item.activated > i {\n        margin-top: -1px; }\n    .tabs-top.tabs-striped .tab-item .badge {\n      -webkit-transition: color 0.2s ease;\n      -moz-transition: color 0.2s ease;\n      -ms-transition: color 0.2s ease;\n      -o-transition: color 0.2s ease;\n      transition: color 0.2s ease; }\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.tab-item-active .tab-title,\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.tab-item-active i,\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.active .tab-title,\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.active i,\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.activated .tab-title, .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.activated i {\n    display: block;\n    margin-top: -1px; }\n  .tabs-top.tabs-striped.tabs-icon-left .tab-item {\n    margin-top: 1px; }\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.tab-item-active .tab-title,\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.tab-item-active i,\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.active .tab-title,\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.active i,\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.activated .tab-title, .tabs-top.tabs-striped.tabs-icon-left .tab-item.activated i {\n      margin-top: -0.1em; }\n\n/* Allow parent element to have tabs-top */\n/* If you change this, change platform.scss as well */\n.tabs-top > .tabs,\n.tabs.tabs-top {\n  top: 44px;\n  padding-top: 0;\n  background-position: bottom;\n  border-top-width: 0;\n  border-bottom-width: 1px; }\n  .tabs-top > .tabs .tab-item.tab-item-active .badge,\n  .tabs-top > .tabs .tab-item.active .badge,\n  .tabs-top > .tabs .tab-item.activated .badge,\n  .tabs.tabs-top .tab-item.tab-item-active .badge,\n  .tabs.tabs-top .tab-item.active .badge,\n  .tabs.tabs-top .tab-item.activated .badge {\n    top: 4%; }\n\n.tabs-top ~ .bar-header {\n  border-bottom-width: 0; }\n\n.tab-item {\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  display: block;\n  overflow: hidden;\n  max-width: 150px;\n  height: 100%;\n  color: inherit;\n  text-align: center;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  font-weight: 400;\n  font-size: 14px;\n  font-family: \"Helvetica Neue\", \"Roboto\", \"Segoe UI\", sans-serif;\n  opacity: 0.7; }\n  .tab-item:hover {\n    cursor: pointer; }\n  .tab-item.tab-hidden {\n    display: none; }\n\n.tabs-item-hide > .tabs,\n.tabs.tabs-item-hide {\n  display: none; }\n\n.tabs-icon-top > .tabs .tab-item,\n.tabs-icon-top.tabs .tab-item,\n.tabs-icon-bottom > .tabs .tab-item,\n.tabs-icon-bottom.tabs .tab-item {\n  font-size: 10px;\n  line-height: 14px; }\n\n.tab-item .icon {\n  display: block;\n  margin: 0 auto;\n  height: 32px;\n  font-size: 32px; }\n\n.tabs-icon-left.tabs .tab-item,\n.tabs-icon-left > .tabs .tab-item,\n.tabs-icon-right.tabs .tab-item,\n.tabs-icon-right > .tabs .tab-item {\n  font-size: 10px; }\n  .tabs-icon-left.tabs .tab-item .icon,\n  .tabs-icon-left.tabs .tab-item .tab-title,\n  .tabs-icon-left > .tabs .tab-item .icon,\n  .tabs-icon-left > .tabs .tab-item .tab-title,\n  .tabs-icon-right.tabs .tab-item .icon,\n  .tabs-icon-right.tabs .tab-item .tab-title,\n  .tabs-icon-right > .tabs .tab-item .icon, .tabs-icon-right > .tabs .tab-item .tab-title {\n    display: inline-block;\n    vertical-align: top;\n    margin-top: -.1em; }\n    .tabs-icon-left.tabs .tab-item .icon:before,\n    .tabs-icon-left.tabs .tab-item .tab-title:before,\n    .tabs-icon-left > .tabs .tab-item .icon:before,\n    .tabs-icon-left > .tabs .tab-item .tab-title:before,\n    .tabs-icon-right.tabs .tab-item .icon:before,\n    .tabs-icon-right.tabs .tab-item .tab-title:before,\n    .tabs-icon-right > .tabs .tab-item .icon:before, .tabs-icon-right > .tabs .tab-item .tab-title:before {\n      font-size: 24px;\n      line-height: 49px; }\n\n.tabs-icon-left > .tabs .tab-item .icon,\n.tabs-icon-left.tabs .tab-item .icon {\n  padding-right: 3px; }\n\n.tabs-icon-right > .tabs .tab-item .icon,\n.tabs-icon-right.tabs .tab-item .icon {\n  padding-left: 3px; }\n\n.tabs-icon-only > .tabs .icon,\n.tabs-icon-only.tabs .icon {\n  line-height: inherit; }\n\n.tab-item.has-badge {\n  position: relative; }\n\n.tab-item .badge {\n  position: absolute;\n  top: 4%;\n  right: 33%;\n  right: calc(50% - 26px);\n  padding: 1px 6px;\n  height: auto;\n  font-size: 12px;\n  line-height: 16px; }\n\n/* Navigational tab */\n/* Active state for tab */\n.tab-item.tab-item-active,\n.tab-item.active,\n.tab-item.activated {\n  opacity: 1; }\n  .tab-item.tab-item-active.tab-item-light,\n  .tab-item.active.tab-item-light,\n  .tab-item.activated.tab-item-light {\n    color: #fff; }\n  .tab-item.tab-item-active.tab-item-stable,\n  .tab-item.active.tab-item-stable,\n  .tab-item.activated.tab-item-stable {\n    color: #f8f8f8; }\n  .tab-item.tab-item-active.tab-item-positive,\n  .tab-item.active.tab-item-positive,\n  .tab-item.activated.tab-item-positive {\n    color: #387ef5; }\n  .tab-item.tab-item-active.tab-item-calm,\n  .tab-item.active.tab-item-calm,\n  .tab-item.activated.tab-item-calm {\n    color: #11c1f3; }\n  .tab-item.tab-item-active.tab-item-assertive,\n  .tab-item.active.tab-item-assertive,\n  .tab-item.activated.tab-item-assertive {\n    color: #ef473a; }\n  .tab-item.tab-item-active.tab-item-balanced,\n  .tab-item.active.tab-item-balanced,\n  .tab-item.activated.tab-item-balanced {\n    color: #33cd5f; }\n  .tab-item.tab-item-active.tab-item-energized,\n  .tab-item.active.tab-item-energized,\n  .tab-item.activated.tab-item-energized {\n    color: #ffc900; }\n  .tab-item.tab-item-active.tab-item-royal,\n  .tab-item.active.tab-item-royal,\n  .tab-item.activated.tab-item-royal {\n    color: #886aea; }\n  .tab-item.tab-item-active.tab-item-dark,\n  .tab-item.active.tab-item-dark,\n  .tab-item.activated.tab-item-dark {\n    color: #444; }\n\n.item.tabs {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  padding: 0; }\n  .item.tabs .icon:before {\n    position: relative; }\n\n.tab-item.disabled,\n.tab-item[disabled] {\n  opacity: .4;\n  cursor: default;\n  pointer-events: none; }\n\n.nav-bar-tabs-top.hide ~ .view-container .tabs-top .tabs {\n  top: 0; }\n\n.pane[hide-nav-bar=\"true\"] .has-tabs-top {\n  top: 49px; }\n\n/**\n * Menus\n * --------------------------------------------------\n * Side panel structure\n */\n.menu {\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  z-index: 0;\n  overflow: hidden;\n  min-height: 100%;\n  max-height: 100%;\n  width: 275px;\n  background-color: #fff; }\n  .menu .scroll-content {\n    z-index: 10; }\n  .menu .bar-header {\n    z-index: 11; }\n\n.menu-content {\n  -webkit-transform: none;\n  transform: none;\n  box-shadow: -1px 0px 2px rgba(0, 0, 0, 0.2), 1px 0px 2px rgba(0, 0, 0, 0.2); }\n\n.menu-open .menu-content .pane,\n.menu-open .menu-content .scroll-content {\n  pointer-events: none;\n  overflow: hidden; }\n\n.grade-b .menu-content,\n.grade-c .menu-content {\n  -webkit-box-sizing: content-box;\n  -moz-box-sizing: content-box;\n  box-sizing: content-box;\n  right: -1px;\n  left: -1px;\n  border-right: 1px solid #ccc;\n  border-left: 1px solid #ccc;\n  box-shadow: none; }\n\n.menu-left {\n  left: 0; }\n\n.menu-right {\n  right: 0; }\n\n.aside-open.aside-resizing .menu-right {\n  display: none; }\n\n.menu-animated {\n  -webkit-transition: -webkit-transform 200ms ease;\n  transition: transform 200ms ease; }\n\n/**\n * Modals\n * --------------------------------------------------\n * Modals are independent windows that slide in from off-screen.\n */\n.modal-backdrop,\n.modal-backdrop-bg {\n  position: fixed;\n  top: 0;\n  left: 0;\n  z-index: 10;\n  width: 100%;\n  height: 100%; }\n\n.modal-backdrop-bg {\n  pointer-events: none; }\n\n.modal {\n  display: block;\n  position: absolute;\n  top: 0;\n  z-index: 10;\n  overflow: hidden;\n  min-height: 100%;\n  width: 100%;\n  background-color: #fff; }\n\n@media (min-width: 680px) {\n  .modal {\n    top: 20%;\n    right: 20%;\n    bottom: 20%;\n    left: 20%;\n    min-height: 240px;\n    width: 60%; }\n  .modal.ng-leave-active {\n    bottom: 0; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .bar-header:not(.bar-subheader) {\n    height: 44px; }\n    .platform-ios.platform-cordova .modal-wrapper .modal .bar-header:not(.bar-subheader) > * {\n      margin-top: 0; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .tabs-top > .tabs,\n  .platform-ios.platform-cordova .modal-wrapper .modal .tabs.tabs-top {\n    top: 44px; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .has-header,\n  .platform-ios.platform-cordova .modal-wrapper .modal .bar-subheader {\n    top: 44px; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .has-subheader {\n    top: 88px; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .has-header.has-tabs-top {\n    top: 93px; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .has-header.has-subheader.has-tabs-top {\n    top: 137px; }\n  .modal-backdrop-bg {\n    -webkit-transition: opacity 300ms ease-in-out;\n    transition: opacity 300ms ease-in-out;\n    background-color: #000;\n    opacity: 0; }\n  .active .modal-backdrop-bg {\n    opacity: 0.5; } }\n\n.modal-open {\n  pointer-events: none; }\n  .modal-open .modal,\n  .modal-open .modal-backdrop {\n    pointer-events: auto; }\n  .modal-open.loading-active .modal,\n  .modal-open.loading-active .modal-backdrop {\n    pointer-events: none; }\n\n/**\n * Popovers\n * --------------------------------------------------\n * Popovers are independent views which float over content\n */\n.popover-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  z-index: 10;\n  width: 100%;\n  height: 100%;\n  background-color: transparent; }\n  .popover-backdrop.active {\n    background-color: rgba(0, 0, 0, 0.1); }\n\n.popover {\n  position: absolute;\n  top: 25%;\n  left: 50%;\n  z-index: 10;\n  display: block;\n  margin-top: 12px;\n  margin-left: -110px;\n  height: 280px;\n  width: 220px;\n  background-color: #fff;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);\n  opacity: 0; }\n  .popover .item:first-child {\n    border-top: 0; }\n  .popover .item:last-child {\n    border-bottom: 0; }\n  .popover.popover-bottom {\n    margin-top: -12px; }\n\n.popover,\n.popover .bar-header {\n  border-radius: 2px; }\n\n.popover .scroll-content {\n  z-index: 1;\n  margin: 2px 0; }\n\n.popover .bar-header {\n  border-bottom-right-radius: 0;\n  border-bottom-left-radius: 0; }\n\n.popover .has-header {\n  border-top-right-radius: 0;\n  border-top-left-radius: 0; }\n\n.popover-arrow {\n  display: none; }\n\n.platform-ios .popover {\n  box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);\n  border-radius: 10px; }\n\n.platform-ios .popover .bar-header {\n  -webkit-border-top-right-radius: 10px;\n  border-top-right-radius: 10px;\n  -webkit-border-top-left-radius: 10px;\n  border-top-left-radius: 10px; }\n\n.platform-ios .popover .scroll-content {\n  margin: 8px 0;\n  border-radius: 10px; }\n\n.platform-ios .popover .scroll-content.has-header {\n  margin-top: 0; }\n\n.platform-ios .popover-arrow {\n  position: absolute;\n  display: block;\n  top: -17px;\n  width: 30px;\n  height: 19px;\n  overflow: hidden; }\n  .platform-ios .popover-arrow:after {\n    position: absolute;\n    top: 12px;\n    left: 5px;\n    width: 20px;\n    height: 20px;\n    background-color: #fff;\n    border-radius: 3px;\n    content: '';\n    -webkit-transform: rotate(-45deg);\n    transform: rotate(-45deg); }\n\n.platform-ios .popover-bottom .popover-arrow {\n  top: auto;\n  bottom: -10px; }\n  .platform-ios .popover-bottom .popover-arrow:after {\n    top: -6px; }\n\n.platform-android .popover {\n  margin-top: -32px;\n  background-color: #fafafa;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }\n  .platform-android .popover .item {\n    border-color: #fafafa;\n    background-color: #fafafa;\n    color: #4d4d4d; }\n  .platform-android .popover.popover-bottom {\n    margin-top: 32px; }\n\n.platform-android .popover-backdrop,\n.platform-android .popover-backdrop.active {\n  background-color: transparent; }\n\n.popover-open {\n  pointer-events: none; }\n  .popover-open .popover,\n  .popover-open .popover-backdrop {\n    pointer-events: auto; }\n  .popover-open.loading-active .popover,\n  .popover-open.loading-active .popover-backdrop {\n    pointer-events: none; }\n\n@media (min-width: 680px) {\n  .popover {\n    width: 360px; } }\n\n/**\n * Popups\n * --------------------------------------------------\n */\n.popup-container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  background: transparent;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n  -ms-flex-pack: center;\n  -webkit-justify-content: center;\n  -moz-justify-content: center;\n  justify-content: center;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  z-index: 12;\n  visibility: hidden; }\n  .popup-container.popup-showing {\n    visibility: visible; }\n  .popup-container.popup-hidden .popup {\n    -webkit-animation-name: scaleOut;\n    animation-name: scaleOut;\n    -webkit-animation-duration: 0.1s;\n    animation-duration: 0.1s;\n    -webkit-animation-timing-function: ease-in-out;\n    animation-timing-function: ease-in-out;\n    -webkit-animation-fill-mode: both;\n    animation-fill-mode: both; }\n  .popup-container.active .popup {\n    -webkit-animation-name: superScaleIn;\n    animation-name: superScaleIn;\n    -webkit-animation-duration: 0.2s;\n    animation-duration: 0.2s;\n    -webkit-animation-timing-function: ease-in-out;\n    animation-timing-function: ease-in-out;\n    -webkit-animation-fill-mode: both;\n    animation-fill-mode: both; }\n  .popup-container .popup {\n    width: 250px;\n    max-width: 100%;\n    max-height: 90%;\n    border-radius: 0px;\n    background-color: rgba(255, 255, 255, 0.9);\n    display: -webkit-box;\n    display: -webkit-flex;\n    display: -moz-box;\n    display: -moz-flex;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-direction: normal;\n    -webkit-box-orient: vertical;\n    -webkit-flex-direction: column;\n    -moz-flex-direction: column;\n    -ms-flex-direction: column;\n    flex-direction: column; }\n  .popup-container input,\n  .popup-container textarea {\n    width: 100%; }\n\n.popup-head {\n  padding: 15px 10px;\n  border-bottom: 1px solid #eee;\n  text-align: center; }\n\n.popup-title {\n  margin: 0;\n  padding: 0;\n  font-size: 15px; }\n\n.popup-sub-title {\n  margin: 5px 0 0 0;\n  padding: 0;\n  font-weight: normal;\n  font-size: 11px; }\n\n.popup-body {\n  padding: 10px;\n  overflow: auto; }\n\n.popup-buttons {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-direction: normal;\n  -webkit-box-orient: horizontal;\n  -webkit-flex-direction: row;\n  -moz-flex-direction: row;\n  -ms-flex-direction: row;\n  flex-direction: row;\n  padding: 10px;\n  min-height: 65px; }\n  .popup-buttons .button {\n    -webkit-box-flex: 1;\n    -webkit-flex: 1;\n    -moz-box-flex: 1;\n    -moz-flex: 1;\n    -ms-flex: 1;\n    flex: 1;\n    display: block;\n    min-height: 45px;\n    border-radius: 2px;\n    line-height: 20px;\n    margin-right: 5px; }\n    .popup-buttons .button:last-child {\n      margin-right: 0px; }\n\n.popup-open {\n  pointer-events: none; }\n  .popup-open.modal-open .modal {\n    pointer-events: none; }\n  .popup-open .popup-backdrop, .popup-open .popup {\n    pointer-events: auto; }\n\n/**\n * Loading\n * --------------------------------------------------\n */\n.loading-container {\n  position: absolute;\n  left: 0;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  z-index: 13;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n  -ms-flex-pack: center;\n  -webkit-justify-content: center;\n  -moz-justify-content: center;\n  justify-content: center;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  -webkit-transition: 0.2s opacity linear;\n  transition: 0.2s opacity linear;\n  visibility: hidden;\n  opacity: 0; }\n  .loading-container:not(.visible) .icon,\n  .loading-container:not(.visible) .spinner {\n    display: none; }\n  .loading-container.visible {\n    visibility: visible; }\n  .loading-container.active {\n    opacity: 1; }\n  .loading-container .loading {\n    padding: 20px;\n    border-radius: 5px;\n    background-color: rgba(0, 0, 0, 0.7);\n    color: #fff;\n    text-align: center;\n    text-overflow: ellipsis;\n    font-size: 15px; }\n    .loading-container .loading h1, .loading-container .loading h2, .loading-container .loading h3, .loading-container .loading h4, .loading-container .loading h5, .loading-container .loading h6 {\n      color: #fff; }\n\n/**\n * Items\n * --------------------------------------------------\n */\n.item {\n  border-color: #ddd;\n  background-color: #fff;\n  color: #444;\n  position: relative;\n  z-index: 2;\n  display: block;\n  margin: -1px;\n  padding: 16px;\n  border-width: 1px;\n  border-style: solid;\n  font-size: 16px; }\n  .item h2 {\n    margin: 0 0 2px 0;\n    font-size: 16px;\n    font-weight: normal; }\n  .item h3 {\n    margin: 0 0 4px 0;\n    font-size: 14px; }\n  .item h4 {\n    margin: 0 0 4px 0;\n    font-size: 12px; }\n  .item h5, .item h6 {\n    margin: 0 0 3px 0;\n    font-size: 10px; }\n  .item p {\n    color: #666;\n    font-size: 14px;\n    margin-bottom: 2px; }\n  .item h1:last-child,\n  .item h2:last-child,\n  .item h3:last-child,\n  .item h4:last-child,\n  .item h5:last-child,\n  .item h6:last-child,\n  .item p:last-child {\n    margin-bottom: 0; }\n  .item .badge {\n    display: -webkit-box;\n    display: -webkit-flex;\n    display: -moz-box;\n    display: -moz-flex;\n    display: -ms-flexbox;\n    display: flex;\n    position: absolute;\n    top: 16px;\n    right: 32px; }\n  .item.item-button-right .badge {\n    right: 67px; }\n  .item.item-divider .badge {\n    top: 8px; }\n  .item .badge + .badge {\n    margin-right: 5px; }\n  .item.item-light {\n    border-color: #ddd;\n    background-color: #fff;\n    color: #444; }\n  .item.item-stable {\n    border-color: #b2b2b2;\n    background-color: #f8f8f8;\n    color: #444; }\n  .item.item-positive {\n    border-color: #0c60ee;\n    background-color: #387ef5;\n    color: #fff; }\n  .item.item-calm {\n    border-color: #0a9dc7;\n    background-color: #11c1f3;\n    color: #fff; }\n  .item.item-assertive {\n    border-color: #e42112;\n    background-color: #ef473a;\n    color: #fff; }\n  .item.item-balanced {\n    border-color: #28a54c;\n    background-color: #33cd5f;\n    color: #fff; }\n  .item.item-energized {\n    border-color: #e6b500;\n    background-color: #ffc900;\n    color: #fff; }\n  .item.item-royal {\n    border-color: #6b46e5;\n    background-color: #886aea;\n    color: #fff; }\n  .item.item-dark {\n    border-color: #111;\n    background-color: #444;\n    color: #fff; }\n  .item[ng-click]:hover {\n    cursor: pointer; }\n\n.list-borderless .item,\n.item-borderless {\n  border-width: 0; }\n\n.item.active,\n.item.activated,\n.item-complex.active .item-content,\n.item-complex.activated .item-content,\n.item .item-content.active,\n.item .item-content.activated {\n  border-color: #ccc;\n  background-color: #D9D9D9; }\n  .item.active.item-light,\n  .item.activated.item-light,\n  .item-complex.active .item-content.item-light,\n  .item-complex.activated .item-content.item-light,\n  .item .item-content.active.item-light,\n  .item .item-content.activated.item-light {\n    border-color: #ccc;\n    background-color: #fafafa; }\n  .item.active.item-stable,\n  .item.activated.item-stable,\n  .item-complex.active .item-content.item-stable,\n  .item-complex.activated .item-content.item-stable,\n  .item .item-content.active.item-stable,\n  .item .item-content.activated.item-stable {\n    border-color: #a2a2a2;\n    background-color: #e5e5e5; }\n  .item.active.item-positive,\n  .item.activated.item-positive,\n  .item-complex.active .item-content.item-positive,\n  .item-complex.activated .item-content.item-positive,\n  .item .item-content.active.item-positive,\n  .item .item-content.activated.item-positive {\n    border-color: #0c60ee;\n    background-color: #0c60ee; }\n  .item.active.item-calm,\n  .item.activated.item-calm,\n  .item-complex.active .item-content.item-calm,\n  .item-complex.activated .item-content.item-calm,\n  .item .item-content.active.item-calm,\n  .item .item-content.activated.item-calm {\n    border-color: #0a9dc7;\n    background-color: #0a9dc7; }\n  .item.active.item-assertive,\n  .item.activated.item-assertive,\n  .item-complex.active .item-content.item-assertive,\n  .item-complex.activated .item-content.item-assertive,\n  .item .item-content.active.item-assertive,\n  .item .item-content.activated.item-assertive {\n    border-color: #e42112;\n    background-color: #e42112; }\n  .item.active.item-balanced,\n  .item.activated.item-balanced,\n  .item-complex.active .item-content.item-balanced,\n  .item-complex.activated .item-content.item-balanced,\n  .item .item-content.active.item-balanced,\n  .item .item-content.activated.item-balanced {\n    border-color: #28a54c;\n    background-color: #28a54c; }\n  .item.active.item-energized,\n  .item.activated.item-energized,\n  .item-complex.active .item-content.item-energized,\n  .item-complex.activated .item-content.item-energized,\n  .item .item-content.active.item-energized,\n  .item .item-content.activated.item-energized {\n    border-color: #e6b500;\n    background-color: #e6b500; }\n  .item.active.item-royal,\n  .item.activated.item-royal,\n  .item-complex.active .item-content.item-royal,\n  .item-complex.activated .item-content.item-royal,\n  .item .item-content.active.item-royal,\n  .item .item-content.activated.item-royal {\n    border-color: #6b46e5;\n    background-color: #6b46e5; }\n  .item.active.item-dark,\n  .item.activated.item-dark,\n  .item-complex.active .item-content.item-dark,\n  .item-complex.activated .item-content.item-dark,\n  .item .item-content.active.item-dark,\n  .item .item-content.activated.item-dark {\n    border-color: #000;\n    background-color: #262626; }\n\n.item,\n.item h1,\n.item h2,\n.item h3,\n.item h4,\n.item h5,\n.item h6,\n.item p,\n.item-content,\n.item-content h1,\n.item-content h2,\n.item-content h3,\n.item-content h4,\n.item-content h5,\n.item-content h6,\n.item-content p {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap; }\n\na.item {\n  color: inherit;\n  text-decoration: none; }\n  a.item:hover,\n  a.item:focus {\n    text-decoration: none; }\n\n/**\n * Complex Items\n * --------------------------------------------------\n * Adding .item-complex allows the .item to be slidable and\n * have options underneath the button, but also requires an\n * additional .item-content element inside .item.\n * Basically .item-complex removes any default settings which\n * .item added, so that .item-content looks them as just .item.\n */\n.item-complex,\na.item.item-complex,\nbutton.item.item-complex {\n  padding: 0; }\n\n.item-complex .item-content,\n.item-radio .item-content {\n  position: relative;\n  z-index: 2;\n  padding: 16px 49px 16px 16px;\n  border: none;\n  background-color: #fff; }\n\na.item-content {\n  display: block;\n  color: inherit;\n  text-decoration: none; }\n\n.item-text-wrap .item,\n.item-text-wrap .item-content,\n.item-text-wrap,\n.item-text-wrap h1,\n.item-text-wrap h2,\n.item-text-wrap h3,\n.item-text-wrap h4,\n.item-text-wrap h5,\n.item-text-wrap h6,\n.item-text-wrap p,\n.item-complex.item-text-wrap .item-content,\n.item-body h1,\n.item-body h2,\n.item-body h3,\n.item-body h4,\n.item-body h5,\n.item-body h6,\n.item-body p {\n  overflow: visible;\n  white-space: normal; }\n\n.item-complex.item-text-wrap,\n.item-complex.item-text-wrap h1,\n.item-complex.item-text-wrap h2,\n.item-complex.item-text-wrap h3,\n.item-complex.item-text-wrap h4,\n.item-complex.item-text-wrap h5,\n.item-complex.item-text-wrap h6,\n.item-complex.item-text-wrap p {\n  overflow: visible;\n  white-space: normal; }\n\n.item-complex.item-light > .item-content {\n  border-color: #ddd;\n  background-color: #fff;\n  color: #444; }\n  .item-complex.item-light > .item-content.active, .item-complex.item-light > .item-content:active {\n    border-color: #ccc;\n    background-color: #fafafa; }\n\n.item-complex.item-stable > .item-content {\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  color: #444; }\n  .item-complex.item-stable > .item-content.active, .item-complex.item-stable > .item-content:active {\n    border-color: #a2a2a2;\n    background-color: #e5e5e5; }\n\n.item-complex.item-positive > .item-content {\n  border-color: #0c60ee;\n  background-color: #387ef5;\n  color: #fff; }\n  .item-complex.item-positive > .item-content.active, .item-complex.item-positive > .item-content:active {\n    border-color: #0c60ee;\n    background-color: #0c60ee; }\n\n.item-complex.item-calm > .item-content {\n  border-color: #0a9dc7;\n  background-color: #11c1f3;\n  color: #fff; }\n  .item-complex.item-calm > .item-content.active, .item-complex.item-calm > .item-content:active {\n    border-color: #0a9dc7;\n    background-color: #0a9dc7; }\n\n.item-complex.item-assertive > .item-content {\n  border-color: #e42112;\n  background-color: #ef473a;\n  color: #fff; }\n  .item-complex.item-assertive > .item-content.active, .item-complex.item-assertive > .item-content:active {\n    border-color: #e42112;\n    background-color: #e42112; }\n\n.item-complex.item-balanced > .item-content {\n  border-color: #28a54c;\n  background-color: #33cd5f;\n  color: #fff; }\n  .item-complex.item-balanced > .item-content.active, .item-complex.item-balanced > .item-content:active {\n    border-color: #28a54c;\n    background-color: #28a54c; }\n\n.item-complex.item-energized > .item-content {\n  border-color: #e6b500;\n  background-color: #ffc900;\n  color: #fff; }\n  .item-complex.item-energized > .item-content.active, .item-complex.item-energized > .item-content:active {\n    border-color: #e6b500;\n    background-color: #e6b500; }\n\n.item-complex.item-royal > .item-content {\n  border-color: #6b46e5;\n  background-color: #886aea;\n  color: #fff; }\n  .item-complex.item-royal > .item-content.active, .item-complex.item-royal > .item-content:active {\n    border-color: #6b46e5;\n    background-color: #6b46e5; }\n\n.item-complex.item-dark > .item-content {\n  border-color: #111;\n  background-color: #444;\n  color: #fff; }\n  .item-complex.item-dark > .item-content.active, .item-complex.item-dark > .item-content:active {\n    border-color: #000;\n    background-color: #262626; }\n\n/**\n * Item Icons\n * --------------------------------------------------\n */\n.item-icon-left .icon,\n.item-icon-right .icon {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: absolute;\n  top: 0;\n  height: 100%;\n  font-size: 32px; }\n  .item-icon-left .icon:before,\n  .item-icon-right .icon:before {\n    display: block;\n    width: 32px;\n    text-align: center; }\n\n.item .fill-icon {\n  min-width: 30px;\n  min-height: 30px;\n  font-size: 28px; }\n\n.item-icon-left {\n  padding-left: 54px; }\n  .item-icon-left .icon {\n    left: 11px; }\n\n.item-complex.item-icon-left {\n  padding-left: 0; }\n  .item-complex.item-icon-left .item-content {\n    padding-left: 54px; }\n\n.item-icon-right {\n  padding-right: 54px; }\n  .item-icon-right .icon {\n    right: 11px; }\n\n.item-complex.item-icon-right {\n  padding-right: 0; }\n  .item-complex.item-icon-right .item-content {\n    padding-right: 54px; }\n\n.item-icon-left.item-icon-right .icon:first-child {\n  right: auto; }\n\n.item-icon-left.item-icon-right .icon:last-child,\n.item-icon-left .item-delete .icon {\n  left: auto; }\n\n.item-icon-left .icon-accessory,\n.item-icon-right .icon-accessory {\n  color: #ccc;\n  font-size: 16px; }\n\n.item-icon-left .icon-accessory {\n  left: 3px; }\n\n.item-icon-right .icon-accessory {\n  right: 3px; }\n\n/**\n * Item Button\n * --------------------------------------------------\n * An item button is a child button inside an .item (not the entire .item)\n */\n.item-button-left {\n  padding-left: 72px; }\n\n.item-button-left > .button,\n.item-button-left .item-content > .button {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: absolute;\n  top: 8px;\n  left: 11px;\n  min-width: 34px;\n  min-height: 34px;\n  font-size: 18px;\n  line-height: 32px; }\n  .item-button-left > .button .icon:before,\n  .item-button-left .item-content > .button .icon:before {\n    position: relative;\n    left: auto;\n    width: auto;\n    line-height: 31px; }\n  .item-button-left > .button > .button,\n  .item-button-left .item-content > .button > .button {\n    margin: 0px 2px;\n    min-height: 34px;\n    font-size: 18px;\n    line-height: 32px; }\n\n.item-button-right,\na.item.item-button-right,\nbutton.item.item-button-right {\n  padding-right: 80px; }\n\n.item-button-right > .button,\n.item-button-right .item-content > .button,\n.item-button-right > .buttons,\n.item-button-right .item-content > .buttons {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: absolute;\n  top: 8px;\n  right: 16px;\n  min-width: 34px;\n  min-height: 34px;\n  font-size: 18px;\n  line-height: 32px; }\n  .item-button-right > .button .icon:before,\n  .item-button-right .item-content > .button .icon:before,\n  .item-button-right > .buttons .icon:before,\n  .item-button-right .item-content > .buttons .icon:before {\n    position: relative;\n    left: auto;\n    width: auto;\n    line-height: 31px; }\n  .item-button-right > .button > .button,\n  .item-button-right .item-content > .button > .button,\n  .item-button-right > .buttons > .button,\n  .item-button-right .item-content > .buttons > .button {\n    margin: 0px 2px;\n    min-width: 34px;\n    min-height: 34px;\n    font-size: 18px;\n    line-height: 32px; }\n\n.item-avatar,\n.item-avatar .item-content,\n.item-avatar-left,\n.item-avatar-left .item-content {\n  padding-left: 72px;\n  min-height: 72px; }\n  .item-avatar > img:first-child,\n  .item-avatar .item-image,\n  .item-avatar .item-content > img:first-child,\n  .item-avatar .item-content .item-image,\n  .item-avatar-left > img:first-child,\n  .item-avatar-left .item-image,\n  .item-avatar-left .item-content > img:first-child,\n  .item-avatar-left .item-content .item-image {\n    position: absolute;\n    top: 16px;\n    left: 16px;\n    max-width: 40px;\n    max-height: 40px;\n    width: 100%;\n    height: 100%;\n    border-radius: 50%; }\n\n.item-avatar-right,\n.item-avatar-right .item-content {\n  padding-right: 72px;\n  min-height: 72px; }\n  .item-avatar-right > img:first-child,\n  .item-avatar-right .item-image,\n  .item-avatar-right .item-content > img:first-child,\n  .item-avatar-right .item-content .item-image {\n    position: absolute;\n    top: 16px;\n    right: 16px;\n    max-width: 40px;\n    max-height: 40px;\n    width: 100%;\n    height: 100%;\n    border-radius: 50%; }\n\n.item-thumbnail-left,\n.item-thumbnail-left .item-content {\n  padding-top: 8px;\n  padding-left: 106px;\n  min-height: 100px; }\n  .item-thumbnail-left > img:first-child,\n  .item-thumbnail-left .item-image,\n  .item-thumbnail-left .item-content > img:first-child,\n  .item-thumbnail-left .item-content .item-image {\n    position: absolute;\n    top: 10px;\n    left: 10px;\n    max-width: 80px;\n    max-height: 80px;\n    width: 100%;\n    height: 100%; }\n\n.item-avatar.item-complex,\n.item-avatar-left.item-complex,\n.item-thumbnail-left.item-complex {\n  padding-top: 0;\n  padding-left: 0; }\n\n.item-thumbnail-right,\n.item-thumbnail-right .item-content {\n  padding-top: 8px;\n  padding-right: 106px;\n  min-height: 100px; }\n  .item-thumbnail-right > img:first-child,\n  .item-thumbnail-right .item-image,\n  .item-thumbnail-right .item-content > img:first-child,\n  .item-thumbnail-right .item-content .item-image {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    max-width: 80px;\n    max-height: 80px;\n    width: 100%;\n    height: 100%; }\n\n.item-avatar-right.item-complex,\n.item-thumbnail-right.item-complex {\n  padding-top: 0;\n  padding-right: 0; }\n\n.item-image {\n  padding: 0;\n  text-align: center; }\n  .item-image img:first-child, .item-image .list-img {\n    width: 100%;\n    vertical-align: middle; }\n\n.item-body {\n  overflow: auto;\n  padding: 16px;\n  text-overflow: inherit;\n  white-space: normal; }\n  .item-body h1, .item-body h2, .item-body h3, .item-body h4, .item-body h5, .item-body h6, .item-body p {\n    margin-top: 16px;\n    margin-bottom: 16px; }\n\n.item-divider {\n  padding-top: 8px;\n  padding-bottom: 8px;\n  min-height: 30px;\n  background-color: #f5f5f5;\n  color: #222;\n  font-weight: 500; }\n\n.platform-ios .item-divider-platform,\n.item-divider-ios {\n  padding-top: 26px;\n  text-transform: uppercase;\n  font-weight: 300;\n  font-size: 13px;\n  background-color: #efeff4;\n  color: #555; }\n\n.platform-android .item-divider-platform,\n.item-divider-android {\n  font-weight: 300;\n  font-size: 13px; }\n\n.item-note {\n  float: right;\n  color: #aaa;\n  font-size: 14px; }\n\n.item-left-editable .item-content,\n.item-right-editable .item-content {\n  -webkit-transition-duration: 250ms;\n  transition-duration: 250ms;\n  -webkit-transition-timing-function: ease-in-out;\n  transition-timing-function: ease-in-out;\n  -webkit-transition-property: -webkit-transform;\n  -moz-transition-property: -moz-transform;\n  transition-property: transform; }\n\n.list-left-editing .item-left-editable .item-content,\n.item-left-editing.item-left-editable .item-content {\n  -webkit-transform: translate3d(50px, 0, 0);\n  transform: translate3d(50px, 0, 0); }\n\n.item-remove-animate.ng-leave {\n  -webkit-transition-duration: 300ms;\n  transition-duration: 300ms; }\n\n.item-remove-animate.ng-leave .item-content,\n.item-remove-animate.ng-leave:last-of-type {\n  -webkit-transition-duration: 300ms;\n  transition-duration: 300ms;\n  -webkit-transition-timing-function: ease-in;\n  transition-timing-function: ease-in;\n  -webkit-transition-property: all;\n  transition-property: all; }\n\n.item-remove-animate.ng-leave.ng-leave-active .item-content {\n  opacity: 0;\n  -webkit-transform: translate3d(-100%, 0, 0) !important;\n  transform: translate3d(-100%, 0, 0) !important; }\n\n.item-remove-animate.ng-leave.ng-leave-active:last-of-type {\n  opacity: 0; }\n\n.item-remove-animate.ng-leave.ng-leave-active ~ ion-item:not(.ng-leave) {\n  -webkit-transform: translate3d(0, -webkit-calc(-100% + 1px), 0);\n  transform: translate3d(0, calc(-100% + 1px), 0);\n  -webkit-transition-duration: 300ms;\n  transition-duration: 300ms;\n  -webkit-transition-timing-function: cubic-bezier(0.25, 0.81, 0.24, 1);\n  transition-timing-function: cubic-bezier(0.25, 0.81, 0.24, 1);\n  -webkit-transition-property: all;\n  transition-property: all; }\n\n.item-left-edit {\n  -webkit-transition: all ease-in-out 125ms;\n  transition: all ease-in-out 125ms;\n  position: absolute;\n  top: 0;\n  left: 0;\n  z-index: 0;\n  width: 50px;\n  height: 100%;\n  line-height: 100%;\n  display: none;\n  opacity: 0;\n  -webkit-transform: translate3d(-21px, 0, 0);\n  transform: translate3d(-21px, 0, 0); }\n  .item-left-edit .button {\n    height: 100%; }\n    .item-left-edit .button.icon {\n      display: -webkit-box;\n      display: -webkit-flex;\n      display: -moz-box;\n      display: -moz-flex;\n      display: -ms-flexbox;\n      display: flex;\n      -webkit-box-align: center;\n      -ms-flex-align: center;\n      -webkit-align-items: center;\n      -moz-align-items: center;\n      align-items: center;\n      position: absolute;\n      top: 0;\n      height: 100%; }\n  .item-left-edit.visible {\n    display: block; }\n    .item-left-edit.visible.active {\n      opacity: 1;\n      -webkit-transform: translate3d(8px, 0, 0);\n      transform: translate3d(8px, 0, 0); }\n\n.list-left-editing .item-left-edit {\n  -webkit-transition-delay: 125ms;\n  transition-delay: 125ms; }\n\n.item-delete .button.icon {\n  color: #ef473a;\n  font-size: 24px; }\n  .item-delete .button.icon:hover {\n    opacity: .7; }\n\n.item-right-edit {\n  -webkit-transition: all ease-in-out 250ms;\n  transition: all ease-in-out 250ms;\n  position: absolute;\n  top: 0;\n  right: 0;\n  z-index: 3;\n  width: 75px;\n  height: 100%;\n  background: inherit;\n  padding-left: 20px;\n  display: block;\n  opacity: 0;\n  -webkit-transform: translate3d(75px, 0, 0);\n  transform: translate3d(75px, 0, 0); }\n  .item-right-edit .button {\n    min-width: 50px;\n    height: 100%; }\n    .item-right-edit .button.icon {\n      display: -webkit-box;\n      display: -webkit-flex;\n      display: -moz-box;\n      display: -moz-flex;\n      display: -ms-flexbox;\n      display: flex;\n      -webkit-box-align: center;\n      -ms-flex-align: center;\n      -webkit-align-items: center;\n      -moz-align-items: center;\n      align-items: center;\n      position: absolute;\n      top: 0;\n      height: 100%;\n      font-size: 32px; }\n  .item-right-edit.visible {\n    display: block; }\n    .item-right-edit.visible.active {\n      opacity: 1;\n      -webkit-transform: translate3d(0, 0, 0);\n      transform: translate3d(0, 0, 0); }\n\n.item-reorder .button.icon {\n  color: #444;\n  font-size: 32px; }\n\n.item-reordering {\n  position: absolute;\n  left: 0;\n  top: 0;\n  z-index: 9;\n  width: 100%;\n  box-shadow: 0px 0px 10px 0px #aaa; }\n  .item-reordering .item-reorder {\n    z-index: 9; }\n\n.item-placeholder {\n  opacity: 0.7; }\n\n/**\n * The hidden right-side buttons that can be exposed under a list item\n * with dragging.\n */\n.item-options {\n  position: absolute;\n  top: 0;\n  right: 0;\n  z-index: 1;\n  height: 100%; }\n  .item-options .button {\n    height: 100%;\n    border: none;\n    border-radius: 0;\n    display: -webkit-inline-box;\n    display: -webkit-inline-flex;\n    display: -moz-inline-flex;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n    -ms-flex-align: center;\n    -webkit-align-items: center;\n    -moz-align-items: center;\n    align-items: center; }\n    .item-options .button:before {\n      margin: 0 auto; }\n\n/**\n * Lists\n * --------------------------------------------------\n */\n.list {\n  position: relative;\n  padding-top: 1px;\n  padding-bottom: 1px;\n  padding-left: 0;\n  margin-bottom: 20px; }\n\n.list:last-child {\n  margin-bottom: 0px; }\n  .list:last-child.card {\n    margin-bottom: 40px; }\n\n/**\n * List Header\n * --------------------------------------------------\n */\n.list-header {\n  margin-top: 20px;\n  padding: 5px 15px;\n  background-color: transparent;\n  color: #222;\n  font-weight: bold; }\n\n.card.list .list-item {\n  padding-right: 1px;\n  padding-left: 1px; }\n\n/**\n * Cards and Inset Lists\n * --------------------------------------------------\n * A card and list-inset are close to the same thing, except a card as a box shadow.\n */\n.card,\n.list-inset {\n  overflow: hidden;\n  margin: 20px 10px;\n  border-radius: 2px;\n  background-color: #fff; }\n\n.card {\n  padding-top: 1px;\n  padding-bottom: 1px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }\n  .card .item {\n    border-left: 0;\n    border-right: 0; }\n  .card .item:first-child {\n    border-top: 0; }\n  .card .item:last-child {\n    border-bottom: 0; }\n\n.padding .card, .padding .list-inset {\n  margin-left: 0;\n  margin-right: 0; }\n\n.card .item:first-child,\n.list-inset .item:first-child,\n.padding > .list .item:first-child {\n  border-top-left-radius: 2px;\n  border-top-right-radius: 2px; }\n  .card .item:first-child .item-content,\n  .list-inset .item:first-child .item-content,\n  .padding > .list .item:first-child .item-content {\n    border-top-left-radius: 2px;\n    border-top-right-radius: 2px; }\n\n.card .item:last-child,\n.list-inset .item:last-child,\n.padding > .list .item:last-child {\n  border-bottom-right-radius: 2px;\n  border-bottom-left-radius: 2px; }\n  .card .item:last-child .item-content,\n  .list-inset .item:last-child .item-content,\n  .padding > .list .item:last-child .item-content {\n    border-bottom-right-radius: 2px;\n    border-bottom-left-radius: 2px; }\n\n.card .item:last-child,\n.list-inset .item:last-child {\n  margin-bottom: -1px; }\n\n.card .item,\n.list-inset .item,\n.padding > .list .item,\n.padding-horizontal > .list .item {\n  margin-right: 0;\n  margin-left: 0; }\n  .card .item.item-input input,\n  .list-inset .item.item-input input,\n  .padding > .list .item.item-input input,\n  .padding-horizontal > .list .item.item-input input {\n    padding-right: 44px; }\n\n.padding-left > .list .item {\n  margin-left: 0; }\n\n.padding-right > .list .item {\n  margin-right: 0; }\n\n/**\n * Badges\n * --------------------------------------------------\n */\n.badge {\n  background-color: transparent;\n  color: #AAAAAA;\n  z-index: 1;\n  display: inline-block;\n  padding: 3px 8px;\n  min-width: 10px;\n  border-radius: 10px;\n  vertical-align: baseline;\n  text-align: center;\n  white-space: nowrap;\n  font-weight: bold;\n  font-size: 14px;\n  line-height: 16px; }\n  .badge:empty {\n    display: none; }\n\n.tabs .tab-item .badge.badge-light,\n.badge.badge-light {\n  background-color: #fff;\n  color: #444; }\n\n.tabs .tab-item .badge.badge-stable,\n.badge.badge-stable {\n  background-color: #f8f8f8;\n  color: #444; }\n\n.tabs .tab-item .badge.badge-positive,\n.badge.badge-positive {\n  background-color: #387ef5;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-calm,\n.badge.badge-calm {\n  background-color: #11c1f3;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-assertive,\n.badge.badge-assertive {\n  background-color: #ef473a;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-balanced,\n.badge.badge-balanced {\n  background-color: #33cd5f;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-energized,\n.badge.badge-energized {\n  background-color: #ffc900;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-royal,\n.badge.badge-royal {\n  background-color: #886aea;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-dark,\n.badge.badge-dark {\n  background-color: #444;\n  color: #fff; }\n\n.button .badge {\n  position: relative;\n  top: -1px; }\n\n/**\n * Slide Box\n * --------------------------------------------------\n */\n.slider {\n  position: relative;\n  visibility: hidden;\n  overflow: hidden; }\n\n.slider-slides {\n  position: relative;\n  height: 100%; }\n\n.slider-slide {\n  position: relative;\n  display: block;\n  float: left;\n  width: 100%;\n  height: 100%;\n  vertical-align: top; }\n\n.slider-slide-image > img {\n  width: 100%; }\n\n.slider-pager {\n  position: absolute;\n  bottom: 20px;\n  z-index: 1;\n  width: 100%;\n  height: 15px;\n  text-align: center; }\n  .slider-pager .slider-pager-page {\n    display: inline-block;\n    margin: 0px 3px;\n    width: 15px;\n    color: #000;\n    text-decoration: none;\n    opacity: 0.3; }\n    .slider-pager .slider-pager-page.active {\n      -webkit-transition: opacity 0.4s ease-in;\n      transition: opacity 0.4s ease-in;\n      opacity: 1; }\n\n.slider-slide.ng-enter,\n.slider-slide.ng-leave,\n.slider-slide.ng-animate,\n.slider-pager-page.ng-enter,\n.slider-pager-page.ng-leave,\n.slider-pager-page.ng-animate {\n  -webkit-transition: none !important;\n  transition: none !important; }\n\n.slider-slide.ng-animate,\n.slider-pager-page.ng-animate {\n  -webkit-animation: none 0s;\n  animation: none 0s; }\n\n.scroll-refresher {\n  position: absolute;\n  top: -60px;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  margin: auto;\n  height: 60px; }\n  .scroll-refresher .ionic-refresher-content {\n    position: absolute;\n    bottom: 15px;\n    left: 0;\n    width: 100%;\n    color: #666666;\n    text-align: center;\n    font-size: 30px; }\n    .scroll-refresher .ionic-refresher-content .text-refreshing,\n    .scroll-refresher .ionic-refresher-content .text-pulling {\n      font-size: 16px;\n      line-height: 16px; }\n    .scroll-refresher .ionic-refresher-content.ionic-refresher-with-text {\n      bottom: 10px; }\n  .scroll-refresher .icon-refreshing,\n  .scroll-refresher .icon-pulling {\n    width: 100%;\n    -webkit-backface-visibility: hidden;\n    backface-visibility: hidden;\n    -webkit-transform-style: preserve-3d;\n    transform-style: preserve-3d; }\n  .scroll-refresher .icon-pulling {\n    -webkit-animation-name: refresh-spin-back;\n    animation-name: refresh-spin-back;\n    -webkit-animation-duration: 200ms;\n    animation-duration: 200ms;\n    -webkit-animation-timing-function: linear;\n    animation-timing-function: linear;\n    -webkit-animation-fill-mode: none;\n    animation-fill-mode: none;\n    -webkit-transform: translate3d(0, 0, 0) rotate(0deg);\n    transform: translate3d(0, 0, 0) rotate(0deg); }\n  .scroll-refresher .icon-refreshing,\n  .scroll-refresher .text-refreshing {\n    display: none; }\n  .scroll-refresher .icon-refreshing {\n    -webkit-animation-duration: 1.5s;\n    animation-duration: 1.5s; }\n  .scroll-refresher.active .icon-pulling:not(.pulling-rotation-disabled) {\n    -webkit-animation-name: refresh-spin;\n    animation-name: refresh-spin;\n    -webkit-transform: translate3d(0, 0, 0) rotate(-180deg);\n    transform: translate3d(0, 0, 0) rotate(-180deg); }\n  .scroll-refresher.active.refreshing {\n    -webkit-transition: -webkit-transform 0.2s;\n    transition: -webkit-transform 0.2s;\n    -webkit-transition: transform 0.2s;\n    transition: transform 0.2s;\n    -webkit-transform: scale(1, 1);\n    transform: scale(1, 1); }\n    .scroll-refresher.active.refreshing .icon-pulling,\n    .scroll-refresher.active.refreshing .text-pulling {\n      display: none; }\n    .scroll-refresher.active.refreshing .icon-refreshing,\n    .scroll-refresher.active.refreshing .text-refreshing {\n      display: block; }\n    .scroll-refresher.active.refreshing.refreshing-tail {\n      -webkit-transform: scale(0, 0);\n      transform: scale(0, 0); }\n\n.overflow-scroll > .scroll {\n  -webkit-overflow-scrolling: touch;\n  width: 100%; }\n  .overflow-scroll > .scroll.overscroll {\n    position: fixed;\n    right: 0;\n    left: 0; }\n\n.overflow-scroll.padding > .scroll.overscroll {\n  padding: 10px; }\n\n@-webkit-keyframes refresh-spin {\n  0% {\n    -webkit-transform: translate3d(0, 0, 0) rotate(0); }\n  100% {\n    -webkit-transform: translate3d(0, 0, 0) rotate(180deg); } }\n\n@keyframes refresh-spin {\n  0% {\n    transform: translate3d(0, 0, 0) rotate(0); }\n  100% {\n    transform: translate3d(0, 0, 0) rotate(180deg); } }\n\n@-webkit-keyframes refresh-spin-back {\n  0% {\n    -webkit-transform: translate3d(0, 0, 0) rotate(180deg); }\n  100% {\n    -webkit-transform: translate3d(0, 0, 0) rotate(0); } }\n\n@keyframes refresh-spin-back {\n  0% {\n    transform: translate3d(0, 0, 0) rotate(180deg); }\n  100% {\n    transform: translate3d(0, 0, 0) rotate(0); } }\n\n/**\n * Spinners\n * --------------------------------------------------\n */\n.spinner {\n  stroke: #444;\n  fill: #444; }\n  .spinner svg {\n    width: 28px;\n    height: 28px; }\n  .spinner.spinner-light {\n    stroke: #fff;\n    fill: #fff; }\n  .spinner.spinner-stable {\n    stroke: #f8f8f8;\n    fill: #f8f8f8; }\n  .spinner.spinner-positive {\n    stroke: #387ef5;\n    fill: #387ef5; }\n  .spinner.spinner-calm {\n    stroke: #11c1f3;\n    fill: #11c1f3; }\n  .spinner.spinner-balanced {\n    stroke: #33cd5f;\n    fill: #33cd5f; }\n  .spinner.spinner-assertive {\n    stroke: #ef473a;\n    fill: #ef473a; }\n  .spinner.spinner-energized {\n    stroke: #ffc900;\n    fill: #ffc900; }\n  .spinner.spinner-royal {\n    stroke: #886aea;\n    fill: #886aea; }\n  .spinner.spinner-dark {\n    stroke: #444;\n    fill: #444; }\n\n.spinner-android {\n  stroke: #4b8bf4; }\n\n.spinner-ios,\n.spinner-ios-small {\n  stroke: #69717d; }\n\n.spinner-spiral .stop1 {\n  stop-color: #fff;\n  stop-opacity: 0; }\n\n.spinner-spiral.spinner-light .stop1 {\n  stop-color: #444; }\n\n.spinner-spiral.spinner-light .stop2 {\n  stop-color: #fff; }\n\n.spinner-spiral.spinner-stable .stop2 {\n  stop-color: #f8f8f8; }\n\n.spinner-spiral.spinner-positive .stop2 {\n  stop-color: #387ef5; }\n\n.spinner-spiral.spinner-calm .stop2 {\n  stop-color: #11c1f3; }\n\n.spinner-spiral.spinner-balanced .stop2 {\n  stop-color: #33cd5f; }\n\n.spinner-spiral.spinner-assertive .stop2 {\n  stop-color: #ef473a; }\n\n.spinner-spiral.spinner-energized .stop2 {\n  stop-color: #ffc900; }\n\n.spinner-spiral.spinner-royal .stop2 {\n  stop-color: #886aea; }\n\n.spinner-spiral.spinner-dark .stop2 {\n  stop-color: #444; }\n\n/**\n * Forms\n * --------------------------------------------------\n */\nform {\n  margin: 0 0 1.42857; }\n\nlegend {\n  display: block;\n  margin-bottom: 1.42857;\n  padding: 0;\n  width: 100%;\n  border: 1px solid #ddd;\n  color: #444;\n  font-size: 21px;\n  line-height: 2.85714; }\n  legend small {\n    color: #f8f8f8;\n    font-size: 1.07143; }\n\nlabel,\ninput,\nbutton,\nselect,\ntextarea {\n  font-weight: normal;\n  font-size: 14px;\n  line-height: 1.42857; }\n\ninput,\nbutton,\nselect,\ntextarea {\n  font-family: \"Helvetica Neue\", \"Roboto\", \"Segoe UI\", sans-serif; }\n\n.item-input {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: relative;\n  overflow: hidden;\n  padding: 6px 0 5px 16px; }\n  .item-input input {\n    -webkit-border-radius: 0;\n    border-radius: 0;\n    -webkit-box-flex: 1;\n    -webkit-flex: 1 220px;\n    -moz-box-flex: 1;\n    -moz-flex: 1 220px;\n    -ms-flex: 1 220px;\n    flex: 1 220px;\n    -webkit-appearance: none;\n    -moz-appearance: none;\n    appearance: none;\n    margin: 0;\n    padding-right: 24px;\n    background-color: transparent; }\n  .item-input .button .icon {\n    -webkit-box-flex: 0;\n    -webkit-flex: 0 0 24px;\n    -moz-box-flex: 0;\n    -moz-flex: 0 0 24px;\n    -ms-flex: 0 0 24px;\n    flex: 0 0 24px;\n    position: static;\n    display: inline-block;\n    height: auto;\n    text-align: center;\n    font-size: 16px; }\n  .item-input .button-bar {\n    -webkit-border-radius: 0;\n    border-radius: 0;\n    -webkit-box-flex: 1;\n    -webkit-flex: 1 0 220px;\n    -moz-box-flex: 1;\n    -moz-flex: 1 0 220px;\n    -ms-flex: 1 0 220px;\n    flex: 1 0 220px;\n    -webkit-appearance: none;\n    -moz-appearance: none;\n    appearance: none; }\n  .item-input .icon {\n    min-width: 14px; }\n\n.platform-windowsphone .item-input input {\n  flex-shrink: 1; }\n\n.item-input-inset {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: relative;\n  overflow: hidden;\n  padding: 10.66667px; }\n\n.item-input-wrapper {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-flex: 1;\n  -webkit-flex: 1 0;\n  -moz-box-flex: 1;\n  -moz-flex: 1 0;\n  -ms-flex: 1 0;\n  flex: 1 0;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  -webkit-border-radius: 4px;\n  border-radius: 4px;\n  padding-right: 8px;\n  padding-left: 8px;\n  background: #eee; }\n\n.item-input-inset .item-input-wrapper input {\n  padding-left: 4px;\n  height: 29px;\n  background: transparent;\n  line-height: 18px; }\n\n.item-input-wrapper ~ .button {\n  margin-left: 10.66667px; }\n\n.input-label {\n  display: table;\n  padding: 7px 10px 7px 0px;\n  max-width: 200px;\n  width: 35%;\n  color: #444;\n  font-size: 16px; }\n\n.placeholder-icon {\n  color: #aaa; }\n  .placeholder-icon:first-child {\n    padding-right: 6px; }\n  .placeholder-icon:last-child {\n    padding-left: 6px; }\n\n.item-stacked-label {\n  display: block;\n  background-color: transparent;\n  box-shadow: none; }\n  .item-stacked-label .input-label, .item-stacked-label .icon {\n    display: inline-block;\n    padding: 4px 0 0 0px;\n    vertical-align: middle; }\n\n.item-stacked-label input,\n.item-stacked-label textarea {\n  -webkit-border-radius: 2px;\n  border-radius: 2px;\n  padding: 4px 8px 3px 0;\n  border: none;\n  background-color: #fff; }\n\n.item-stacked-label input {\n  overflow: hidden;\n  height: 46px; }\n\n.item-floating-label {\n  display: block;\n  background-color: transparent;\n  box-shadow: none; }\n  .item-floating-label .input-label {\n    position: relative;\n    padding: 5px 0 0 0;\n    opacity: 0;\n    top: 10px;\n    -webkit-transition: opacity 0.15s ease-in, top 0.2s linear;\n    transition: opacity 0.15s ease-in, top 0.2s linear; }\n    .item-floating-label .input-label.has-input {\n      opacity: 1;\n      top: 0;\n      -webkit-transition: opacity 0.15s ease-in, top 0.2s linear;\n      transition: opacity 0.15s ease-in, top 0.2s linear; }\n\ntextarea,\ninput[type=\"text\"],\ninput[type=\"password\"],\ninput[type=\"datetime\"],\ninput[type=\"datetime-local\"],\ninput[type=\"date\"],\ninput[type=\"month\"],\ninput[type=\"time\"],\ninput[type=\"week\"],\ninput[type=\"number\"],\ninput[type=\"email\"],\ninput[type=\"url\"],\ninput[type=\"search\"],\ninput[type=\"tel\"],\ninput[type=\"color\"] {\n  display: block;\n  padding-top: 2px;\n  padding-left: 0;\n  height: 34px;\n  color: #111;\n  vertical-align: middle;\n  font-size: 14px;\n  line-height: 16px; }\n\n.platform-ios input[type=\"datetime-local\"],\n.platform-ios input[type=\"date\"],\n.platform-ios input[type=\"month\"],\n.platform-ios input[type=\"time\"],\n.platform-ios input[type=\"week\"],\n.platform-android input[type=\"datetime-local\"],\n.platform-android input[type=\"date\"],\n.platform-android input[type=\"month\"],\n.platform-android input[type=\"time\"],\n.platform-android input[type=\"week\"] {\n  padding-top: 8px; }\n\n.item-input input,\n.item-input textarea {\n  width: 100%; }\n\ntextarea {\n  padding-left: 0; }\n  textarea::-moz-placeholder {\n    color: #aaaaaa; }\n  textarea:-ms-input-placeholder {\n    color: #aaaaaa; }\n  textarea::-webkit-input-placeholder {\n    color: #aaaaaa;\n    text-indent: -3px; }\n\ntextarea {\n  height: auto; }\n\ntextarea,\ninput[type=\"text\"],\ninput[type=\"password\"],\ninput[type=\"datetime\"],\ninput[type=\"datetime-local\"],\ninput[type=\"date\"],\ninput[type=\"month\"],\ninput[type=\"time\"],\ninput[type=\"week\"],\ninput[type=\"number\"],\ninput[type=\"email\"],\ninput[type=\"url\"],\ninput[type=\"search\"],\ninput[type=\"tel\"],\ninput[type=\"color\"] {\n  border: 0; }\n\ninput[type=\"radio\"],\ninput[type=\"checkbox\"] {\n  margin: 0;\n  line-height: normal; }\n\n.item-input input[type=\"file\"],\n.item-input input[type=\"image\"],\n.item-input input[type=\"submit\"],\n.item-input input[type=\"reset\"],\n.item-input input[type=\"button\"],\n.item-input input[type=\"radio\"],\n.item-input input[type=\"checkbox\"] {\n  width: auto; }\n\ninput[type=\"file\"] {\n  line-height: 34px; }\n\n.previous-input-focus,\n.cloned-text-input + input,\n.cloned-text-input + textarea {\n  position: absolute !important;\n  left: -9999px;\n  width: 200px; }\n\ninput::-moz-placeholder,\ntextarea::-moz-placeholder {\n  color: #aaaaaa; }\n\ninput:-ms-input-placeholder,\ntextarea:-ms-input-placeholder {\n  color: #aaaaaa; }\n\ninput::-webkit-input-placeholder,\ntextarea::-webkit-input-placeholder {\n  color: #aaaaaa;\n  text-indent: 0; }\n\ninput[disabled],\nselect[disabled],\ntextarea[disabled],\ninput[readonly]:not(.cloned-text-input),\ntextarea[readonly]:not(.cloned-text-input),\nselect[readonly] {\n  background-color: #f8f8f8;\n  cursor: not-allowed; }\n\ninput[type=\"radio\"][disabled],\ninput[type=\"checkbox\"][disabled],\ninput[type=\"radio\"][readonly],\ninput[type=\"checkbox\"][readonly] {\n  background-color: transparent; }\n\n/**\n * Checkbox\n * --------------------------------------------------\n */\n.checkbox {\n  position: relative;\n  display: inline-block;\n  padding: 7px 7px;\n  cursor: pointer; }\n  .checkbox input:before,\n  .checkbox .checkbox-icon:before {\n    border-color: #ddd; }\n  .checkbox input:checked:before,\n  .checkbox input:checked + .checkbox-icon:before {\n    background: #387ef5;\n    border-color: #387ef5; }\n\n.checkbox-light input:before,\n.checkbox-light .checkbox-icon:before {\n  border-color: #ddd; }\n\n.checkbox-light input:checked:before,\n.checkbox-light input:checked + .checkbox-icon:before {\n  background: #ddd;\n  border-color: #ddd; }\n\n.checkbox-stable input:before,\n.checkbox-stable .checkbox-icon:before {\n  border-color: #b2b2b2; }\n\n.checkbox-stable input:checked:before,\n.checkbox-stable input:checked + .checkbox-icon:before {\n  background: #b2b2b2;\n  border-color: #b2b2b2; }\n\n.checkbox-positive input:before,\n.checkbox-positive .checkbox-icon:before {\n  border-color: #387ef5; }\n\n.checkbox-positive input:checked:before,\n.checkbox-positive input:checked + .checkbox-icon:before {\n  background: #387ef5;\n  border-color: #387ef5; }\n\n.checkbox-calm input:before,\n.checkbox-calm .checkbox-icon:before {\n  border-color: #11c1f3; }\n\n.checkbox-calm input:checked:before,\n.checkbox-calm input:checked + .checkbox-icon:before {\n  background: #11c1f3;\n  border-color: #11c1f3; }\n\n.checkbox-assertive input:before,\n.checkbox-assertive .checkbox-icon:before {\n  border-color: #ef473a; }\n\n.checkbox-assertive input:checked:before,\n.checkbox-assertive input:checked + .checkbox-icon:before {\n  background: #ef473a;\n  border-color: #ef473a; }\n\n.checkbox-balanced input:before,\n.checkbox-balanced .checkbox-icon:before {\n  border-color: #33cd5f; }\n\n.checkbox-balanced input:checked:before,\n.checkbox-balanced input:checked + .checkbox-icon:before {\n  background: #33cd5f;\n  border-color: #33cd5f; }\n\n.checkbox-energized input:before,\n.checkbox-energized .checkbox-icon:before {\n  border-color: #ffc900; }\n\n.checkbox-energized input:checked:before,\n.checkbox-energized input:checked + .checkbox-icon:before {\n  background: #ffc900;\n  border-color: #ffc900; }\n\n.checkbox-royal input:before,\n.checkbox-royal .checkbox-icon:before {\n  border-color: #886aea; }\n\n.checkbox-royal input:checked:before,\n.checkbox-royal input:checked + .checkbox-icon:before {\n  background: #886aea;\n  border-color: #886aea; }\n\n.checkbox-dark input:before,\n.checkbox-dark .checkbox-icon:before {\n  border-color: #444; }\n\n.checkbox-dark input:checked:before,\n.checkbox-dark input:checked + .checkbox-icon:before {\n  background: #444;\n  border-color: #444; }\n\n.checkbox input:disabled:before,\n.checkbox input:disabled + .checkbox-icon:before {\n  border-color: #ddd; }\n\n.checkbox input:disabled:checked:before,\n.checkbox input:disabled:checked + .checkbox-icon:before {\n  background: #ddd; }\n\n.checkbox.checkbox-input-hidden input {\n  display: none !important; }\n\n.checkbox input,\n.checkbox-icon {\n  position: relative;\n  width: 28px;\n  height: 28px;\n  display: block;\n  border: 0;\n  background: transparent;\n  cursor: pointer;\n  -webkit-appearance: none; }\n  .checkbox input:before,\n  .checkbox-icon:before {\n    display: table;\n    width: 100%;\n    height: 100%;\n    border-width: 1px;\n    border-style: solid;\n    border-radius: 28px;\n    background: #fff;\n    content: ' ';\n    -webkit-transition: background-color 20ms ease-in-out;\n    transition: background-color 20ms ease-in-out; }\n\n.checkbox input:checked:before,\ninput:checked + .checkbox-icon:before {\n  border-width: 2px; }\n\n.checkbox input:after,\n.checkbox-icon:after {\n  -webkit-transition: opacity 0.05s ease-in-out;\n  transition: opacity 0.05s ease-in-out;\n  -webkit-transform: rotate(-45deg);\n  transform: rotate(-45deg);\n  position: absolute;\n  top: 33%;\n  left: 25%;\n  display: table;\n  width: 14px;\n  height: 6px;\n  border: 1px solid #fff;\n  border-top: 0;\n  border-right: 0;\n  content: ' ';\n  opacity: 0; }\n\n.platform-android .checkbox-platform input:before,\n.platform-android .checkbox-platform .checkbox-icon:before,\n.checkbox-square input:before,\n.checkbox-square .checkbox-icon:before {\n  border-radius: 2px;\n  width: 72%;\n  height: 72%;\n  margin-top: 14%;\n  margin-left: 14%;\n  border-width: 2px; }\n\n.platform-android .checkbox-platform input:after,\n.platform-android .checkbox-platform .checkbox-icon:after,\n.checkbox-square input:after,\n.checkbox-square .checkbox-icon:after {\n  border-width: 2px;\n  top: 19%;\n  left: 25%;\n  width: 13px;\n  height: 7px; }\n\n.grade-c .checkbox input:after,\n.grade-c .checkbox-icon:after {\n  -webkit-transform: rotate(0);\n  transform: rotate(0);\n  top: 3px;\n  left: 4px;\n  border: none;\n  color: #fff;\n  content: '\\2713';\n  font-weight: bold;\n  font-size: 20px; }\n\n.checkbox input:checked:after,\ninput:checked + .checkbox-icon:after {\n  opacity: 1; }\n\n.item-checkbox {\n  padding-left: 60px; }\n  .item-checkbox.active {\n    box-shadow: none; }\n\n.item-checkbox .checkbox {\n  position: absolute;\n  top: 50%;\n  right: 8px;\n  left: 8px;\n  z-index: 3;\n  margin-top: -21px; }\n\n.item-checkbox.item-checkbox-right {\n  padding-right: 60px;\n  padding-left: 16px; }\n\n.item-checkbox-right .checkbox input,\n.item-checkbox-right .checkbox-icon {\n  float: right; }\n\n/**\n * Toggle\n * --------------------------------------------------\n */\n.item-toggle {\n  pointer-events: none; }\n\n.toggle {\n  position: relative;\n  display: inline-block;\n  pointer-events: auto;\n  margin: -5px;\n  padding: 5px; }\n  .toggle input:checked + .track {\n    border-color: #4cd964;\n    background-color: #4cd964; }\n  .toggle.dragging .handle {\n    background-color: #f2f2f2 !important; }\n\n.toggle.toggle-light input:checked + .track {\n  border-color: #ddd;\n  background-color: #ddd; }\n\n.toggle.toggle-stable input:checked + .track {\n  border-color: #b2b2b2;\n  background-color: #b2b2b2; }\n\n.toggle.toggle-positive input:checked + .track {\n  border-color: #387ef5;\n  background-color: #387ef5; }\n\n.toggle.toggle-calm input:checked + .track {\n  border-color: #11c1f3;\n  background-color: #11c1f3; }\n\n.toggle.toggle-assertive input:checked + .track {\n  border-color: #ef473a;\n  background-color: #ef473a; }\n\n.toggle.toggle-balanced input:checked + .track {\n  border-color: #33cd5f;\n  background-color: #33cd5f; }\n\n.toggle.toggle-energized input:checked + .track {\n  border-color: #ffc900;\n  background-color: #ffc900; }\n\n.toggle.toggle-royal input:checked + .track {\n  border-color: #886aea;\n  background-color: #886aea; }\n\n.toggle.toggle-dark input:checked + .track {\n  border-color: #444;\n  background-color: #444; }\n\n.toggle input {\n  display: none; }\n\n/* the track appearance when the toggle is \"off\" */\n.toggle .track {\n  -webkit-transition-timing-function: ease-in-out;\n  transition-timing-function: ease-in-out;\n  -webkit-transition-duration: 0.3s;\n  transition-duration: 0.3s;\n  -webkit-transition-property: background-color, border;\n  transition-property: background-color, border;\n  display: inline-block;\n  box-sizing: border-box;\n  width: 51px;\n  height: 31px;\n  border: solid 2px #e6e6e6;\n  border-radius: 20px;\n  background-color: #fff;\n  content: ' ';\n  cursor: pointer;\n  pointer-events: none; }\n\n/* Fix to avoid background color bleeding */\n/* (occured on (at least) Android 4.2, Asus MeMO Pad HD7 ME173X) */\n.platform-android4_2 .toggle .track {\n  -webkit-background-clip: padding-box; }\n\n/* the handle (circle) thats inside the toggle's track area */\n/* also the handle's appearance when it is \"off\" */\n.toggle .handle {\n  -webkit-transition: 0.3s cubic-bezier(0, 1.1, 1, 1.1);\n  transition: 0.3s cubic-bezier(0, 1.1, 1, 1.1);\n  -webkit-transition-property: background-color, transform;\n  transition-property: background-color, transform;\n  position: absolute;\n  display: block;\n  width: 27px;\n  height: 27px;\n  border-radius: 27px;\n  background-color: #fff;\n  top: 7px;\n  left: 7px;\n  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.15); }\n  .toggle .handle:before {\n    position: absolute;\n    top: -4px;\n    left: -21.5px;\n    padding: 18.5px 34px;\n    content: \" \"; }\n\n.toggle input:checked + .track .handle {\n  -webkit-transform: translate3d(20px, 0, 0);\n  transform: translate3d(20px, 0, 0);\n  background-color: #fff; }\n\n.item-toggle.active {\n  box-shadow: none; }\n\n.item-toggle,\n.item-toggle.item-complex .item-content {\n  padding-right: 99px; }\n\n.item-toggle.item-complex {\n  padding-right: 0; }\n\n.item-toggle .toggle {\n  position: absolute;\n  top: 10px;\n  right: 16px;\n  z-index: 3; }\n\n.toggle input:disabled + .track {\n  opacity: .6; }\n\n.toggle-small .track {\n  border: 0;\n  width: 34px;\n  height: 15px;\n  background: #9e9e9e; }\n\n.toggle-small input:checked + .track {\n  background: rgba(0, 150, 137, 0.5); }\n\n.toggle-small .handle {\n  top: 2px;\n  left: 4px;\n  width: 21px;\n  height: 21px;\n  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25); }\n\n.toggle-small input:checked + .track .handle {\n  -webkit-transform: translate3d(16px, 0, 0);\n  transform: translate3d(16px, 0, 0);\n  background: #009689; }\n\n.toggle-small.item-toggle .toggle {\n  top: 19px; }\n\n.toggle-small .toggle-light input:checked + .track {\n  background-color: rgba(221, 221, 221, 0.5); }\n\n.toggle-small .toggle-light input:checked + .track .handle {\n  background-color: #ddd; }\n\n.toggle-small .toggle-stable input:checked + .track {\n  background-color: rgba(178, 178, 178, 0.5); }\n\n.toggle-small .toggle-stable input:checked + .track .handle {\n  background-color: #b2b2b2; }\n\n.toggle-small .toggle-positive input:checked + .track {\n  background-color: rgba(56, 126, 245, 0.5); }\n\n.toggle-small .toggle-positive input:checked + .track .handle {\n  background-color: #387ef5; }\n\n.toggle-small .toggle-calm input:checked + .track {\n  background-color: rgba(17, 193, 243, 0.5); }\n\n.toggle-small .toggle-calm input:checked + .track .handle {\n  background-color: #11c1f3; }\n\n.toggle-small .toggle-assertive input:checked + .track {\n  background-color: rgba(239, 71, 58, 0.5); }\n\n.toggle-small .toggle-assertive input:checked + .track .handle {\n  background-color: #ef473a; }\n\n.toggle-small .toggle-balanced input:checked + .track {\n  background-color: rgba(51, 205, 95, 0.5); }\n\n.toggle-small .toggle-balanced input:checked + .track .handle {\n  background-color: #33cd5f; }\n\n.toggle-small .toggle-energized input:checked + .track {\n  background-color: rgba(255, 201, 0, 0.5); }\n\n.toggle-small .toggle-energized input:checked + .track .handle {\n  background-color: #ffc900; }\n\n.toggle-small .toggle-royal input:checked + .track {\n  background-color: rgba(136, 106, 234, 0.5); }\n\n.toggle-small .toggle-royal input:checked + .track .handle {\n  background-color: #886aea; }\n\n.toggle-small .toggle-dark input:checked + .track {\n  background-color: rgba(68, 68, 68, 0.5); }\n\n.toggle-small .toggle-dark input:checked + .track .handle {\n  background-color: #444; }\n\n/**\n * Radio Button Inputs\n * --------------------------------------------------\n */\n.item-radio {\n  padding: 0; }\n  .item-radio:hover {\n    cursor: pointer; }\n\n.item-radio .item-content {\n  /* give some room to the right for the checkmark icon */\n  padding-right: 64px; }\n\n.item-radio .radio-icon {\n  /* checkmark icon will be hidden by default */\n  position: absolute;\n  top: 0;\n  right: 0;\n  z-index: 3;\n  visibility: hidden;\n  padding: 14px;\n  height: 100%;\n  font-size: 24px; }\n\n.item-radio input {\n  /* hide any radio button inputs elements (the ugly circles) */\n  position: absolute;\n  left: -9999px; }\n  .item-radio input:checked + .radio-content .item-content {\n    /* style the item content when its checked */\n    background: #f7f7f7; }\n  .item-radio input:checked + .radio-content .radio-icon {\n    /* show the checkmark icon when its checked */\n    visibility: visible; }\n\n/**\n * Range\n * --------------------------------------------------\n */\n.range input {\n  display: inline-block;\n  overflow: hidden;\n  margin-top: 5px;\n  margin-bottom: 5px;\n  padding-right: 2px;\n  padding-left: 1px;\n  width: auto;\n  height: 43px;\n  outline: none;\n  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ccc), color-stop(100%, #ccc));\n  background: linear-gradient(to right, #ccc 0%, #ccc 100%);\n  background-position: center;\n  background-size: 99% 2px;\n  background-repeat: no-repeat;\n  -webkit-appearance: none; }\n  .range input::-webkit-slider-thumb {\n    position: relative;\n    width: 28px;\n    height: 28px;\n    border-radius: 50%;\n    background-color: #fff;\n    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2);\n    cursor: pointer;\n    -webkit-appearance: none;\n    border: 0; }\n  .range input::-webkit-slider-thumb:before {\n    /* what creates the colorful line on the left side of the slider */\n    position: absolute;\n    top: 13px;\n    left: -2001px;\n    width: 2000px;\n    height: 2px;\n    background: #444;\n    content: ' '; }\n  .range input::-webkit-slider-thumb:after {\n    /* create a larger (but hidden) hit area */\n    position: absolute;\n    top: -15px;\n    left: -15px;\n    padding: 30px;\n    content: ' '; }\n  .range input::-ms-track {\n    background: transparent;\n    border-color: transparent;\n    border-width: 11px 0 16px;\n    color: transparent;\n    margin-top: 20px; }\n  .range input::-ms-thumb {\n    width: 28px;\n    height: 28px;\n    border-radius: 50%;\n    background-color: #fff;\n    border-color: #fff;\n    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2);\n    margin-left: 1px;\n    margin-right: 1px;\n    outline: none; }\n  .range input::-ms-fill-lower {\n    height: 2px;\n    background: #444; }\n  .range input::-ms-fill-upper {\n    height: 2px;\n    background: #ccc; }\n\n.range {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  padding: 2px 11px; }\n  .range.range-light input::-webkit-slider-thumb:before {\n    background: #ddd; }\n  .range.range-light input::-ms-fill-lower {\n    background: #ddd; }\n  .range.range-stable input::-webkit-slider-thumb:before {\n    background: #b2b2b2; }\n  .range.range-stable input::-ms-fill-lower {\n    background: #b2b2b2; }\n  .range.range-positive input::-webkit-slider-thumb:before {\n    background: #387ef5; }\n  .range.range-positive input::-ms-fill-lower {\n    background: #387ef5; }\n  .range.range-calm input::-webkit-slider-thumb:before {\n    background: #11c1f3; }\n  .range.range-calm input::-ms-fill-lower {\n    background: #11c1f3; }\n  .range.range-balanced input::-webkit-slider-thumb:before {\n    background: #33cd5f; }\n  .range.range-balanced input::-ms-fill-lower {\n    background: #33cd5f; }\n  .range.range-assertive input::-webkit-slider-thumb:before {\n    background: #ef473a; }\n  .range.range-assertive input::-ms-fill-lower {\n    background: #ef473a; }\n  .range.range-energized input::-webkit-slider-thumb:before {\n    background: #ffc900; }\n  .range.range-energized input::-ms-fill-lower {\n    background: #ffc900; }\n  .range.range-royal input::-webkit-slider-thumb:before {\n    background: #886aea; }\n  .range.range-royal input::-ms-fill-lower {\n    background: #886aea; }\n  .range.range-dark input::-webkit-slider-thumb:before {\n    background: #444; }\n  .range.range-dark input::-ms-fill-lower {\n    background: #444; }\n\n.range .icon {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0;\n  -moz-box-flex: 0;\n  -moz-flex: 0;\n  -ms-flex: 0;\n  flex: 0;\n  display: block;\n  min-width: 24px;\n  text-align: center;\n  font-size: 24px; }\n\n.range input {\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  display: block;\n  margin-right: 10px;\n  margin-left: 10px; }\n\n.range-label {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 auto;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 auto;\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n  display: block;\n  white-space: nowrap; }\n\n.range-label:first-child {\n  padding-left: 5px; }\n\n.range input + .range-label {\n  padding-right: 5px;\n  padding-left: 0; }\n\n.platform-windowsphone .range input {\n  height: auto; }\n\n/**\n * Select\n * --------------------------------------------------\n */\n.item-select {\n  position: relative; }\n  .item-select select {\n    -webkit-appearance: none;\n    -moz-appearance: none;\n    appearance: none;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    right: 0;\n    padding: 0 48px 0 16px;\n    max-width: 65%;\n    border: none;\n    background: #fff;\n    color: #333;\n    text-indent: .01px;\n    text-overflow: '';\n    white-space: nowrap;\n    font-size: 14px;\n    cursor: pointer;\n    direction: rtl; }\n  .item-select select::-ms-expand {\n    display: none; }\n  .item-select option {\n    direction: ltr; }\n  .item-select:after {\n    position: absolute;\n    top: 50%;\n    right: 16px;\n    margin-top: -3px;\n    width: 0;\n    height: 0;\n    border-top: 5px solid;\n    border-right: 5px solid transparent;\n    border-left: 5px solid transparent;\n    color: #999;\n    content: \"\";\n    pointer-events: none; }\n  .item-select.item-light select {\n    background: #fff;\n    color: #444; }\n  .item-select.item-stable select {\n    background: #f8f8f8;\n    color: #444; }\n  .item-select.item-stable:after, .item-select.item-stable .input-label {\n    color: #656565; }\n  .item-select.item-positive select {\n    background: #387ef5;\n    color: #fff; }\n  .item-select.item-positive:after, .item-select.item-positive .input-label {\n    color: #fff; }\n  .item-select.item-calm select {\n    background: #11c1f3;\n    color: #fff; }\n  .item-select.item-calm:after, .item-select.item-calm .input-label {\n    color: #fff; }\n  .item-select.item-assertive select {\n    background: #ef473a;\n    color: #fff; }\n  .item-select.item-assertive:after, .item-select.item-assertive .input-label {\n    color: #fff; }\n  .item-select.item-balanced select {\n    background: #33cd5f;\n    color: #fff; }\n  .item-select.item-balanced:after, .item-select.item-balanced .input-label {\n    color: #fff; }\n  .item-select.item-energized select {\n    background: #ffc900;\n    color: #fff; }\n  .item-select.item-energized:after, .item-select.item-energized .input-label {\n    color: #fff; }\n  .item-select.item-royal select {\n    background: #886aea;\n    color: #fff; }\n  .item-select.item-royal:after, .item-select.item-royal .input-label {\n    color: #fff; }\n  .item-select.item-dark select {\n    background: #444;\n    color: #fff; }\n  .item-select.item-dark:after, .item-select.item-dark .input-label {\n    color: #fff; }\n\nselect[multiple],\nselect[size] {\n  height: auto; }\n\n/**\n * Progress\n * --------------------------------------------------\n */\nprogress {\n  display: block;\n  margin: 15px auto;\n  width: 100%; }\n\n/**\n * Buttons\n * --------------------------------------------------\n */\n.button {\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  color: #444;\n  position: relative;\n  display: inline-block;\n  margin: 0;\n  padding: 0 12px;\n  min-width: 52px;\n  min-height: 47px;\n  border-width: 1px;\n  border-style: solid;\n  border-radius: 2px;\n  vertical-align: top;\n  text-align: center;\n  text-overflow: ellipsis;\n  font-size: 16px;\n  line-height: 42px;\n  cursor: pointer; }\n  .button:hover {\n    color: #444;\n    text-decoration: none; }\n  .button.active,\n  .button.activated {\n    border-color: #a2a2a2;\n    background-color: #e5e5e5;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .button:after {\n    position: absolute;\n    top: -6px;\n    right: -6px;\n    bottom: -6px;\n    left: -6px;\n    content: ' '; }\n  .button .icon {\n    vertical-align: top;\n    pointer-events: none; }\n  .button .icon:before,\n  .button.icon:before,\n  .button.icon-left:before,\n  .button.icon-right:before {\n    display: inline-block;\n    padding: 0 0 1px 0;\n    vertical-align: inherit;\n    font-size: 24px;\n    line-height: 41px;\n    pointer-events: none; }\n  .button.icon-left:before {\n    float: left;\n    padding-right: .2em;\n    padding-left: 0; }\n  .button.icon-right:before {\n    float: right;\n    padding-right: 0;\n    padding-left: .2em; }\n  .button.button-block, .button.button-full {\n    margin-top: 10px;\n    margin-bottom: 10px; }\n  .button.button-light {\n    border-color: #ddd;\n    background-color: #fff;\n    color: #444; }\n    .button.button-light:hover {\n      color: #444;\n      text-decoration: none; }\n    .button.button-light.active,\n    .button.button-light.activated {\n      border-color: #ccc;\n      background-color: #fafafa;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-light.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #ddd; }\n    .button.button-light.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-light.button-outline {\n      border-color: #ddd;\n      background: transparent;\n      color: #ddd; }\n      .button.button-light.button-outline.active,\n      .button.button-light.button-outline.activated {\n        background-color: #ddd;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-stable {\n    border-color: #b2b2b2;\n    background-color: #f8f8f8;\n    color: #444; }\n    .button.button-stable:hover {\n      color: #444;\n      text-decoration: none; }\n    .button.button-stable.active,\n    .button.button-stable.activated {\n      border-color: #a2a2a2;\n      background-color: #e5e5e5;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-stable.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #b2b2b2; }\n    .button.button-stable.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-stable.button-outline {\n      border-color: #b2b2b2;\n      background: transparent;\n      color: #b2b2b2; }\n      .button.button-stable.button-outline.active,\n      .button.button-stable.button-outline.activated {\n        background-color: #b2b2b2;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-positive {\n    border-color: #0c60ee;\n    background-color: #387ef5;\n    color: #fff; }\n    .button.button-positive:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-positive.active,\n    .button.button-positive.activated {\n      border-color: #0c60ee;\n      background-color: #0c60ee;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-positive.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #387ef5; }\n    .button.button-positive.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-positive.button-outline {\n      border-color: #387ef5;\n      background: transparent;\n      color: #387ef5; }\n      .button.button-positive.button-outline.active,\n      .button.button-positive.button-outline.activated {\n        background-color: #387ef5;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-calm {\n    border-color: #0a9dc7;\n    background-color: #11c1f3;\n    color: #fff; }\n    .button.button-calm:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-calm.active,\n    .button.button-calm.activated {\n      border-color: #0a9dc7;\n      background-color: #0a9dc7;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-calm.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #11c1f3; }\n    .button.button-calm.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-calm.button-outline {\n      border-color: #11c1f3;\n      background: transparent;\n      color: #11c1f3; }\n      .button.button-calm.button-outline.active,\n      .button.button-calm.button-outline.activated {\n        background-color: #11c1f3;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-assertive {\n    border-color: #e42112;\n    background-color: #ef473a;\n    color: #fff; }\n    .button.button-assertive:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-assertive.active,\n    .button.button-assertive.activated {\n      border-color: #e42112;\n      background-color: #e42112;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-assertive.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #ef473a; }\n    .button.button-assertive.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-assertive.button-outline {\n      border-color: #ef473a;\n      background: transparent;\n      color: #ef473a; }\n      .button.button-assertive.button-outline.active,\n      .button.button-assertive.button-outline.activated {\n        background-color: #ef473a;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-balanced {\n    border-color: #28a54c;\n    background-color: #33cd5f;\n    color: #fff; }\n    .button.button-balanced:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-balanced.active,\n    .button.button-balanced.activated {\n      border-color: #28a54c;\n      background-color: #28a54c;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-balanced.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #33cd5f; }\n    .button.button-balanced.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-balanced.button-outline {\n      border-color: #33cd5f;\n      background: transparent;\n      color: #33cd5f; }\n      .button.button-balanced.button-outline.active,\n      .button.button-balanced.button-outline.activated {\n        background-color: #33cd5f;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-energized {\n    border-color: #e6b500;\n    background-color: #ffc900;\n    color: #fff; }\n    .button.button-energized:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-energized.active,\n    .button.button-energized.activated {\n      border-color: #e6b500;\n      background-color: #e6b500;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-energized.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #ffc900; }\n    .button.button-energized.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-energized.button-outline {\n      border-color: #ffc900;\n      background: transparent;\n      color: #ffc900; }\n      .button.button-energized.button-outline.active,\n      .button.button-energized.button-outline.activated {\n        background-color: #ffc900;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-royal {\n    border-color: #6b46e5;\n    background-color: #886aea;\n    color: #fff; }\n    .button.button-royal:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-royal.active,\n    .button.button-royal.activated {\n      border-color: #6b46e5;\n      background-color: #6b46e5;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-royal.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #886aea; }\n    .button.button-royal.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-royal.button-outline {\n      border-color: #886aea;\n      background: transparent;\n      color: #886aea; }\n      .button.button-royal.button-outline.active,\n      .button.button-royal.button-outline.activated {\n        background-color: #886aea;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-dark {\n    border-color: #111;\n    background-color: #444;\n    color: #fff; }\n    .button.button-dark:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-dark.active,\n    .button.button-dark.activated {\n      border-color: #000;\n      background-color: #262626;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-dark.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #444; }\n    .button.button-dark.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-dark.button-outline {\n      border-color: #444;\n      background: transparent;\n      color: #444; }\n      .button.button-dark.button-outline.active,\n      .button.button-dark.button-outline.activated {\n        background-color: #444;\n        box-shadow: none;\n        color: #fff; }\n\n.button-small {\n  padding: 2px 4px 1px;\n  min-width: 28px;\n  min-height: 30px;\n  font-size: 12px;\n  line-height: 26px; }\n  .button-small .icon:before,\n  .button-small.icon:before,\n  .button-small.icon-left:before,\n  .button-small.icon-right:before {\n    font-size: 16px;\n    line-height: 19px;\n    margin-top: 3px; }\n\n.button-large {\n  padding: 0 16px;\n  min-width: 68px;\n  min-height: 59px;\n  font-size: 20px;\n  line-height: 53px; }\n  .button-large .icon:before,\n  .button-large.icon:before,\n  .button-large.icon-left:before,\n  .button-large.icon-right:before {\n    padding-bottom: 2px;\n    font-size: 32px;\n    line-height: 51px; }\n\n.button-icon {\n  -webkit-transition: opacity 0.1s;\n  transition: opacity 0.1s;\n  padding: 0 6px;\n  min-width: initial;\n  border-color: transparent;\n  background: none; }\n  .button-icon.button.active,\n  .button-icon.button.activated {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    opacity: 0.3; }\n  .button-icon .icon:before,\n  .button-icon.icon:before {\n    font-size: 32px; }\n\n.button-clear {\n  -webkit-transition: opacity 0.1s;\n  transition: opacity 0.1s;\n  padding: 0 6px;\n  max-height: 42px;\n  border-color: transparent;\n  background: none;\n  box-shadow: none; }\n  .button-clear.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #b2b2b2; }\n  .button-clear.button-icon {\n    border-color: transparent;\n    background: none; }\n  .button-clear.active,\n  .button-clear.activated {\n    opacity: 0.3; }\n\n.button-outline {\n  -webkit-transition: opacity 0.1s;\n  transition: opacity 0.1s;\n  background: none;\n  box-shadow: none; }\n  .button-outline.button-outline {\n    border-color: #b2b2b2;\n    background: transparent;\n    color: #b2b2b2; }\n    .button-outline.button-outline.active,\n    .button-outline.button-outline.activated {\n      background-color: #b2b2b2;\n      box-shadow: none;\n      color: #fff; }\n\n.padding > .button.button-block:first-child {\n  margin-top: 0; }\n\n.button-block {\n  display: block;\n  clear: both; }\n  .button-block:after {\n    clear: both; }\n\n.button-full,\n.button-full > .button {\n  display: block;\n  margin-right: 0;\n  margin-left: 0;\n  border-right-width: 0;\n  border-left-width: 0;\n  border-radius: 0; }\n\nbutton.button-block,\nbutton.button-full,\n.button-full > button.button,\ninput.button.button-block {\n  width: 100%; }\n\na.button {\n  text-decoration: none; }\n  a.button .icon:before,\n  a.button.icon:before,\n  a.button.icon-left:before,\n  a.button.icon-right:before {\n    margin-top: 2px; }\n\n.button.disabled,\n.button[disabled] {\n  opacity: .4;\n  cursor: default !important;\n  pointer-events: none; }\n\n/**\n * Button Bar\n * --------------------------------------------------\n */\n.button-bar {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  width: 100%; }\n  .button-bar.button-bar-inline {\n    display: block;\n    width: auto;\n    *zoom: 1; }\n    .button-bar.button-bar-inline:before,\n    .button-bar.button-bar-inline:after {\n      display: table;\n      content: \"\";\n      line-height: 0; }\n    .button-bar.button-bar-inline:after {\n      clear: both; }\n    .button-bar.button-bar-inline > .button {\n      width: auto;\n      display: inline-block;\n      float: left; }\n\n.button-bar > .button {\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  display: block;\n  overflow: hidden;\n  padding: 0 16px;\n  width: 0;\n  border-width: 1px 0px 1px 1px;\n  border-radius: 0;\n  text-align: center;\n  text-overflow: ellipsis;\n  white-space: nowrap; }\n  .button-bar > .button:before,\n  .button-bar > .button .icon:before {\n    line-height: 44px; }\n  .button-bar > .button:first-child {\n    border-radius: 2px 0px 0px 2px; }\n  .button-bar > .button:last-child {\n    border-right-width: 1px;\n    border-radius: 0px 2px 2px 0px; }\n\n.button-bar > .button-small:before,\n.button-bar > .button-small .icon:before {\n  line-height: 28px; }\n\n/**\n * Grid\n * --------------------------------------------------\n * Using flexbox for the grid, inspired by Philip Walton:\n * http://philipwalton.github.io/solved-by-flexbox/demos/grids/\n * By default each .col within a .row will evenly take up\n * available width, and the height of each .col with take\n * up the height of the tallest .col in the same .row.\n */\n.row {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  padding: 5px;\n  width: 100%; }\n\n.row-wrap {\n  -webkit-flex-wrap: wrap;\n  -moz-flex-wrap: wrap;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap; }\n\n.row-no-padding {\n  padding: 0; }\n  .row-no-padding > .col {\n    padding: 0; }\n\n.row + .row {\n  margin-top: -5px;\n  padding-top: 0; }\n\n.col {\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  display: block;\n  padding: 5px;\n  width: 100%; }\n\n/* Vertically Align Columns */\n/* .row-* vertically aligns every .col in the .row */\n.row-top {\n  -webkit-box-align: start;\n  -ms-flex-align: start;\n  -webkit-align-items: flex-start;\n  -moz-align-items: flex-start;\n  align-items: flex-start; }\n\n.row-bottom {\n  -webkit-box-align: end;\n  -ms-flex-align: end;\n  -webkit-align-items: flex-end;\n  -moz-align-items: flex-end;\n  align-items: flex-end; }\n\n.row-center {\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center; }\n\n.row-stretch {\n  -webkit-box-align: stretch;\n  -ms-flex-align: stretch;\n  -webkit-align-items: stretch;\n  -moz-align-items: stretch;\n  align-items: stretch; }\n\n.row-baseline {\n  -webkit-box-align: baseline;\n  -ms-flex-align: baseline;\n  -webkit-align-items: baseline;\n  -moz-align-items: baseline;\n  align-items: baseline; }\n\n/* .col-* vertically aligns an individual .col */\n.col-top {\n  -webkit-align-self: flex-start;\n  -moz-align-self: flex-start;\n  -ms-flex-item-align: start;\n  align-self: flex-start; }\n\n.col-bottom {\n  -webkit-align-self: flex-end;\n  -moz-align-self: flex-end;\n  -ms-flex-item-align: end;\n  align-self: flex-end; }\n\n.col-center {\n  -webkit-align-self: center;\n  -moz-align-self: center;\n  -ms-flex-item-align: center;\n  align-self: center; }\n\n/* Column Offsets */\n.col-offset-10 {\n  margin-left: 10%; }\n\n.col-offset-20 {\n  margin-left: 20%; }\n\n.col-offset-25 {\n  margin-left: 25%; }\n\n.col-offset-33, .col-offset-34 {\n  margin-left: 33.3333%; }\n\n.col-offset-50 {\n  margin-left: 50%; }\n\n.col-offset-66, .col-offset-67 {\n  margin-left: 66.6666%; }\n\n.col-offset-75 {\n  margin-left: 75%; }\n\n.col-offset-80 {\n  margin-left: 80%; }\n\n.col-offset-90 {\n  margin-left: 90%; }\n\n/* Explicit Column Percent Sizes */\n/* By default each grid column will evenly distribute */\n/* across the grid. However, you can specify individual */\n/* columns to take up a certain size of the available area */\n.col-10 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 10%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 10%;\n  -ms-flex: 0 0 10%;\n  flex: 0 0 10%;\n  max-width: 10%; }\n\n.col-20 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 20%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 20%;\n  -ms-flex: 0 0 20%;\n  flex: 0 0 20%;\n  max-width: 20%; }\n\n.col-25 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 25%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 25%;\n  -ms-flex: 0 0 25%;\n  flex: 0 0 25%;\n  max-width: 25%; }\n\n.col-33, .col-34 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 33.3333%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 33.3333%;\n  -ms-flex: 0 0 33.3333%;\n  flex: 0 0 33.3333%;\n  max-width: 33.3333%; }\n\n.col-50 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 50%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 50%;\n  -ms-flex: 0 0 50%;\n  flex: 0 0 50%;\n  max-width: 50%; }\n\n.col-66, .col-67 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 66.6666%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 66.6666%;\n  -ms-flex: 0 0 66.6666%;\n  flex: 0 0 66.6666%;\n  max-width: 66.6666%; }\n\n.col-75 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 75%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 75%;\n  -ms-flex: 0 0 75%;\n  flex: 0 0 75%;\n  max-width: 75%; }\n\n.col-80 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 80%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 80%;\n  -ms-flex: 0 0 80%;\n  flex: 0 0 80%;\n  max-width: 80%; }\n\n.col-90 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 90%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 90%;\n  -ms-flex: 0 0 90%;\n  flex: 0 0 90%;\n  max-width: 90%; }\n\n/* Responsive Grid Classes */\n/* Adding a class of responsive-X to a row */\n/* will trigger the flex-direction to */\n/* change to column and add some margin */\n/* to any columns in the row for clearity */\n@media (max-width: 567px) {\n  .responsive-sm {\n    -webkit-box-direction: normal;\n    -moz-box-direction: normal;\n    -webkit-box-orient: vertical;\n    -moz-box-orient: vertical;\n    -webkit-flex-direction: column;\n    -ms-flex-direction: column;\n    flex-direction: column; }\n    .responsive-sm .col, .responsive-sm .col-10, .responsive-sm .col-20, .responsive-sm .col-25, .responsive-sm .col-33, .responsive-sm .col-34, .responsive-sm .col-50, .responsive-sm .col-66, .responsive-sm .col-67, .responsive-sm .col-75, .responsive-sm .col-80, .responsive-sm .col-90 {\n      -webkit-box-flex: 1;\n      -webkit-flex: 1;\n      -moz-box-flex: 1;\n      -moz-flex: 1;\n      -ms-flex: 1;\n      flex: 1;\n      margin-bottom: 15px;\n      margin-left: 0;\n      max-width: 100%;\n      width: 100%; } }\n\n@media (max-width: 767px) {\n  .responsive-md {\n    -webkit-box-direction: normal;\n    -moz-box-direction: normal;\n    -webkit-box-orient: vertical;\n    -moz-box-orient: vertical;\n    -webkit-flex-direction: column;\n    -ms-flex-direction: column;\n    flex-direction: column; }\n    .responsive-md .col, .responsive-md .col-10, .responsive-md .col-20, .responsive-md .col-25, .responsive-md .col-33, .responsive-md .col-34, .responsive-md .col-50, .responsive-md .col-66, .responsive-md .col-67, .responsive-md .col-75, .responsive-md .col-80, .responsive-md .col-90 {\n      -webkit-box-flex: 1;\n      -webkit-flex: 1;\n      -moz-box-flex: 1;\n      -moz-flex: 1;\n      -ms-flex: 1;\n      flex: 1;\n      margin-bottom: 15px;\n      margin-left: 0;\n      max-width: 100%;\n      width: 100%; } }\n\n@media (max-width: 1023px) {\n  .responsive-lg {\n    -webkit-box-direction: normal;\n    -moz-box-direction: normal;\n    -webkit-box-orient: vertical;\n    -moz-box-orient: vertical;\n    -webkit-flex-direction: column;\n    -ms-flex-direction: column;\n    flex-direction: column; }\n    .responsive-lg .col, .responsive-lg .col-10, .responsive-lg .col-20, .responsive-lg .col-25, .responsive-lg .col-33, .responsive-lg .col-34, .responsive-lg .col-50, .responsive-lg .col-66, .responsive-lg .col-67, .responsive-lg .col-75, .responsive-lg .col-80, .responsive-lg .col-90 {\n      -webkit-box-flex: 1;\n      -webkit-flex: 1;\n      -moz-box-flex: 1;\n      -moz-flex: 1;\n      -ms-flex: 1;\n      flex: 1;\n      margin-bottom: 15px;\n      margin-left: 0;\n      max-width: 100%;\n      width: 100%; } }\n\n/**\n * Utility Classes\n * --------------------------------------------------\n */\n.hide {\n  display: none; }\n\n.opacity-hide {\n  opacity: 0; }\n\n.grade-b .opacity-hide,\n.grade-c .opacity-hide {\n  opacity: 1;\n  display: none; }\n\n.show {\n  display: block; }\n\n.opacity-show {\n  opacity: 1; }\n\n.invisible {\n  visibility: hidden; }\n\n.keyboard-open .hide-on-keyboard-open {\n  display: none; }\n\n.keyboard-open .tabs.hide-on-keyboard-open + .pane .has-tabs,\n.keyboard-open .bar-footer.hide-on-keyboard-open + .pane .has-footer {\n  bottom: 0; }\n\n.inline {\n  display: inline-block; }\n\n.disable-pointer-events {\n  pointer-events: none; }\n\n.enable-pointer-events {\n  pointer-events: auto; }\n\n.disable-user-behavior {\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  -webkit-touch-callout: none;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-user-drag: none;\n  -ms-touch-action: none;\n  -ms-content-zooming: none; }\n\n.click-block {\n  position: absolute;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  opacity: 0;\n  z-index: 99999;\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0);\n  overflow: hidden; }\n\n.click-block-hide {\n  -webkit-transform: translate3d(-9999px, 0, 0);\n  transform: translate3d(-9999px, 0, 0); }\n\n.no-resize {\n  resize: none; }\n\n.block {\n  display: block;\n  clear: both; }\n  .block:after {\n    display: block;\n    visibility: hidden;\n    clear: both;\n    height: 0;\n    content: \".\"; }\n\n.full-image {\n  width: 100%; }\n\n.clearfix {\n  *zoom: 1; }\n  .clearfix:before,\n  .clearfix:after {\n    display: table;\n    content: \"\";\n    line-height: 0; }\n  .clearfix:after {\n    clear: both; }\n\n/**\n * Content Padding\n * --------------------------------------------------\n */\n.padding {\n  padding: 10px; }\n\n.padding-top,\n.padding-vertical {\n  padding-top: 10px; }\n\n.padding-right,\n.padding-horizontal {\n  padding-right: 10px; }\n\n.padding-bottom,\n.padding-vertical {\n  padding-bottom: 10px; }\n\n.padding-left,\n.padding-horizontal {\n  padding-left: 10px; }\n\n/**\n * Scrollable iFrames\n * --------------------------------------------------\n */\n.iframe-wrapper {\n  position: fixed;\n  -webkit-overflow-scrolling: touch;\n  overflow: scroll; }\n  .iframe-wrapper iframe {\n    height: 100%;\n    width: 100%; }\n\n/**\n * Rounded\n * --------------------------------------------------\n */\n.rounded {\n  border-radius: 4px; }\n\n/**\n * Utility Colors\n * --------------------------------------------------\n * Utility colors are added to help set a naming convention. You'll\n * notice we purposely do not use words like \"red\" or \"blue\", but\n * instead have colors which represent an emotion or generic theme.\n */\n.light, a.light {\n  color: #fff; }\n\n.light-bg {\n  background-color: #fff; }\n\n.light-border {\n  border-color: #ddd; }\n\n.stable, a.stable {\n  color: #f8f8f8; }\n\n.stable-bg {\n  background-color: #f8f8f8; }\n\n.stable-border {\n  border-color: #b2b2b2; }\n\n.positive, a.positive {\n  color: #387ef5; }\n\n.positive-bg {\n  background-color: #387ef5; }\n\n.positive-border {\n  border-color: #0c60ee; }\n\n.calm, a.calm {\n  color: #11c1f3; }\n\n.calm-bg {\n  background-color: #11c1f3; }\n\n.calm-border {\n  border-color: #0a9dc7; }\n\n.assertive, a.assertive {\n  color: #ef473a; }\n\n.assertive-bg {\n  background-color: #ef473a; }\n\n.assertive-border {\n  border-color: #e42112; }\n\n.balanced, a.balanced {\n  color: #33cd5f; }\n\n.balanced-bg {\n  background-color: #33cd5f; }\n\n.balanced-border {\n  border-color: #28a54c; }\n\n.energized, a.energized {\n  color: #ffc900; }\n\n.energized-bg {\n  background-color: #ffc900; }\n\n.energized-border {\n  border-color: #e6b500; }\n\n.royal, a.royal {\n  color: #886aea; }\n\n.royal-bg {\n  background-color: #886aea; }\n\n.royal-border {\n  border-color: #6b46e5; }\n\n.dark, a.dark {\n  color: #444; }\n\n.dark-bg {\n  background-color: #444; }\n\n.dark-border {\n  border-color: #111; }\n\n[collection-repeat] {\n  /* Position is set by transforms */\n  left: 0 !important;\n  top: 0 !important;\n  position: absolute !important;\n  z-index: 1; }\n\n.collection-repeat-container {\n  position: relative;\n  z-index: 1; }\n\n.collection-repeat-after-container {\n  z-index: 0;\n  display: block;\n  /* when scrolling horizontally, make sure the after container doesn't take up 100% width */ }\n  .collection-repeat-after-container.horizontal {\n    display: inline-block; }\n\n[ng\\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak,\n.x-ng-cloak, .ng-hide:not(.ng-hide-animate) {\n  display: none !important; }\n\n/**\n * Platform\n * --------------------------------------------------\n * Platform specific tweaks\n */\n.platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader) {\n  height: 64px; }\n  .platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader).item-input-inset .item-input-wrapper {\n    margin-top: 19px !important; }\n  .platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader) > * {\n    margin-top: 20px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .tabs-top > .tabs,\n.platform-ios.platform-cordova:not(.fullscreen) .tabs.tabs-top {\n  top: 64px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .has-header,\n.platform-ios.platform-cordova:not(.fullscreen) .bar-subheader {\n  top: 64px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .has-subheader {\n  top: 108px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .has-header.has-tabs-top {\n  top: 113px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .has-header.has-subheader.has-tabs-top {\n  top: 157px; }\n\n.platform-ios.platform-cordova .popover .bar-header:not(.bar-subheader) {\n  height: 44px; }\n  .platform-ios.platform-cordova .popover .bar-header:not(.bar-subheader).item-input-inset .item-input-wrapper {\n    margin-top: -1px; }\n  .platform-ios.platform-cordova .popover .bar-header:not(.bar-subheader) > * {\n    margin-top: 0; }\n\n.platform-ios.platform-cordova .popover .has-header,\n.platform-ios.platform-cordova .popover .bar-subheader {\n  top: 44px; }\n\n.platform-ios.platform-cordova .popover .has-subheader {\n  top: 88px; }\n\n.platform-ios.platform-cordova.status-bar-hide {\n  margin-bottom: 20px; }\n\n@media (orientation: landscape) {\n  .platform-ios.platform-browser.platform-ipad {\n    position: fixed; } }\n\n.platform-c:not(.enable-transitions) * {\n  -webkit-transition: none !important;\n  transition: none !important; }\n\n.slide-in-up {\n  -webkit-transform: translate3d(0, 100%, 0);\n  transform: translate3d(0, 100%, 0); }\n\n.slide-in-up.ng-enter,\n.slide-in-up > .ng-enter {\n  -webkit-transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms;\n  transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms; }\n\n.slide-in-up.ng-enter-active,\n.slide-in-up > .ng-enter-active {\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0); }\n\n.slide-in-up.ng-leave,\n.slide-in-up > .ng-leave {\n  -webkit-transition: all ease-in-out 250ms;\n  transition: all ease-in-out 250ms; }\n\n@-webkit-keyframes scaleOut {\n  from {\n    -webkit-transform: scale(1);\n    opacity: 1; }\n  to {\n    -webkit-transform: scale(0.8);\n    opacity: 0; } }\n\n@keyframes scaleOut {\n  from {\n    transform: scale(1);\n    opacity: 1; }\n  to {\n    transform: scale(0.8);\n    opacity: 0; } }\n\n@-webkit-keyframes superScaleIn {\n  from {\n    -webkit-transform: scale(1.2);\n    opacity: 0; }\n  to {\n    -webkit-transform: scale(1);\n    opacity: 1; } }\n\n@keyframes superScaleIn {\n  from {\n    transform: scale(1.2);\n    opacity: 0; }\n  to {\n    transform: scale(1);\n    opacity: 1; } }\n\n[nav-view-transition=\"ios\"] [nav-view=\"entering\"],\n[nav-view-transition=\"ios\"] [nav-view=\"leaving\"] {\n  -webkit-transition-duration: 500ms;\n  transition-duration: 500ms;\n  -webkit-transition-timing-function: cubic-bezier(0.36, 0.66, 0.04, 1);\n  transition-timing-function: cubic-bezier(0.36, 0.66, 0.04, 1);\n  -webkit-transition-property: opacity, -webkit-transform, box-shadow;\n  transition-property: opacity, transform, box-shadow; }\n\n[nav-view-transition=\"ios\"][nav-view-direction=\"forward\"],\n[nav-view-transition=\"ios\"][nav-view-direction=\"back\"] {\n  background-color: #000; }\n\n[nav-view-transition=\"ios\"] [nav-view=\"active\"],\n[nav-view-transition=\"ios\"][nav-view-direction=\"forward\"] [nav-view=\"entering\"],\n[nav-view-transition=\"ios\"][nav-view-direction=\"back\"] [nav-view=\"leaving\"] {\n  z-index: 3; }\n\n[nav-view-transition=\"ios\"][nav-view-direction=\"back\"] [nav-view=\"entering\"],\n[nav-view-transition=\"ios\"][nav-view-direction=\"forward\"] [nav-view=\"leaving\"] {\n  z-index: 2; }\n\n[nav-bar-transition=\"ios\"] .title,\n[nav-bar-transition=\"ios\"] .buttons,\n[nav-bar-transition=\"ios\"] .back-text {\n  -webkit-transition-duration: 500ms;\n  transition-duration: 500ms;\n  -webkit-transition-timing-function: cubic-bezier(0.36, 0.66, 0.04, 1);\n  transition-timing-function: cubic-bezier(0.36, 0.66, 0.04, 1);\n  -webkit-transition-property: opacity, -webkit-transform;\n  transition-property: opacity, transform; }\n\n[nav-bar-transition=\"ios\"] [nav-bar=\"active\"],\n[nav-bar-transition=\"ios\"] [nav-bar=\"entering\"] {\n  z-index: 10; }\n  [nav-bar-transition=\"ios\"] [nav-bar=\"active\"] .bar,\n  [nav-bar-transition=\"ios\"] [nav-bar=\"entering\"] .bar {\n    background: transparent; }\n\n[nav-bar-transition=\"ios\"] [nav-bar=\"cached\"] {\n  display: block; }\n  [nav-bar-transition=\"ios\"] [nav-bar=\"cached\"] .header-item {\n    display: none; }\n\n[nav-view-transition=\"android\"] [nav-view=\"entering\"],\n[nav-view-transition=\"android\"] [nav-view=\"leaving\"] {\n  -webkit-transition-duration: 200ms;\n  transition-duration: 200ms;\n  -webkit-transition-timing-function: cubic-bezier(0.4, 0.6, 0.2, 1);\n  transition-timing-function: cubic-bezier(0.4, 0.6, 0.2, 1);\n  -webkit-transition-property: -webkit-transform;\n  transition-property: transform; }\n\n[nav-view-transition=\"android\"] [nav-view=\"active\"],\n[nav-view-transition=\"android\"][nav-view-direction=\"forward\"] [nav-view=\"entering\"],\n[nav-view-transition=\"android\"][nav-view-direction=\"back\"] [nav-view=\"leaving\"] {\n  z-index: 3; }\n\n[nav-view-transition=\"android\"][nav-view-direction=\"back\"] [nav-view=\"entering\"],\n[nav-view-transition=\"android\"][nav-view-direction=\"forward\"] [nav-view=\"leaving\"] {\n  z-index: 2; }\n\n[nav-bar-transition=\"android\"] .title,\n[nav-bar-transition=\"android\"] .buttons {\n  -webkit-transition-duration: 200ms;\n  transition-duration: 200ms;\n  -webkit-transition-timing-function: cubic-bezier(0.4, 0.6, 0.2, 1);\n  transition-timing-function: cubic-bezier(0.4, 0.6, 0.2, 1);\n  -webkit-transition-property: opacity;\n  transition-property: opacity; }\n\n[nav-bar-transition=\"android\"] [nav-bar=\"active\"],\n[nav-bar-transition=\"android\"] [nav-bar=\"entering\"] {\n  z-index: 10; }\n  [nav-bar-transition=\"android\"] [nav-bar=\"active\"] .bar,\n  [nav-bar-transition=\"android\"] [nav-bar=\"entering\"] .bar {\n    background: transparent; }\n\n[nav-bar-transition=\"android\"] [nav-bar=\"cached\"] {\n  display: block; }\n  [nav-bar-transition=\"android\"] [nav-bar=\"cached\"] .header-item {\n    display: none; }\n\n[nav-swipe=\"fast\"] [nav-view],\n[nav-swipe=\"fast\"] .title,\n[nav-swipe=\"fast\"] .buttons,\n[nav-swipe=\"fast\"] .back-text {\n  -webkit-transition-duration: 50ms;\n  transition-duration: 50ms;\n  -webkit-transition-timing-function: linear;\n  transition-timing-function: linear; }\n\n[nav-swipe=\"slow\"] [nav-view],\n[nav-swipe=\"slow\"] .title,\n[nav-swipe=\"slow\"] .buttons,\n[nav-swipe=\"slow\"] .back-text {\n  -webkit-transition-duration: 160ms;\n  transition-duration: 160ms;\n  -webkit-transition-timing-function: linear;\n  transition-timing-function: linear; }\n\n[nav-view=\"cached\"],\n[nav-bar=\"cached\"] {\n  display: none; }\n\n[nav-view=\"stage\"] {\n  opacity: 0;\n  -webkit-transition-duration: 0;\n  transition-duration: 0; }\n\n[nav-bar=\"stage\"] .title,\n[nav-bar=\"stage\"] .buttons,\n[nav-bar=\"stage\"] .back-text {\n  position: absolute;\n  opacity: 0;\n  -webkit-transition-duration: 0s;\n  transition-duration: 0s; }\n", "", {"version":3,"sources":["/./www/lib/ionic/css/ionic.css"],"names":[],"mappings":"AAAA,iBAAiB;AACjB;;;;;;;;;;;;GAYG;AACH;;;;;;;;;;EAUE;AACF;EACE,wBAAwB;EACxB,mCAA0C;EAC1C,0PAAsS;EACtS,oBAAoB;EACpB,mBAAmB,EAAE;;AAEvB;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EA8tBE,sBAAsB;EACtB,wBAAwB;EACxB,YAAY;EACZ,mBAAmB;EACnB,oBAAoB;EACpB,qBAAqB;EACrB,qBAAqB;EACrB,qBAAqB;EACrB,eAAe;EACf,oCAAoC;EACpC,mCAAmC,EAAE;;AAEvC;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,iBAAa,EAAE;;AAEjB;EACE,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","file":"ionic.css","sourcesContent":["@charset \"UTF-8\";\n/*!\n * Copyright 2014 Drifty Co.\n * http://drifty.com/\n *\n * Ionic, v1.1.1\n * A powerful HTML5 mobile app framework.\n * http://ionicframework.com/\n *\n * By @maxlynch, @benjsperry, @adamdbradley <3\n *\n * Licensed under the MIT license. Please see LICENSE for more information.\n *\n */\n/*!\n  Ionicons, v2.0.1\n  Created by Ben Sperry for the Ionic Framework, http://ionicons.com/\n  https://twitter.com/benjsperry  https://twitter.com/ionicframework\n  MIT License: https://github.com/driftyco/ionicons\n\n  Android-style icons originally built by Google’s\n  Material Design Icons: https://github.com/google/material-design-icons\n  used under CC BY http://creativecommons.org/licenses/by/4.0/\n  Modified icons to fit ionicon’s grid from original.\n*/\n@font-face {\n  font-family: \"Ionicons\";\n  src: url(\"../fonts/ionicons.eot?v=2.0.1\");\n  src: url(\"../fonts/ionicons.eot?v=2.0.1#iefix\") format(\"embedded-opentype\"), url(\"../fonts/ionicons.ttf?v=2.0.1\") format(\"truetype\"), url(\"../fonts/ionicons.woff?v=2.0.1\") format(\"woff\"), url(\"../fonts/ionicons.woff\") format(\"woff\"), url(\"../fonts/ionicons.svg?v=2.0.1#Ionicons\") format(\"svg\");\n  font-weight: normal;\n  font-style: normal; }\n\n.ion, .ionicons,\n.ion-alert:before,\n.ion-alert-circled:before,\n.ion-android-add:before,\n.ion-android-add-circle:before,\n.ion-android-alarm-clock:before,\n.ion-android-alert:before,\n.ion-android-apps:before,\n.ion-android-archive:before,\n.ion-android-arrow-back:before,\n.ion-android-arrow-down:before,\n.ion-android-arrow-dropdown:before,\n.ion-android-arrow-dropdown-circle:before,\n.ion-android-arrow-dropleft:before,\n.ion-android-arrow-dropleft-circle:before,\n.ion-android-arrow-dropright:before,\n.ion-android-arrow-dropright-circle:before,\n.ion-android-arrow-dropup:before,\n.ion-android-arrow-dropup-circle:before,\n.ion-android-arrow-forward:before,\n.ion-android-arrow-up:before,\n.ion-android-attach:before,\n.ion-android-bar:before,\n.ion-android-bicycle:before,\n.ion-android-boat:before,\n.ion-android-bookmark:before,\n.ion-android-bulb:before,\n.ion-android-bus:before,\n.ion-android-calendar:before,\n.ion-android-call:before,\n.ion-android-camera:before,\n.ion-android-cancel:before,\n.ion-android-car:before,\n.ion-android-cart:before,\n.ion-android-chat:before,\n.ion-android-checkbox:before,\n.ion-android-checkbox-blank:before,\n.ion-android-checkbox-outline:before,\n.ion-android-checkbox-outline-blank:before,\n.ion-android-checkmark-circle:before,\n.ion-android-clipboard:before,\n.ion-android-close:before,\n.ion-android-cloud:before,\n.ion-android-cloud-circle:before,\n.ion-android-cloud-done:before,\n.ion-android-cloud-outline:before,\n.ion-android-color-palette:before,\n.ion-android-compass:before,\n.ion-android-contact:before,\n.ion-android-contacts:before,\n.ion-android-contract:before,\n.ion-android-create:before,\n.ion-android-delete:before,\n.ion-android-desktop:before,\n.ion-android-document:before,\n.ion-android-done:before,\n.ion-android-done-all:before,\n.ion-android-download:before,\n.ion-android-drafts:before,\n.ion-android-exit:before,\n.ion-android-expand:before,\n.ion-android-favorite:before,\n.ion-android-favorite-outline:before,\n.ion-android-film:before,\n.ion-android-folder:before,\n.ion-android-folder-open:before,\n.ion-android-funnel:before,\n.ion-android-globe:before,\n.ion-android-hand:before,\n.ion-android-hangout:before,\n.ion-android-happy:before,\n.ion-android-home:before,\n.ion-android-image:before,\n.ion-android-laptop:before,\n.ion-android-list:before,\n.ion-android-locate:before,\n.ion-android-lock:before,\n.ion-android-mail:before,\n.ion-android-map:before,\n.ion-android-menu:before,\n.ion-android-microphone:before,\n.ion-android-microphone-off:before,\n.ion-android-more-horizontal:before,\n.ion-android-more-vertical:before,\n.ion-android-navigate:before,\n.ion-android-notifications:before,\n.ion-android-notifications-none:before,\n.ion-android-notifications-off:before,\n.ion-android-open:before,\n.ion-android-options:before,\n.ion-android-people:before,\n.ion-android-person:before,\n.ion-android-person-add:before,\n.ion-android-phone-landscape:before,\n.ion-android-phone-portrait:before,\n.ion-android-pin:before,\n.ion-android-plane:before,\n.ion-android-playstore:before,\n.ion-android-print:before,\n.ion-android-radio-button-off:before,\n.ion-android-radio-button-on:before,\n.ion-android-refresh:before,\n.ion-android-remove:before,\n.ion-android-remove-circle:before,\n.ion-android-restaurant:before,\n.ion-android-sad:before,\n.ion-android-search:before,\n.ion-android-send:before,\n.ion-android-settings:before,\n.ion-android-share:before,\n.ion-android-share-alt:before,\n.ion-android-star:before,\n.ion-android-star-half:before,\n.ion-android-star-outline:before,\n.ion-android-stopwatch:before,\n.ion-android-subway:before,\n.ion-android-sunny:before,\n.ion-android-sync:before,\n.ion-android-textsms:before,\n.ion-android-time:before,\n.ion-android-train:before,\n.ion-android-unlock:before,\n.ion-android-upload:before,\n.ion-android-volume-down:before,\n.ion-android-volume-mute:before,\n.ion-android-volume-off:before,\n.ion-android-volume-up:before,\n.ion-android-walk:before,\n.ion-android-warning:before,\n.ion-android-watch:before,\n.ion-android-wifi:before,\n.ion-aperture:before,\n.ion-archive:before,\n.ion-arrow-down-a:before,\n.ion-arrow-down-b:before,\n.ion-arrow-down-c:before,\n.ion-arrow-expand:before,\n.ion-arrow-graph-down-left:before,\n.ion-arrow-graph-down-right:before,\n.ion-arrow-graph-up-left:before,\n.ion-arrow-graph-up-right:before,\n.ion-arrow-left-a:before,\n.ion-arrow-left-b:before,\n.ion-arrow-left-c:before,\n.ion-arrow-move:before,\n.ion-arrow-resize:before,\n.ion-arrow-return-left:before,\n.ion-arrow-return-right:before,\n.ion-arrow-right-a:before,\n.ion-arrow-right-b:before,\n.ion-arrow-right-c:before,\n.ion-arrow-shrink:before,\n.ion-arrow-swap:before,\n.ion-arrow-up-a:before,\n.ion-arrow-up-b:before,\n.ion-arrow-up-c:before,\n.ion-asterisk:before,\n.ion-at:before,\n.ion-backspace:before,\n.ion-backspace-outline:before,\n.ion-bag:before,\n.ion-battery-charging:before,\n.ion-battery-empty:before,\n.ion-battery-full:before,\n.ion-battery-half:before,\n.ion-battery-low:before,\n.ion-beaker:before,\n.ion-beer:before,\n.ion-bluetooth:before,\n.ion-bonfire:before,\n.ion-bookmark:before,\n.ion-bowtie:before,\n.ion-briefcase:before,\n.ion-bug:before,\n.ion-calculator:before,\n.ion-calendar:before,\n.ion-camera:before,\n.ion-card:before,\n.ion-cash:before,\n.ion-chatbox:before,\n.ion-chatbox-working:before,\n.ion-chatboxes:before,\n.ion-chatbubble:before,\n.ion-chatbubble-working:before,\n.ion-chatbubbles:before,\n.ion-checkmark:before,\n.ion-checkmark-circled:before,\n.ion-checkmark-round:before,\n.ion-chevron-down:before,\n.ion-chevron-left:before,\n.ion-chevron-right:before,\n.ion-chevron-up:before,\n.ion-clipboard:before,\n.ion-clock:before,\n.ion-close:before,\n.ion-close-circled:before,\n.ion-close-round:before,\n.ion-closed-captioning:before,\n.ion-cloud:before,\n.ion-code:before,\n.ion-code-download:before,\n.ion-code-working:before,\n.ion-coffee:before,\n.ion-compass:before,\n.ion-compose:before,\n.ion-connection-bars:before,\n.ion-contrast:before,\n.ion-crop:before,\n.ion-cube:before,\n.ion-disc:before,\n.ion-document:before,\n.ion-document-text:before,\n.ion-drag:before,\n.ion-earth:before,\n.ion-easel:before,\n.ion-edit:before,\n.ion-egg:before,\n.ion-eject:before,\n.ion-email:before,\n.ion-email-unread:before,\n.ion-erlenmeyer-flask:before,\n.ion-erlenmeyer-flask-bubbles:before,\n.ion-eye:before,\n.ion-eye-disabled:before,\n.ion-female:before,\n.ion-filing:before,\n.ion-film-marker:before,\n.ion-fireball:before,\n.ion-flag:before,\n.ion-flame:before,\n.ion-flash:before,\n.ion-flash-off:before,\n.ion-folder:before,\n.ion-fork:before,\n.ion-fork-repo:before,\n.ion-forward:before,\n.ion-funnel:before,\n.ion-gear-a:before,\n.ion-gear-b:before,\n.ion-grid:before,\n.ion-hammer:before,\n.ion-happy:before,\n.ion-happy-outline:before,\n.ion-headphone:before,\n.ion-heart:before,\n.ion-heart-broken:before,\n.ion-help:before,\n.ion-help-buoy:before,\n.ion-help-circled:before,\n.ion-home:before,\n.ion-icecream:before,\n.ion-image:before,\n.ion-images:before,\n.ion-information:before,\n.ion-information-circled:before,\n.ion-ionic:before,\n.ion-ios-alarm:before,\n.ion-ios-alarm-outline:before,\n.ion-ios-albums:before,\n.ion-ios-albums-outline:before,\n.ion-ios-americanfootball:before,\n.ion-ios-americanfootball-outline:before,\n.ion-ios-analytics:before,\n.ion-ios-analytics-outline:before,\n.ion-ios-arrow-back:before,\n.ion-ios-arrow-down:before,\n.ion-ios-arrow-forward:before,\n.ion-ios-arrow-left:before,\n.ion-ios-arrow-right:before,\n.ion-ios-arrow-thin-down:before,\n.ion-ios-arrow-thin-left:before,\n.ion-ios-arrow-thin-right:before,\n.ion-ios-arrow-thin-up:before,\n.ion-ios-arrow-up:before,\n.ion-ios-at:before,\n.ion-ios-at-outline:before,\n.ion-ios-barcode:before,\n.ion-ios-barcode-outline:before,\n.ion-ios-baseball:before,\n.ion-ios-baseball-outline:before,\n.ion-ios-basketball:before,\n.ion-ios-basketball-outline:before,\n.ion-ios-bell:before,\n.ion-ios-bell-outline:before,\n.ion-ios-body:before,\n.ion-ios-body-outline:before,\n.ion-ios-bolt:before,\n.ion-ios-bolt-outline:before,\n.ion-ios-book:before,\n.ion-ios-book-outline:before,\n.ion-ios-bookmarks:before,\n.ion-ios-bookmarks-outline:before,\n.ion-ios-box:before,\n.ion-ios-box-outline:before,\n.ion-ios-briefcase:before,\n.ion-ios-briefcase-outline:before,\n.ion-ios-browsers:before,\n.ion-ios-browsers-outline:before,\n.ion-ios-calculator:before,\n.ion-ios-calculator-outline:before,\n.ion-ios-calendar:before,\n.ion-ios-calendar-outline:before,\n.ion-ios-camera:before,\n.ion-ios-camera-outline:before,\n.ion-ios-cart:before,\n.ion-ios-cart-outline:before,\n.ion-ios-chatboxes:before,\n.ion-ios-chatboxes-outline:before,\n.ion-ios-chatbubble:before,\n.ion-ios-chatbubble-outline:before,\n.ion-ios-checkmark:before,\n.ion-ios-checkmark-empty:before,\n.ion-ios-checkmark-outline:before,\n.ion-ios-circle-filled:before,\n.ion-ios-circle-outline:before,\n.ion-ios-clock:before,\n.ion-ios-clock-outline:before,\n.ion-ios-close:before,\n.ion-ios-close-empty:before,\n.ion-ios-close-outline:before,\n.ion-ios-cloud:before,\n.ion-ios-cloud-download:before,\n.ion-ios-cloud-download-outline:before,\n.ion-ios-cloud-outline:before,\n.ion-ios-cloud-upload:before,\n.ion-ios-cloud-upload-outline:before,\n.ion-ios-cloudy:before,\n.ion-ios-cloudy-night:before,\n.ion-ios-cloudy-night-outline:before,\n.ion-ios-cloudy-outline:before,\n.ion-ios-cog:before,\n.ion-ios-cog-outline:before,\n.ion-ios-color-filter:before,\n.ion-ios-color-filter-outline:before,\n.ion-ios-color-wand:before,\n.ion-ios-color-wand-outline:before,\n.ion-ios-compose:before,\n.ion-ios-compose-outline:before,\n.ion-ios-contact:before,\n.ion-ios-contact-outline:before,\n.ion-ios-copy:before,\n.ion-ios-copy-outline:before,\n.ion-ios-crop:before,\n.ion-ios-crop-strong:before,\n.ion-ios-download:before,\n.ion-ios-download-outline:before,\n.ion-ios-drag:before,\n.ion-ios-email:before,\n.ion-ios-email-outline:before,\n.ion-ios-eye:before,\n.ion-ios-eye-outline:before,\n.ion-ios-fastforward:before,\n.ion-ios-fastforward-outline:before,\n.ion-ios-filing:before,\n.ion-ios-filing-outline:before,\n.ion-ios-film:before,\n.ion-ios-film-outline:before,\n.ion-ios-flag:before,\n.ion-ios-flag-outline:before,\n.ion-ios-flame:before,\n.ion-ios-flame-outline:before,\n.ion-ios-flask:before,\n.ion-ios-flask-outline:before,\n.ion-ios-flower:before,\n.ion-ios-flower-outline:before,\n.ion-ios-folder:before,\n.ion-ios-folder-outline:before,\n.ion-ios-football:before,\n.ion-ios-football-outline:before,\n.ion-ios-game-controller-a:before,\n.ion-ios-game-controller-a-outline:before,\n.ion-ios-game-controller-b:before,\n.ion-ios-game-controller-b-outline:before,\n.ion-ios-gear:before,\n.ion-ios-gear-outline:before,\n.ion-ios-glasses:before,\n.ion-ios-glasses-outline:before,\n.ion-ios-grid-view:before,\n.ion-ios-grid-view-outline:before,\n.ion-ios-heart:before,\n.ion-ios-heart-outline:before,\n.ion-ios-help:before,\n.ion-ios-help-empty:before,\n.ion-ios-help-outline:before,\n.ion-ios-home:before,\n.ion-ios-home-outline:before,\n.ion-ios-infinite:before,\n.ion-ios-infinite-outline:before,\n.ion-ios-information:before,\n.ion-ios-information-empty:before,\n.ion-ios-information-outline:before,\n.ion-ios-ionic-outline:before,\n.ion-ios-keypad:before,\n.ion-ios-keypad-outline:before,\n.ion-ios-lightbulb:before,\n.ion-ios-lightbulb-outline:before,\n.ion-ios-list:before,\n.ion-ios-list-outline:before,\n.ion-ios-location:before,\n.ion-ios-location-outline:before,\n.ion-ios-locked:before,\n.ion-ios-locked-outline:before,\n.ion-ios-loop:before,\n.ion-ios-loop-strong:before,\n.ion-ios-medical:before,\n.ion-ios-medical-outline:before,\n.ion-ios-medkit:before,\n.ion-ios-medkit-outline:before,\n.ion-ios-mic:before,\n.ion-ios-mic-off:before,\n.ion-ios-mic-outline:before,\n.ion-ios-minus:before,\n.ion-ios-minus-empty:before,\n.ion-ios-minus-outline:before,\n.ion-ios-monitor:before,\n.ion-ios-monitor-outline:before,\n.ion-ios-moon:before,\n.ion-ios-moon-outline:before,\n.ion-ios-more:before,\n.ion-ios-more-outline:before,\n.ion-ios-musical-note:before,\n.ion-ios-musical-notes:before,\n.ion-ios-navigate:before,\n.ion-ios-navigate-outline:before,\n.ion-ios-nutrition:before,\n.ion-ios-nutrition-outline:before,\n.ion-ios-paper:before,\n.ion-ios-paper-outline:before,\n.ion-ios-paperplane:before,\n.ion-ios-paperplane-outline:before,\n.ion-ios-partlysunny:before,\n.ion-ios-partlysunny-outline:before,\n.ion-ios-pause:before,\n.ion-ios-pause-outline:before,\n.ion-ios-paw:before,\n.ion-ios-paw-outline:before,\n.ion-ios-people:before,\n.ion-ios-people-outline:before,\n.ion-ios-person:before,\n.ion-ios-person-outline:before,\n.ion-ios-personadd:before,\n.ion-ios-personadd-outline:before,\n.ion-ios-photos:before,\n.ion-ios-photos-outline:before,\n.ion-ios-pie:before,\n.ion-ios-pie-outline:before,\n.ion-ios-pint:before,\n.ion-ios-pint-outline:before,\n.ion-ios-play:before,\n.ion-ios-play-outline:before,\n.ion-ios-plus:before,\n.ion-ios-plus-empty:before,\n.ion-ios-plus-outline:before,\n.ion-ios-pricetag:before,\n.ion-ios-pricetag-outline:before,\n.ion-ios-pricetags:before,\n.ion-ios-pricetags-outline:before,\n.ion-ios-printer:before,\n.ion-ios-printer-outline:before,\n.ion-ios-pulse:before,\n.ion-ios-pulse-strong:before,\n.ion-ios-rainy:before,\n.ion-ios-rainy-outline:before,\n.ion-ios-recording:before,\n.ion-ios-recording-outline:before,\n.ion-ios-redo:before,\n.ion-ios-redo-outline:before,\n.ion-ios-refresh:before,\n.ion-ios-refresh-empty:before,\n.ion-ios-refresh-outline:before,\n.ion-ios-reload:before,\n.ion-ios-reverse-camera:before,\n.ion-ios-reverse-camera-outline:before,\n.ion-ios-rewind:before,\n.ion-ios-rewind-outline:before,\n.ion-ios-rose:before,\n.ion-ios-rose-outline:before,\n.ion-ios-search:before,\n.ion-ios-search-strong:before,\n.ion-ios-settings:before,\n.ion-ios-settings-strong:before,\n.ion-ios-shuffle:before,\n.ion-ios-shuffle-strong:before,\n.ion-ios-skipbackward:before,\n.ion-ios-skipbackward-outline:before,\n.ion-ios-skipforward:before,\n.ion-ios-skipforward-outline:before,\n.ion-ios-snowy:before,\n.ion-ios-speedometer:before,\n.ion-ios-speedometer-outline:before,\n.ion-ios-star:before,\n.ion-ios-star-half:before,\n.ion-ios-star-outline:before,\n.ion-ios-stopwatch:before,\n.ion-ios-stopwatch-outline:before,\n.ion-ios-sunny:before,\n.ion-ios-sunny-outline:before,\n.ion-ios-telephone:before,\n.ion-ios-telephone-outline:before,\n.ion-ios-tennisball:before,\n.ion-ios-tennisball-outline:before,\n.ion-ios-thunderstorm:before,\n.ion-ios-thunderstorm-outline:before,\n.ion-ios-time:before,\n.ion-ios-time-outline:before,\n.ion-ios-timer:before,\n.ion-ios-timer-outline:before,\n.ion-ios-toggle:before,\n.ion-ios-toggle-outline:before,\n.ion-ios-trash:before,\n.ion-ios-trash-outline:before,\n.ion-ios-undo:before,\n.ion-ios-undo-outline:before,\n.ion-ios-unlocked:before,\n.ion-ios-unlocked-outline:before,\n.ion-ios-upload:before,\n.ion-ios-upload-outline:before,\n.ion-ios-videocam:before,\n.ion-ios-videocam-outline:before,\n.ion-ios-volume-high:before,\n.ion-ios-volume-low:before,\n.ion-ios-wineglass:before,\n.ion-ios-wineglass-outline:before,\n.ion-ios-world:before,\n.ion-ios-world-outline:before,\n.ion-ipad:before,\n.ion-iphone:before,\n.ion-ipod:before,\n.ion-jet:before,\n.ion-key:before,\n.ion-knife:before,\n.ion-laptop:before,\n.ion-leaf:before,\n.ion-levels:before,\n.ion-lightbulb:before,\n.ion-link:before,\n.ion-load-a:before,\n.ion-load-b:before,\n.ion-load-c:before,\n.ion-load-d:before,\n.ion-location:before,\n.ion-lock-combination:before,\n.ion-locked:before,\n.ion-log-in:before,\n.ion-log-out:before,\n.ion-loop:before,\n.ion-magnet:before,\n.ion-male:before,\n.ion-man:before,\n.ion-map:before,\n.ion-medkit:before,\n.ion-merge:before,\n.ion-mic-a:before,\n.ion-mic-b:before,\n.ion-mic-c:before,\n.ion-minus:before,\n.ion-minus-circled:before,\n.ion-minus-round:before,\n.ion-model-s:before,\n.ion-monitor:before,\n.ion-more:before,\n.ion-mouse:before,\n.ion-music-note:before,\n.ion-navicon:before,\n.ion-navicon-round:before,\n.ion-navigate:before,\n.ion-network:before,\n.ion-no-smoking:before,\n.ion-nuclear:before,\n.ion-outlet:before,\n.ion-paintbrush:before,\n.ion-paintbucket:before,\n.ion-paper-airplane:before,\n.ion-paperclip:before,\n.ion-pause:before,\n.ion-person:before,\n.ion-person-add:before,\n.ion-person-stalker:before,\n.ion-pie-graph:before,\n.ion-pin:before,\n.ion-pinpoint:before,\n.ion-pizza:before,\n.ion-plane:before,\n.ion-planet:before,\n.ion-play:before,\n.ion-playstation:before,\n.ion-plus:before,\n.ion-plus-circled:before,\n.ion-plus-round:before,\n.ion-podium:before,\n.ion-pound:before,\n.ion-power:before,\n.ion-pricetag:before,\n.ion-pricetags:before,\n.ion-printer:before,\n.ion-pull-request:before,\n.ion-qr-scanner:before,\n.ion-quote:before,\n.ion-radio-waves:before,\n.ion-record:before,\n.ion-refresh:before,\n.ion-reply:before,\n.ion-reply-all:before,\n.ion-ribbon-a:before,\n.ion-ribbon-b:before,\n.ion-sad:before,\n.ion-sad-outline:before,\n.ion-scissors:before,\n.ion-search:before,\n.ion-settings:before,\n.ion-share:before,\n.ion-shuffle:before,\n.ion-skip-backward:before,\n.ion-skip-forward:before,\n.ion-social-android:before,\n.ion-social-android-outline:before,\n.ion-social-angular:before,\n.ion-social-angular-outline:before,\n.ion-social-apple:before,\n.ion-social-apple-outline:before,\n.ion-social-bitcoin:before,\n.ion-social-bitcoin-outline:before,\n.ion-social-buffer:before,\n.ion-social-buffer-outline:before,\n.ion-social-chrome:before,\n.ion-social-chrome-outline:before,\n.ion-social-codepen:before,\n.ion-social-codepen-outline:before,\n.ion-social-css3:before,\n.ion-social-css3-outline:before,\n.ion-social-designernews:before,\n.ion-social-designernews-outline:before,\n.ion-social-dribbble:before,\n.ion-social-dribbble-outline:before,\n.ion-social-dropbox:before,\n.ion-social-dropbox-outline:before,\n.ion-social-euro:before,\n.ion-social-euro-outline:before,\n.ion-social-facebook:before,\n.ion-social-facebook-outline:before,\n.ion-social-foursquare:before,\n.ion-social-foursquare-outline:before,\n.ion-social-freebsd-devil:before,\n.ion-social-github:before,\n.ion-social-github-outline:before,\n.ion-social-google:before,\n.ion-social-google-outline:before,\n.ion-social-googleplus:before,\n.ion-social-googleplus-outline:before,\n.ion-social-hackernews:before,\n.ion-social-hackernews-outline:before,\n.ion-social-html5:before,\n.ion-social-html5-outline:before,\n.ion-social-instagram:before,\n.ion-social-instagram-outline:before,\n.ion-social-javascript:before,\n.ion-social-javascript-outline:before,\n.ion-social-linkedin:before,\n.ion-social-linkedin-outline:before,\n.ion-social-markdown:before,\n.ion-social-nodejs:before,\n.ion-social-octocat:before,\n.ion-social-pinterest:before,\n.ion-social-pinterest-outline:before,\n.ion-social-python:before,\n.ion-social-reddit:before,\n.ion-social-reddit-outline:before,\n.ion-social-rss:before,\n.ion-social-rss-outline:before,\n.ion-social-sass:before,\n.ion-social-skype:before,\n.ion-social-skype-outline:before,\n.ion-social-snapchat:before,\n.ion-social-snapchat-outline:before,\n.ion-social-tumblr:before,\n.ion-social-tumblr-outline:before,\n.ion-social-tux:before,\n.ion-social-twitch:before,\n.ion-social-twitch-outline:before,\n.ion-social-twitter:before,\n.ion-social-twitter-outline:before,\n.ion-social-usd:before,\n.ion-social-usd-outline:before,\n.ion-social-vimeo:before,\n.ion-social-vimeo-outline:before,\n.ion-social-whatsapp:before,\n.ion-social-whatsapp-outline:before,\n.ion-social-windows:before,\n.ion-social-windows-outline:before,\n.ion-social-wordpress:before,\n.ion-social-wordpress-outline:before,\n.ion-social-yahoo:before,\n.ion-social-yahoo-outline:before,\n.ion-social-yen:before,\n.ion-social-yen-outline:before,\n.ion-social-youtube:before,\n.ion-social-youtube-outline:before,\n.ion-soup-can:before,\n.ion-soup-can-outline:before,\n.ion-speakerphone:before,\n.ion-speedometer:before,\n.ion-spoon:before,\n.ion-star:before,\n.ion-stats-bars:before,\n.ion-steam:before,\n.ion-stop:before,\n.ion-thermometer:before,\n.ion-thumbsdown:before,\n.ion-thumbsup:before,\n.ion-toggle:before,\n.ion-toggle-filled:before,\n.ion-transgender:before,\n.ion-trash-a:before,\n.ion-trash-b:before,\n.ion-trophy:before,\n.ion-tshirt:before,\n.ion-tshirt-outline:before,\n.ion-umbrella:before,\n.ion-university:before,\n.ion-unlocked:before,\n.ion-upload:before,\n.ion-usb:before,\n.ion-videocamera:before,\n.ion-volume-high:before,\n.ion-volume-low:before,\n.ion-volume-medium:before,\n.ion-volume-mute:before,\n.ion-wand:before,\n.ion-waterdrop:before,\n.ion-wifi:before,\n.ion-wineglass:before,\n.ion-woman:before,\n.ion-wrench:before,\n.ion-xbox:before {\n  display: inline-block;\n  font-family: \"Ionicons\";\n  speak: none;\n  font-style: normal;\n  font-weight: normal;\n  font-variant: normal;\n  text-transform: none;\n  text-rendering: auto;\n  line-height: 1;\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale; }\n\n.ion-alert:before {\n  content: \"\"; }\n\n.ion-alert-circled:before {\n  content: \"\"; }\n\n.ion-android-add:before {\n  content: \"\"; }\n\n.ion-android-add-circle:before {\n  content: \"\"; }\n\n.ion-android-alarm-clock:before {\n  content: \"\"; }\n\n.ion-android-alert:before {\n  content: \"\"; }\n\n.ion-android-apps:before {\n  content: \"\"; }\n\n.ion-android-archive:before {\n  content: \"\"; }\n\n.ion-android-arrow-back:before {\n  content: \"\"; }\n\n.ion-android-arrow-down:before {\n  content: \"\"; }\n\n.ion-android-arrow-dropdown:before {\n  content: \"\"; }\n\n.ion-android-arrow-dropdown-circle:before {\n  content: \"\"; }\n\n.ion-android-arrow-dropleft:before {\n  content: \"\"; }\n\n.ion-android-arrow-dropleft-circle:before {\n  content: \"\"; }\n\n.ion-android-arrow-dropright:before {\n  content: \"\"; }\n\n.ion-android-arrow-dropright-circle:before {\n  content: \"\"; }\n\n.ion-android-arrow-dropup:before {\n  content: \"\"; }\n\n.ion-android-arrow-dropup-circle:before {\n  content: \"\"; }\n\n.ion-android-arrow-forward:before {\n  content: \"\"; }\n\n.ion-android-arrow-up:before {\n  content: \"\"; }\n\n.ion-android-attach:before {\n  content: \"\"; }\n\n.ion-android-bar:before {\n  content: \"\"; }\n\n.ion-android-bicycle:before {\n  content: \"\"; }\n\n.ion-android-boat:before {\n  content: \"\"; }\n\n.ion-android-bookmark:before {\n  content: \"\"; }\n\n.ion-android-bulb:before {\n  content: \"\"; }\n\n.ion-android-bus:before {\n  content: \"\"; }\n\n.ion-android-calendar:before {\n  content: \"\"; }\n\n.ion-android-call:before {\n  content: \"\"; }\n\n.ion-android-camera:before {\n  content: \"\"; }\n\n.ion-android-cancel:before {\n  content: \"\"; }\n\n.ion-android-car:before {\n  content: \"\"; }\n\n.ion-android-cart:before {\n  content: \"\"; }\n\n.ion-android-chat:before {\n  content: \"\"; }\n\n.ion-android-checkbox:before {\n  content: \"\"; }\n\n.ion-android-checkbox-blank:before {\n  content: \"\"; }\n\n.ion-android-checkbox-outline:before {\n  content: \"\"; }\n\n.ion-android-checkbox-outline-blank:before {\n  content: \"\"; }\n\n.ion-android-checkmark-circle:before {\n  content: \"\"; }\n\n.ion-android-clipboard:before {\n  content: \"\"; }\n\n.ion-android-close:before {\n  content: \"\"; }\n\n.ion-android-cloud:before {\n  content: \"\"; }\n\n.ion-android-cloud-circle:before {\n  content: \"\"; }\n\n.ion-android-cloud-done:before {\n  content: \"\"; }\n\n.ion-android-cloud-outline:before {\n  content: \"\"; }\n\n.ion-android-color-palette:before {\n  content: \"\"; }\n\n.ion-android-compass:before {\n  content: \"\"; }\n\n.ion-android-contact:before {\n  content: \"\"; }\n\n.ion-android-contacts:before {\n  content: \"\"; }\n\n.ion-android-contract:before {\n  content: \"\"; }\n\n.ion-android-create:before {\n  content: \"\"; }\n\n.ion-android-delete:before {\n  content: \"\"; }\n\n.ion-android-desktop:before {\n  content: \"\"; }\n\n.ion-android-document:before {\n  content: \"\"; }\n\n.ion-android-done:before {\n  content: \"\"; }\n\n.ion-android-done-all:before {\n  content: \"\"; }\n\n.ion-android-download:before {\n  content: \"\"; }\n\n.ion-android-drafts:before {\n  content: \"\"; }\n\n.ion-android-exit:before {\n  content: \"\"; }\n\n.ion-android-expand:before {\n  content: \"\"; }\n\n.ion-android-favorite:before {\n  content: \"\"; }\n\n.ion-android-favorite-outline:before {\n  content: \"\"; }\n\n.ion-android-film:before {\n  content: \"\"; }\n\n.ion-android-folder:before {\n  content: \"\"; }\n\n.ion-android-folder-open:before {\n  content: \"\"; }\n\n.ion-android-funnel:before {\n  content: \"\"; }\n\n.ion-android-globe:before {\n  content: \"\"; }\n\n.ion-android-hand:before {\n  content: \"\"; }\n\n.ion-android-hangout:before {\n  content: \"\"; }\n\n.ion-android-happy:before {\n  content: \"\"; }\n\n.ion-android-home:before {\n  content: \"\"; }\n\n.ion-android-image:before {\n  content: \"\"; }\n\n.ion-android-laptop:before {\n  content: \"\"; }\n\n.ion-android-list:before {\n  content: \"\"; }\n\n.ion-android-locate:before {\n  content: \"\"; }\n\n.ion-android-lock:before {\n  content: \"\"; }\n\n.ion-android-mail:before {\n  content: \"\"; }\n\n.ion-android-map:before {\n  content: \"\"; }\n\n.ion-android-menu:before {\n  content: \"\"; }\n\n.ion-android-microphone:before {\n  content: \"\"; }\n\n.ion-android-microphone-off:before {\n  content: \"\"; }\n\n.ion-android-more-horizontal:before {\n  content: \"\"; }\n\n.ion-android-more-vertical:before {\n  content: \"\"; }\n\n.ion-android-navigate:before {\n  content: \"\"; }\n\n.ion-android-notifications:before {\n  content: \"\"; }\n\n.ion-android-notifications-none:before {\n  content: \"\"; }\n\n.ion-android-notifications-off:before {\n  content: \"\"; }\n\n.ion-android-open:before {\n  content: \"\"; }\n\n.ion-android-options:before {\n  content: \"\"; }\n\n.ion-android-people:before {\n  content: \"\"; }\n\n.ion-android-person:before {\n  content: \"\"; }\n\n.ion-android-person-add:before {\n  content: \"\"; }\n\n.ion-android-phone-landscape:before {\n  content: \"\"; }\n\n.ion-android-phone-portrait:before {\n  content: \"\"; }\n\n.ion-android-pin:before {\n  content: \"\"; }\n\n.ion-android-plane:before {\n  content: \"\"; }\n\n.ion-android-playstore:before {\n  content: \"\"; }\n\n.ion-android-print:before {\n  content: \"\"; }\n\n.ion-android-radio-button-off:before {\n  content: \"\"; }\n\n.ion-android-radio-button-on:before {\n  content: \"\"; }\n\n.ion-android-refresh:before {\n  content: \"\"; }\n\n.ion-android-remove:before {\n  content: \"\"; }\n\n.ion-android-remove-circle:before {\n  content: \"\"; }\n\n.ion-android-restaurant:before {\n  content: \"\"; }\n\n.ion-android-sad:before {\n  content: \"\"; }\n\n.ion-android-search:before {\n  content: \"\"; }\n\n.ion-android-send:before {\n  content: \"\"; }\n\n.ion-android-settings:before {\n  content: \"\"; }\n\n.ion-android-share:before {\n  content: \"\"; }\n\n.ion-android-share-alt:before {\n  content: \"\"; }\n\n.ion-android-star:before {\n  content: \"\"; }\n\n.ion-android-star-half:before {\n  content: \"\"; }\n\n.ion-android-star-outline:before {\n  content: \"\"; }\n\n.ion-android-stopwatch:before {\n  content: \"\"; }\n\n.ion-android-subway:before {\n  content: \"\"; }\n\n.ion-android-sunny:before {\n  content: \"\"; }\n\n.ion-android-sync:before {\n  content: \"\"; }\n\n.ion-android-textsms:before {\n  content: \"\"; }\n\n.ion-android-time:before {\n  content: \"\"; }\n\n.ion-android-train:before {\n  content: \"\"; }\n\n.ion-android-unlock:before {\n  content: \"\"; }\n\n.ion-android-upload:before {\n  content: \"\"; }\n\n.ion-android-volume-down:before {\n  content: \"\"; }\n\n.ion-android-volume-mute:before {\n  content: \"\"; }\n\n.ion-android-volume-off:before {\n  content: \"\"; }\n\n.ion-android-volume-up:before {\n  content: \"\"; }\n\n.ion-android-walk:before {\n  content: \"\"; }\n\n.ion-android-warning:before {\n  content: \"\"; }\n\n.ion-android-watch:before {\n  content: \"\"; }\n\n.ion-android-wifi:before {\n  content: \"\"; }\n\n.ion-aperture:before {\n  content: \"\"; }\n\n.ion-archive:before {\n  content: \"\"; }\n\n.ion-arrow-down-a:before {\n  content: \"\"; }\n\n.ion-arrow-down-b:before {\n  content: \"\"; }\n\n.ion-arrow-down-c:before {\n  content: \"\"; }\n\n.ion-arrow-expand:before {\n  content: \"\"; }\n\n.ion-arrow-graph-down-left:before {\n  content: \"\"; }\n\n.ion-arrow-graph-down-right:before {\n  content: \"\"; }\n\n.ion-arrow-graph-up-left:before {\n  content: \"\"; }\n\n.ion-arrow-graph-up-right:before {\n  content: \"\"; }\n\n.ion-arrow-left-a:before {\n  content: \"\"; }\n\n.ion-arrow-left-b:before {\n  content: \"\"; }\n\n.ion-arrow-left-c:before {\n  content: \"\"; }\n\n.ion-arrow-move:before {\n  content: \"\"; }\n\n.ion-arrow-resize:before {\n  content: \"\"; }\n\n.ion-arrow-return-left:before {\n  content: \"\"; }\n\n.ion-arrow-return-right:before {\n  content: \"\"; }\n\n.ion-arrow-right-a:before {\n  content: \"\"; }\n\n.ion-arrow-right-b:before {\n  content: \"\"; }\n\n.ion-arrow-right-c:before {\n  content: \"\"; }\n\n.ion-arrow-shrink:before {\n  content: \"\"; }\n\n.ion-arrow-swap:before {\n  content: \"\"; }\n\n.ion-arrow-up-a:before {\n  content: \"\"; }\n\n.ion-arrow-up-b:before {\n  content: \"\"; }\n\n.ion-arrow-up-c:before {\n  content: \"\"; }\n\n.ion-asterisk:before {\n  content: \"\"; }\n\n.ion-at:before {\n  content: \"\"; }\n\n.ion-backspace:before {\n  content: \"\"; }\n\n.ion-backspace-outline:before {\n  content: \"\"; }\n\n.ion-bag:before {\n  content: \"\"; }\n\n.ion-battery-charging:before {\n  content: \"\"; }\n\n.ion-battery-empty:before {\n  content: \"\"; }\n\n.ion-battery-full:before {\n  content: \"\"; }\n\n.ion-battery-half:before {\n  content: \"\"; }\n\n.ion-battery-low:before {\n  content: \"\"; }\n\n.ion-beaker:before {\n  content: \"\"; }\n\n.ion-beer:before {\n  content: \"\"; }\n\n.ion-bluetooth:before {\n  content: \"\"; }\n\n.ion-bonfire:before {\n  content: \"\"; }\n\n.ion-bookmark:before {\n  content: \"\"; }\n\n.ion-bowtie:before {\n  content: \"\"; }\n\n.ion-briefcase:before {\n  content: \"\"; }\n\n.ion-bug:before {\n  content: \"\"; }\n\n.ion-calculator:before {\n  content: \"\"; }\n\n.ion-calendar:before {\n  content: \"\"; }\n\n.ion-camera:before {\n  content: \"\"; }\n\n.ion-card:before {\n  content: \"\"; }\n\n.ion-cash:before {\n  content: \"\"; }\n\n.ion-chatbox:before {\n  content: \"\"; }\n\n.ion-chatbox-working:before {\n  content: \"\"; }\n\n.ion-chatboxes:before {\n  content: \"\"; }\n\n.ion-chatbubble:before {\n  content: \"\"; }\n\n.ion-chatbubble-working:before {\n  content: \"\"; }\n\n.ion-chatbubbles:before {\n  content: \"\"; }\n\n.ion-checkmark:before {\n  content: \"\"; }\n\n.ion-checkmark-circled:before {\n  content: \"\"; }\n\n.ion-checkmark-round:before {\n  content: \"\"; }\n\n.ion-chevron-down:before {\n  content: \"\"; }\n\n.ion-chevron-left:before {\n  content: \"\"; }\n\n.ion-chevron-right:before {\n  content: \"\"; }\n\n.ion-chevron-up:before {\n  content: \"\"; }\n\n.ion-clipboard:before {\n  content: \"\"; }\n\n.ion-clock:before {\n  content: \"\"; }\n\n.ion-close:before {\n  content: \"\"; }\n\n.ion-close-circled:before {\n  content: \"\"; }\n\n.ion-close-round:before {\n  content: \"\"; }\n\n.ion-closed-captioning:before {\n  content: \"\"; }\n\n.ion-cloud:before {\n  content: \"\"; }\n\n.ion-code:before {\n  content: \"\"; }\n\n.ion-code-download:before {\n  content: \"\"; }\n\n.ion-code-working:before {\n  content: \"\"; }\n\n.ion-coffee:before {\n  content: \"\"; }\n\n.ion-compass:before {\n  content: \"\"; }\n\n.ion-compose:before {\n  content: \"\"; }\n\n.ion-connection-bars:before {\n  content: \"\"; }\n\n.ion-contrast:before {\n  content: \"\"; }\n\n.ion-crop:before {\n  content: \"\"; }\n\n.ion-cube:before {\n  content: \"\"; }\n\n.ion-disc:before {\n  content: \"\"; }\n\n.ion-document:before {\n  content: \"\"; }\n\n.ion-document-text:before {\n  content: \"\"; }\n\n.ion-drag:before {\n  content: \"\"; }\n\n.ion-earth:before {\n  content: \"\"; }\n\n.ion-easel:before {\n  content: \"\"; }\n\n.ion-edit:before {\n  content: \"\"; }\n\n.ion-egg:before {\n  content: \"\"; }\n\n.ion-eject:before {\n  content: \"\"; }\n\n.ion-email:before {\n  content: \"\"; }\n\n.ion-email-unread:before {\n  content: \"\"; }\n\n.ion-erlenmeyer-flask:before {\n  content: \"\"; }\n\n.ion-erlenmeyer-flask-bubbles:before {\n  content: \"\"; }\n\n.ion-eye:before {\n  content: \"\"; }\n\n.ion-eye-disabled:before {\n  content: \"\"; }\n\n.ion-female:before {\n  content: \"\"; }\n\n.ion-filing:before {\n  content: \"\"; }\n\n.ion-film-marker:before {\n  content: \"\"; }\n\n.ion-fireball:before {\n  content: \"\"; }\n\n.ion-flag:before {\n  content: \"\"; }\n\n.ion-flame:before {\n  content: \"\"; }\n\n.ion-flash:before {\n  content: \"\"; }\n\n.ion-flash-off:before {\n  content: \"\"; }\n\n.ion-folder:before {\n  content: \"\"; }\n\n.ion-fork:before {\n  content: \"\"; }\n\n.ion-fork-repo:before {\n  content: \"\"; }\n\n.ion-forward:before {\n  content: \"\"; }\n\n.ion-funnel:before {\n  content: \"\"; }\n\n.ion-gear-a:before {\n  content: \"\"; }\n\n.ion-gear-b:before {\n  content: \"\"; }\n\n.ion-grid:before {\n  content: \"\"; }\n\n.ion-hammer:before {\n  content: \"\"; }\n\n.ion-happy:before {\n  content: \"\"; }\n\n.ion-happy-outline:before {\n  content: \"\"; }\n\n.ion-headphone:before {\n  content: \"\"; }\n\n.ion-heart:before {\n  content: \"\"; }\n\n.ion-heart-broken:before {\n  content: \"\"; }\n\n.ion-help:before {\n  content: \"\"; }\n\n.ion-help-buoy:before {\n  content: \"\"; }\n\n.ion-help-circled:before {\n  content: \"\"; }\n\n.ion-home:before {\n  content: \"\"; }\n\n.ion-icecream:before {\n  content: \"\"; }\n\n.ion-image:before {\n  content: \"\"; }\n\n.ion-images:before {\n  content: \"\"; }\n\n.ion-information:before {\n  content: \"\"; }\n\n.ion-information-circled:before {\n  content: \"\"; }\n\n.ion-ionic:before {\n  content: \"\"; }\n\n.ion-ios-alarm:before {\n  content: \"\"; }\n\n.ion-ios-alarm-outline:before {\n  content: \"\"; }\n\n.ion-ios-albums:before {\n  content: \"\"; }\n\n.ion-ios-albums-outline:before {\n  content: \"\"; }\n\n.ion-ios-americanfootball:before {\n  content: \"\"; }\n\n.ion-ios-americanfootball-outline:before {\n  content: \"\"; }\n\n.ion-ios-analytics:before {\n  content: \"\"; }\n\n.ion-ios-analytics-outline:before {\n  content: \"\"; }\n\n.ion-ios-arrow-back:before {\n  content: \"\"; }\n\n.ion-ios-arrow-down:before {\n  content: \"\"; }\n\n.ion-ios-arrow-forward:before {\n  content: \"\"; }\n\n.ion-ios-arrow-left:before {\n  content: \"\"; }\n\n.ion-ios-arrow-right:before {\n  content: \"\"; }\n\n.ion-ios-arrow-thin-down:before {\n  content: \"\"; }\n\n.ion-ios-arrow-thin-left:before {\n  content: \"\"; }\n\n.ion-ios-arrow-thin-right:before {\n  content: \"\"; }\n\n.ion-ios-arrow-thin-up:before {\n  content: \"\"; }\n\n.ion-ios-arrow-up:before {\n  content: \"\"; }\n\n.ion-ios-at:before {\n  content: \"\"; }\n\n.ion-ios-at-outline:before {\n  content: \"\"; }\n\n.ion-ios-barcode:before {\n  content: \"\"; }\n\n.ion-ios-barcode-outline:before {\n  content: \"\"; }\n\n.ion-ios-baseball:before {\n  content: \"\"; }\n\n.ion-ios-baseball-outline:before {\n  content: \"\"; }\n\n.ion-ios-basketball:before {\n  content: \"\"; }\n\n.ion-ios-basketball-outline:before {\n  content: \"\"; }\n\n.ion-ios-bell:before {\n  content: \"\"; }\n\n.ion-ios-bell-outline:before {\n  content: \"\"; }\n\n.ion-ios-body:before {\n  content: \"\"; }\n\n.ion-ios-body-outline:before {\n  content: \"\"; }\n\n.ion-ios-bolt:before {\n  content: \"\"; }\n\n.ion-ios-bolt-outline:before {\n  content: \"\"; }\n\n.ion-ios-book:before {\n  content: \"\"; }\n\n.ion-ios-book-outline:before {\n  content: \"\"; }\n\n.ion-ios-bookmarks:before {\n  content: \"\"; }\n\n.ion-ios-bookmarks-outline:before {\n  content: \"\"; }\n\n.ion-ios-box:before {\n  content: \"\"; }\n\n.ion-ios-box-outline:before {\n  content: \"\"; }\n\n.ion-ios-briefcase:before {\n  content: \"\"; }\n\n.ion-ios-briefcase-outline:before {\n  content: \"\"; }\n\n.ion-ios-browsers:before {\n  content: \"\"; }\n\n.ion-ios-browsers-outline:before {\n  content: \"\"; }\n\n.ion-ios-calculator:before {\n  content: \"\"; }\n\n.ion-ios-calculator-outline:before {\n  content: \"\"; }\n\n.ion-ios-calendar:before {\n  content: \"\"; }\n\n.ion-ios-calendar-outline:before {\n  content: \"\"; }\n\n.ion-ios-camera:before {\n  content: \"\"; }\n\n.ion-ios-camera-outline:before {\n  content: \"\"; }\n\n.ion-ios-cart:before {\n  content: \"\"; }\n\n.ion-ios-cart-outline:before {\n  content: \"\"; }\n\n.ion-ios-chatboxes:before {\n  content: \"\"; }\n\n.ion-ios-chatboxes-outline:before {\n  content: \"\"; }\n\n.ion-ios-chatbubble:before {\n  content: \"\"; }\n\n.ion-ios-chatbubble-outline:before {\n  content: \"\"; }\n\n.ion-ios-checkmark:before {\n  content: \"\"; }\n\n.ion-ios-checkmark-empty:before {\n  content: \"\"; }\n\n.ion-ios-checkmark-outline:before {\n  content: \"\"; }\n\n.ion-ios-circle-filled:before {\n  content: \"\"; }\n\n.ion-ios-circle-outline:before {\n  content: \"\"; }\n\n.ion-ios-clock:before {\n  content: \"\"; }\n\n.ion-ios-clock-outline:before {\n  content: \"\"; }\n\n.ion-ios-close:before {\n  content: \"\"; }\n\n.ion-ios-close-empty:before {\n  content: \"\"; }\n\n.ion-ios-close-outline:before {\n  content: \"\"; }\n\n.ion-ios-cloud:before {\n  content: \"\"; }\n\n.ion-ios-cloud-download:before {\n  content: \"\"; }\n\n.ion-ios-cloud-download-outline:before {\n  content: \"\"; }\n\n.ion-ios-cloud-outline:before {\n  content: \"\"; }\n\n.ion-ios-cloud-upload:before {\n  content: \"\"; }\n\n.ion-ios-cloud-upload-outline:before {\n  content: \"\"; }\n\n.ion-ios-cloudy:before {\n  content: \"\"; }\n\n.ion-ios-cloudy-night:before {\n  content: \"\"; }\n\n.ion-ios-cloudy-night-outline:before {\n  content: \"\"; }\n\n.ion-ios-cloudy-outline:before {\n  content: \"\"; }\n\n.ion-ios-cog:before {\n  content: \"\"; }\n\n.ion-ios-cog-outline:before {\n  content: \"\"; }\n\n.ion-ios-color-filter:before {\n  content: \"\"; }\n\n.ion-ios-color-filter-outline:before {\n  content: \"\"; }\n\n.ion-ios-color-wand:before {\n  content: \"\"; }\n\n.ion-ios-color-wand-outline:before {\n  content: \"\"; }\n\n.ion-ios-compose:before {\n  content: \"\"; }\n\n.ion-ios-compose-outline:before {\n  content: \"\"; }\n\n.ion-ios-contact:before {\n  content: \"\"; }\n\n.ion-ios-contact-outline:before {\n  content: \"\"; }\n\n.ion-ios-copy:before {\n  content: \"\"; }\n\n.ion-ios-copy-outline:before {\n  content: \"\"; }\n\n.ion-ios-crop:before {\n  content: \"\"; }\n\n.ion-ios-crop-strong:before {\n  content: \"\"; }\n\n.ion-ios-download:before {\n  content: \"\"; }\n\n.ion-ios-download-outline:before {\n  content: \"\"; }\n\n.ion-ios-drag:before {\n  content: \"\"; }\n\n.ion-ios-email:before {\n  content: \"\"; }\n\n.ion-ios-email-outline:before {\n  content: \"\"; }\n\n.ion-ios-eye:before {\n  content: \"\"; }\n\n.ion-ios-eye-outline:before {\n  content: \"\"; }\n\n.ion-ios-fastforward:before {\n  content: \"\"; }\n\n.ion-ios-fastforward-outline:before {\n  content: \"\"; }\n\n.ion-ios-filing:before {\n  content: \"\"; }\n\n.ion-ios-filing-outline:before {\n  content: \"\"; }\n\n.ion-ios-film:before {\n  content: \"\"; }\n\n.ion-ios-film-outline:before {\n  content: \"\"; }\n\n.ion-ios-flag:before {\n  content: \"\"; }\n\n.ion-ios-flag-outline:before {\n  content: \"\"; }\n\n.ion-ios-flame:before {\n  content: \"\"; }\n\n.ion-ios-flame-outline:before {\n  content: \"\"; }\n\n.ion-ios-flask:before {\n  content: \"\"; }\n\n.ion-ios-flask-outline:before {\n  content: \"\"; }\n\n.ion-ios-flower:before {\n  content: \"\"; }\n\n.ion-ios-flower-outline:before {\n  content: \"\"; }\n\n.ion-ios-folder:before {\n  content: \"\"; }\n\n.ion-ios-folder-outline:before {\n  content: \"\"; }\n\n.ion-ios-football:before {\n  content: \"\"; }\n\n.ion-ios-football-outline:before {\n  content: \"\"; }\n\n.ion-ios-game-controller-a:before {\n  content: \"\"; }\n\n.ion-ios-game-controller-a-outline:before {\n  content: \"\"; }\n\n.ion-ios-game-controller-b:before {\n  content: \"\"; }\n\n.ion-ios-game-controller-b-outline:before {\n  content: \"\"; }\n\n.ion-ios-gear:before {\n  content: \"\"; }\n\n.ion-ios-gear-outline:before {\n  content: \"\"; }\n\n.ion-ios-glasses:before {\n  content: \"\"; }\n\n.ion-ios-glasses-outline:before {\n  content: \"\"; }\n\n.ion-ios-grid-view:before {\n  content: \"\"; }\n\n.ion-ios-grid-view-outline:before {\n  content: \"\"; }\n\n.ion-ios-heart:before {\n  content: \"\"; }\n\n.ion-ios-heart-outline:before {\n  content: \"\"; }\n\n.ion-ios-help:before {\n  content: \"\"; }\n\n.ion-ios-help-empty:before {\n  content: \"\"; }\n\n.ion-ios-help-outline:before {\n  content: \"\"; }\n\n.ion-ios-home:before {\n  content: \"\"; }\n\n.ion-ios-home-outline:before {\n  content: \"\"; }\n\n.ion-ios-infinite:before {\n  content: \"\"; }\n\n.ion-ios-infinite-outline:before {\n  content: \"\"; }\n\n.ion-ios-information:before {\n  content: \"\"; }\n\n.ion-ios-information-empty:before {\n  content: \"\"; }\n\n.ion-ios-information-outline:before {\n  content: \"\"; }\n\n.ion-ios-ionic-outline:before {\n  content: \"\"; }\n\n.ion-ios-keypad:before {\n  content: \"\"; }\n\n.ion-ios-keypad-outline:before {\n  content: \"\"; }\n\n.ion-ios-lightbulb:before {\n  content: \"\"; }\n\n.ion-ios-lightbulb-outline:before {\n  content: \"\"; }\n\n.ion-ios-list:before {\n  content: \"\"; }\n\n.ion-ios-list-outline:before {\n  content: \"\"; }\n\n.ion-ios-location:before {\n  content: \"\"; }\n\n.ion-ios-location-outline:before {\n  content: \"\"; }\n\n.ion-ios-locked:before {\n  content: \"\"; }\n\n.ion-ios-locked-outline:before {\n  content: \"\"; }\n\n.ion-ios-loop:before {\n  content: \"\"; }\n\n.ion-ios-loop-strong:before {\n  content: \"\"; }\n\n.ion-ios-medical:before {\n  content: \"\"; }\n\n.ion-ios-medical-outline:before {\n  content: \"\"; }\n\n.ion-ios-medkit:before {\n  content: \"\"; }\n\n.ion-ios-medkit-outline:before {\n  content: \"\"; }\n\n.ion-ios-mic:before {\n  content: \"\"; }\n\n.ion-ios-mic-off:before {\n  content: \"\"; }\n\n.ion-ios-mic-outline:before {\n  content: \"\"; }\n\n.ion-ios-minus:before {\n  content: \"\"; }\n\n.ion-ios-minus-empty:before {\n  content: \"\"; }\n\n.ion-ios-minus-outline:before {\n  content: \"\"; }\n\n.ion-ios-monitor:before {\n  content: \"\"; }\n\n.ion-ios-monitor-outline:before {\n  content: \"\"; }\n\n.ion-ios-moon:before {\n  content: \"\"; }\n\n.ion-ios-moon-outline:before {\n  content: \"\"; }\n\n.ion-ios-more:before {\n  content: \"\"; }\n\n.ion-ios-more-outline:before {\n  content: \"\"; }\n\n.ion-ios-musical-note:before {\n  content: \"\"; }\n\n.ion-ios-musical-notes:before {\n  content: \"\"; }\n\n.ion-ios-navigate:before {\n  content: \"\"; }\n\n.ion-ios-navigate-outline:before {\n  content: \"\"; }\n\n.ion-ios-nutrition:before {\n  content: \"\"; }\n\n.ion-ios-nutrition-outline:before {\n  content: \"\"; }\n\n.ion-ios-paper:before {\n  content: \"\"; }\n\n.ion-ios-paper-outline:before {\n  content: \"\"; }\n\n.ion-ios-paperplane:before {\n  content: \"\"; }\n\n.ion-ios-paperplane-outline:before {\n  content: \"\"; }\n\n.ion-ios-partlysunny:before {\n  content: \"\"; }\n\n.ion-ios-partlysunny-outline:before {\n  content: \"\"; }\n\n.ion-ios-pause:before {\n  content: \"\"; }\n\n.ion-ios-pause-outline:before {\n  content: \"\"; }\n\n.ion-ios-paw:before {\n  content: \"\"; }\n\n.ion-ios-paw-outline:before {\n  content: \"\"; }\n\n.ion-ios-people:before {\n  content: \"\"; }\n\n.ion-ios-people-outline:before {\n  content: \"\"; }\n\n.ion-ios-person:before {\n  content: \"\"; }\n\n.ion-ios-person-outline:before {\n  content: \"\"; }\n\n.ion-ios-personadd:before {\n  content: \"\"; }\n\n.ion-ios-personadd-outline:before {\n  content: \"\"; }\n\n.ion-ios-photos:before {\n  content: \"\"; }\n\n.ion-ios-photos-outline:before {\n  content: \"\"; }\n\n.ion-ios-pie:before {\n  content: \"\"; }\n\n.ion-ios-pie-outline:before {\n  content: \"\"; }\n\n.ion-ios-pint:before {\n  content: \"\"; }\n\n.ion-ios-pint-outline:before {\n  content: \"\"; }\n\n.ion-ios-play:before {\n  content: \"\"; }\n\n.ion-ios-play-outline:before {\n  content: \"\"; }\n\n.ion-ios-plus:before {\n  content: \"\"; }\n\n.ion-ios-plus-empty:before {\n  content: \"\"; }\n\n.ion-ios-plus-outline:before {\n  content: \"\"; }\n\n.ion-ios-pricetag:before {\n  content: \"\"; }\n\n.ion-ios-pricetag-outline:before {\n  content: \"\"; }\n\n.ion-ios-pricetags:before {\n  content: \"\"; }\n\n.ion-ios-pricetags-outline:before {\n  content: \"\"; }\n\n.ion-ios-printer:before {\n  content: \"\"; }\n\n.ion-ios-printer-outline:before {\n  content: \"\"; }\n\n.ion-ios-pulse:before {\n  content: \"\"; }\n\n.ion-ios-pulse-strong:before {\n  content: \"\"; }\n\n.ion-ios-rainy:before {\n  content: \"\"; }\n\n.ion-ios-rainy-outline:before {\n  content: \"\"; }\n\n.ion-ios-recording:before {\n  content: \"\"; }\n\n.ion-ios-recording-outline:before {\n  content: \"\"; }\n\n.ion-ios-redo:before {\n  content: \"\"; }\n\n.ion-ios-redo-outline:before {\n  content: \"\"; }\n\n.ion-ios-refresh:before {\n  content: \"\"; }\n\n.ion-ios-refresh-empty:before {\n  content: \"\"; }\n\n.ion-ios-refresh-outline:before {\n  content: \"\"; }\n\n.ion-ios-reload:before {\n  content: \"\"; }\n\n.ion-ios-reverse-camera:before {\n  content: \"\"; }\n\n.ion-ios-reverse-camera-outline:before {\n  content: \"\"; }\n\n.ion-ios-rewind:before {\n  content: \"\"; }\n\n.ion-ios-rewind-outline:before {\n  content: \"\"; }\n\n.ion-ios-rose:before {\n  content: \"\"; }\n\n.ion-ios-rose-outline:before {\n  content: \"\"; }\n\n.ion-ios-search:before {\n  content: \"\"; }\n\n.ion-ios-search-strong:before {\n  content: \"\"; }\n\n.ion-ios-settings:before {\n  content: \"\"; }\n\n.ion-ios-settings-strong:before {\n  content: \"\"; }\n\n.ion-ios-shuffle:before {\n  content: \"\"; }\n\n.ion-ios-shuffle-strong:before {\n  content: \"\"; }\n\n.ion-ios-skipbackward:before {\n  content: \"\"; }\n\n.ion-ios-skipbackward-outline:before {\n  content: \"\"; }\n\n.ion-ios-skipforward:before {\n  content: \"\"; }\n\n.ion-ios-skipforward-outline:before {\n  content: \"\"; }\n\n.ion-ios-snowy:before {\n  content: \"\"; }\n\n.ion-ios-speedometer:before {\n  content: \"\"; }\n\n.ion-ios-speedometer-outline:before {\n  content: \"\"; }\n\n.ion-ios-star:before {\n  content: \"\"; }\n\n.ion-ios-star-half:before {\n  content: \"\"; }\n\n.ion-ios-star-outline:before {\n  content: \"\"; }\n\n.ion-ios-stopwatch:before {\n  content: \"\"; }\n\n.ion-ios-stopwatch-outline:before {\n  content: \"\"; }\n\n.ion-ios-sunny:before {\n  content: \"\"; }\n\n.ion-ios-sunny-outline:before {\n  content: \"\"; }\n\n.ion-ios-telephone:before {\n  content: \"\"; }\n\n.ion-ios-telephone-outline:before {\n  content: \"\"; }\n\n.ion-ios-tennisball:before {\n  content: \"\"; }\n\n.ion-ios-tennisball-outline:before {\n  content: \"\"; }\n\n.ion-ios-thunderstorm:before {\n  content: \"\"; }\n\n.ion-ios-thunderstorm-outline:before {\n  content: \"\"; }\n\n.ion-ios-time:before {\n  content: \"\"; }\n\n.ion-ios-time-outline:before {\n  content: \"\"; }\n\n.ion-ios-timer:before {\n  content: \"\"; }\n\n.ion-ios-timer-outline:before {\n  content: \"\"; }\n\n.ion-ios-toggle:before {\n  content: \"\"; }\n\n.ion-ios-toggle-outline:before {\n  content: \"\"; }\n\n.ion-ios-trash:before {\n  content: \"\"; }\n\n.ion-ios-trash-outline:before {\n  content: \"\"; }\n\n.ion-ios-undo:before {\n  content: \"\"; }\n\n.ion-ios-undo-outline:before {\n  content: \"\"; }\n\n.ion-ios-unlocked:before {\n  content: \"\"; }\n\n.ion-ios-unlocked-outline:before {\n  content: \"\"; }\n\n.ion-ios-upload:before {\n  content: \"\"; }\n\n.ion-ios-upload-outline:before {\n  content: \"\"; }\n\n.ion-ios-videocam:before {\n  content: \"\"; }\n\n.ion-ios-videocam-outline:before {\n  content: \"\"; }\n\n.ion-ios-volume-high:before {\n  content: \"\"; }\n\n.ion-ios-volume-low:before {\n  content: \"\"; }\n\n.ion-ios-wineglass:before {\n  content: \"\"; }\n\n.ion-ios-wineglass-outline:before {\n  content: \"\"; }\n\n.ion-ios-world:before {\n  content: \"\"; }\n\n.ion-ios-world-outline:before {\n  content: \"\"; }\n\n.ion-ipad:before {\n  content: \"\"; }\n\n.ion-iphone:before {\n  content: \"\"; }\n\n.ion-ipod:before {\n  content: \"\"; }\n\n.ion-jet:before {\n  content: \"\"; }\n\n.ion-key:before {\n  content: \"\"; }\n\n.ion-knife:before {\n  content: \"\"; }\n\n.ion-laptop:before {\n  content: \"\"; }\n\n.ion-leaf:before {\n  content: \"\"; }\n\n.ion-levels:before {\n  content: \"\"; }\n\n.ion-lightbulb:before {\n  content: \"\"; }\n\n.ion-link:before {\n  content: \"\"; }\n\n.ion-load-a:before {\n  content: \"\"; }\n\n.ion-load-b:before {\n  content: \"\"; }\n\n.ion-load-c:before {\n  content: \"\"; }\n\n.ion-load-d:before {\n  content: \"\"; }\n\n.ion-location:before {\n  content: \"\"; }\n\n.ion-lock-combination:before {\n  content: \"\"; }\n\n.ion-locked:before {\n  content: \"\"; }\n\n.ion-log-in:before {\n  content: \"\"; }\n\n.ion-log-out:before {\n  content: \"\"; }\n\n.ion-loop:before {\n  content: \"\"; }\n\n.ion-magnet:before {\n  content: \"\"; }\n\n.ion-male:before {\n  content: \"\"; }\n\n.ion-man:before {\n  content: \"\"; }\n\n.ion-map:before {\n  content: \"\"; }\n\n.ion-medkit:before {\n  content: \"\"; }\n\n.ion-merge:before {\n  content: \"\"; }\n\n.ion-mic-a:before {\n  content: \"\"; }\n\n.ion-mic-b:before {\n  content: \"\"; }\n\n.ion-mic-c:before {\n  content: \"\"; }\n\n.ion-minus:before {\n  content: \"\"; }\n\n.ion-minus-circled:before {\n  content: \"\"; }\n\n.ion-minus-round:before {\n  content: \"\"; }\n\n.ion-model-s:before {\n  content: \"\"; }\n\n.ion-monitor:before {\n  content: \"\"; }\n\n.ion-more:before {\n  content: \"\"; }\n\n.ion-mouse:before {\n  content: \"\"; }\n\n.ion-music-note:before {\n  content: \"\"; }\n\n.ion-navicon:before {\n  content: \"\"; }\n\n.ion-navicon-round:before {\n  content: \"\"; }\n\n.ion-navigate:before {\n  content: \"\"; }\n\n.ion-network:before {\n  content: \"\"; }\n\n.ion-no-smoking:before {\n  content: \"\"; }\n\n.ion-nuclear:before {\n  content: \"\"; }\n\n.ion-outlet:before {\n  content: \"\"; }\n\n.ion-paintbrush:before {\n  content: \"\"; }\n\n.ion-paintbucket:before {\n  content: \"\"; }\n\n.ion-paper-airplane:before {\n  content: \"\"; }\n\n.ion-paperclip:before {\n  content: \"\"; }\n\n.ion-pause:before {\n  content: \"\"; }\n\n.ion-person:before {\n  content: \"\"; }\n\n.ion-person-add:before {\n  content: \"\"; }\n\n.ion-person-stalker:before {\n  content: \"\"; }\n\n.ion-pie-graph:before {\n  content: \"\"; }\n\n.ion-pin:before {\n  content: \"\"; }\n\n.ion-pinpoint:before {\n  content: \"\"; }\n\n.ion-pizza:before {\n  content: \"\"; }\n\n.ion-plane:before {\n  content: \"\"; }\n\n.ion-planet:before {\n  content: \"\"; }\n\n.ion-play:before {\n  content: \"\"; }\n\n.ion-playstation:before {\n  content: \"\"; }\n\n.ion-plus:before {\n  content: \"\"; }\n\n.ion-plus-circled:before {\n  content: \"\"; }\n\n.ion-plus-round:before {\n  content: \"\"; }\n\n.ion-podium:before {\n  content: \"\"; }\n\n.ion-pound:before {\n  content: \"\"; }\n\n.ion-power:before {\n  content: \"\"; }\n\n.ion-pricetag:before {\n  content: \"\"; }\n\n.ion-pricetags:before {\n  content: \"\"; }\n\n.ion-printer:before {\n  content: \"\"; }\n\n.ion-pull-request:before {\n  content: \"\"; }\n\n.ion-qr-scanner:before {\n  content: \"\"; }\n\n.ion-quote:before {\n  content: \"\"; }\n\n.ion-radio-waves:before {\n  content: \"\"; }\n\n.ion-record:before {\n  content: \"\"; }\n\n.ion-refresh:before {\n  content: \"\"; }\n\n.ion-reply:before {\n  content: \"\"; }\n\n.ion-reply-all:before {\n  content: \"\"; }\n\n.ion-ribbon-a:before {\n  content: \"\"; }\n\n.ion-ribbon-b:before {\n  content: \"\"; }\n\n.ion-sad:before {\n  content: \"\"; }\n\n.ion-sad-outline:before {\n  content: \"\"; }\n\n.ion-scissors:before {\n  content: \"\"; }\n\n.ion-search:before {\n  content: \"\"; }\n\n.ion-settings:before {\n  content: \"\"; }\n\n.ion-share:before {\n  content: \"\"; }\n\n.ion-shuffle:before {\n  content: \"\"; }\n\n.ion-skip-backward:before {\n  content: \"\"; }\n\n.ion-skip-forward:before {\n  content: \"\"; }\n\n.ion-social-android:before {\n  content: \"\"; }\n\n.ion-social-android-outline:before {\n  content: \"\"; }\n\n.ion-social-angular:before {\n  content: \"\"; }\n\n.ion-social-angular-outline:before {\n  content: \"\"; }\n\n.ion-social-apple:before {\n  content: \"\"; }\n\n.ion-social-apple-outline:before {\n  content: \"\"; }\n\n.ion-social-bitcoin:before {\n  content: \"\"; }\n\n.ion-social-bitcoin-outline:before {\n  content: \"\"; }\n\n.ion-social-buffer:before {\n  content: \"\"; }\n\n.ion-social-buffer-outline:before {\n  content: \"\"; }\n\n.ion-social-chrome:before {\n  content: \"\"; }\n\n.ion-social-chrome-outline:before {\n  content: \"\"; }\n\n.ion-social-codepen:before {\n  content: \"\"; }\n\n.ion-social-codepen-outline:before {\n  content: \"\"; }\n\n.ion-social-css3:before {\n  content: \"\"; }\n\n.ion-social-css3-outline:before {\n  content: \"\"; }\n\n.ion-social-designernews:before {\n  content: \"\"; }\n\n.ion-social-designernews-outline:before {\n  content: \"\"; }\n\n.ion-social-dribbble:before {\n  content: \"\"; }\n\n.ion-social-dribbble-outline:before {\n  content: \"\"; }\n\n.ion-social-dropbox:before {\n  content: \"\"; }\n\n.ion-social-dropbox-outline:before {\n  content: \"\"; }\n\n.ion-social-euro:before {\n  content: \"\"; }\n\n.ion-social-euro-outline:before {\n  content: \"\"; }\n\n.ion-social-facebook:before {\n  content: \"\"; }\n\n.ion-social-facebook-outline:before {\n  content: \"\"; }\n\n.ion-social-foursquare:before {\n  content: \"\"; }\n\n.ion-social-foursquare-outline:before {\n  content: \"\"; }\n\n.ion-social-freebsd-devil:before {\n  content: \"\"; }\n\n.ion-social-github:before {\n  content: \"\"; }\n\n.ion-social-github-outline:before {\n  content: \"\"; }\n\n.ion-social-google:before {\n  content: \"\"; }\n\n.ion-social-google-outline:before {\n  content: \"\"; }\n\n.ion-social-googleplus:before {\n  content: \"\"; }\n\n.ion-social-googleplus-outline:before {\n  content: \"\"; }\n\n.ion-social-hackernews:before {\n  content: \"\"; }\n\n.ion-social-hackernews-outline:before {\n  content: \"\"; }\n\n.ion-social-html5:before {\n  content: \"\"; }\n\n.ion-social-html5-outline:before {\n  content: \"\"; }\n\n.ion-social-instagram:before {\n  content: \"\"; }\n\n.ion-social-instagram-outline:before {\n  content: \"\"; }\n\n.ion-social-javascript:before {\n  content: \"\"; }\n\n.ion-social-javascript-outline:before {\n  content: \"\"; }\n\n.ion-social-linkedin:before {\n  content: \"\"; }\n\n.ion-social-linkedin-outline:before {\n  content: \"\"; }\n\n.ion-social-markdown:before {\n  content: \"\"; }\n\n.ion-social-nodejs:before {\n  content: \"\"; }\n\n.ion-social-octocat:before {\n  content: \"\"; }\n\n.ion-social-pinterest:before {\n  content: \"\"; }\n\n.ion-social-pinterest-outline:before {\n  content: \"\"; }\n\n.ion-social-python:before {\n  content: \"\"; }\n\n.ion-social-reddit:before {\n  content: \"\"; }\n\n.ion-social-reddit-outline:before {\n  content: \"\"; }\n\n.ion-social-rss:before {\n  content: \"\"; }\n\n.ion-social-rss-outline:before {\n  content: \"\"; }\n\n.ion-social-sass:before {\n  content: \"\"; }\n\n.ion-social-skype:before {\n  content: \"\"; }\n\n.ion-social-skype-outline:before {\n  content: \"\"; }\n\n.ion-social-snapchat:before {\n  content: \"\"; }\n\n.ion-social-snapchat-outline:before {\n  content: \"\"; }\n\n.ion-social-tumblr:before {\n  content: \"\"; }\n\n.ion-social-tumblr-outline:before {\n  content: \"\"; }\n\n.ion-social-tux:before {\n  content: \"\"; }\n\n.ion-social-twitch:before {\n  content: \"\"; }\n\n.ion-social-twitch-outline:before {\n  content: \"\"; }\n\n.ion-social-twitter:before {\n  content: \"\"; }\n\n.ion-social-twitter-outline:before {\n  content: \"\"; }\n\n.ion-social-usd:before {\n  content: \"\"; }\n\n.ion-social-usd-outline:before {\n  content: \"\"; }\n\n.ion-social-vimeo:before {\n  content: \"\"; }\n\n.ion-social-vimeo-outline:before {\n  content: \"\"; }\n\n.ion-social-whatsapp:before {\n  content: \"\"; }\n\n.ion-social-whatsapp-outline:before {\n  content: \"\"; }\n\n.ion-social-windows:before {\n  content: \"\"; }\n\n.ion-social-windows-outline:before {\n  content: \"\"; }\n\n.ion-social-wordpress:before {\n  content: \"\"; }\n\n.ion-social-wordpress-outline:before {\n  content: \"\"; }\n\n.ion-social-yahoo:before {\n  content: \"\"; }\n\n.ion-social-yahoo-outline:before {\n  content: \"\"; }\n\n.ion-social-yen:before {\n  content: \"\"; }\n\n.ion-social-yen-outline:before {\n  content: \"\"; }\n\n.ion-social-youtube:before {\n  content: \"\"; }\n\n.ion-social-youtube-outline:before {\n  content: \"\"; }\n\n.ion-soup-can:before {\n  content: \"\"; }\n\n.ion-soup-can-outline:before {\n  content: \"\"; }\n\n.ion-speakerphone:before {\n  content: \"\"; }\n\n.ion-speedometer:before {\n  content: \"\"; }\n\n.ion-spoon:before {\n  content: \"\"; }\n\n.ion-star:before {\n  content: \"\"; }\n\n.ion-stats-bars:before {\n  content: \"\"; }\n\n.ion-steam:before {\n  content: \"\"; }\n\n.ion-stop:before {\n  content: \"\"; }\n\n.ion-thermometer:before {\n  content: \"\"; }\n\n.ion-thumbsdown:before {\n  content: \"\"; }\n\n.ion-thumbsup:before {\n  content: \"\"; }\n\n.ion-toggle:before {\n  content: \"\"; }\n\n.ion-toggle-filled:before {\n  content: \"\"; }\n\n.ion-transgender:before {\n  content: \"\"; }\n\n.ion-trash-a:before {\n  content: \"\"; }\n\n.ion-trash-b:before {\n  content: \"\"; }\n\n.ion-trophy:before {\n  content: \"\"; }\n\n.ion-tshirt:before {\n  content: \"\"; }\n\n.ion-tshirt-outline:before {\n  content: \"\"; }\n\n.ion-umbrella:before {\n  content: \"\"; }\n\n.ion-university:before {\n  content: \"\"; }\n\n.ion-unlocked:before {\n  content: \"\"; }\n\n.ion-upload:before {\n  content: \"\"; }\n\n.ion-usb:before {\n  content: \"\"; }\n\n.ion-videocamera:before {\n  content: \"\"; }\n\n.ion-volume-high:before {\n  content: \"\"; }\n\n.ion-volume-low:before {\n  content: \"\"; }\n\n.ion-volume-medium:before {\n  content: \"\"; }\n\n.ion-volume-mute:before {\n  content: \"\"; }\n\n.ion-wand:before {\n  content: \"\"; }\n\n.ion-waterdrop:before {\n  content: \"\"; }\n\n.ion-wifi:before {\n  content: \"\"; }\n\n.ion-wineglass:before {\n  content: \"\"; }\n\n.ion-woman:before {\n  content: \"\"; }\n\n.ion-wrench:before {\n  content: \"\"; }\n\n.ion-xbox:before {\n  content: \"\"; }\n\n/**\n * Resets\n * --------------------------------------------------\n * Adapted from normalize.css and some reset.css. We don't care even one\n * bit about old IE, so we don't need any hacks for that in here.\n *\n * There are probably other things we could remove here, as well.\n *\n * normalize.css v2.1.2 | MIT License | git.io/normalize\n\n * Eric Meyer's Reset CSS v2.0 (http://meyerweb.com/eric/tools/css/reset/)\n * http://cssreset.com\n */\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, i, u, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed, fieldset,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  vertical-align: baseline;\n  font: inherit;\n  font-size: 100%; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\n/**\n * Prevent modern browsers from displaying `audio` without controls.\n * Remove excess height in iOS 5 devices.\n */\naudio:not([controls]) {\n  display: none;\n  height: 0; }\n\n/**\n * Hide the `template` element in IE, Safari, and Firefox < 22.\n */\n[hidden],\ntemplate {\n  display: none; }\n\nscript {\n  display: none !important; }\n\n/* ==========================================================================\n   Base\n   ========================================================================== */\n/**\n * 1. Set default font family to sans-serif.\n * 2. Prevent iOS text size adjust after orientation change, without disabling\n *  user zoom.\n */\nhtml {\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  font-family: sans-serif;\n  /* 1 */\n  -webkit-text-size-adjust: 100%;\n  -ms-text-size-adjust: 100%;\n  /* 2 */\n  -webkit-text-size-adjust: 100%;\n  /* 2 */ }\n\n/**\n * Remove default margin.\n */\nbody {\n  margin: 0;\n  line-height: 1; }\n\n/**\n * Remove default outlines.\n */\na,\nbutton,\n:focus,\na:focus,\nbutton:focus,\na:active,\na:hover {\n  outline: 0; }\n\n/* *\n * Remove tap highlight color\n */\na {\n  -webkit-user-drag: none;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-tap-highlight-color: transparent; }\n  a[href]:hover {\n    cursor: pointer; }\n\n/* ==========================================================================\n   Typography\n   ========================================================================== */\n/**\n * Address style set to `bolder` in Firefox 4+, Safari 5, and Chrome.\n */\nb,\nstrong {\n  font-weight: bold; }\n\n/**\n * Address styling not present in Safari 5 and Chrome.\n */\ndfn {\n  font-style: italic; }\n\n/**\n * Address differences between Firefox and other browsers.\n */\nhr {\n  -moz-box-sizing: content-box;\n  box-sizing: content-box;\n  height: 0; }\n\n/**\n * Correct font family set oddly in Safari 5 and Chrome.\n */\ncode,\nkbd,\npre,\nsamp {\n  font-size: 1em;\n  font-family: monospace, serif; }\n\n/**\n * Improve readability of pre-formatted text in all browsers.\n */\npre {\n  white-space: pre-wrap; }\n\n/**\n * Set consistent quote types.\n */\nq {\n  quotes: \"\\201C\" \"\\201D\" \"\\2018\" \"\\2019\"; }\n\n/**\n * Address inconsistent and variable font size in all browsers.\n */\nsmall {\n  font-size: 80%; }\n\n/**\n * Prevent `sub` and `sup` affecting `line-height` in all browsers.\n */\nsub,\nsup {\n  position: relative;\n  vertical-align: baseline;\n  font-size: 75%;\n  line-height: 0; }\n\nsup {\n  top: -0.5em; }\n\nsub {\n  bottom: -0.25em; }\n\n/**\n * Define consistent border, margin, and padding.\n */\nfieldset {\n  margin: 0 2px;\n  padding: 0.35em 0.625em 0.75em;\n  border: 1px solid #c0c0c0; }\n\n/**\n * 1. Correct `color` not being inherited in IE 8/9.\n * 2. Remove padding so people aren't caught out if they zero out fieldsets.\n */\nlegend {\n  padding: 0;\n  /* 2 */\n  border: 0;\n  /* 1 */ }\n\n/**\n * 1. Correct font family not being inherited in all browsers.\n * 2. Correct font size not being inherited in all browsers.\n * 3. Address margins set differently in Firefox 4+, Safari 5, and Chrome.\n * 4. Remove any default :focus styles\n * 5. Make sure webkit font smoothing is being inherited\n * 6. Remove default gradient in Android Firefox / FirefoxOS\n */\nbutton,\ninput,\nselect,\ntextarea {\n  margin: 0;\n  /* 3 */\n  font-size: 100%;\n  /* 2 */\n  font-family: inherit;\n  /* 1 */\n  outline-offset: 0;\n  /* 4 */\n  outline-style: none;\n  /* 4 */\n  outline-width: 0;\n  /* 4 */\n  -webkit-font-smoothing: inherit;\n  /* 5 */\n  background-image: none;\n  /* 6 */ }\n\n/**\n * Address Firefox 4+ setting `line-height` on `input` using `importnt` in\n * the UA stylesheet.\n */\nbutton,\ninput {\n  line-height: normal; }\n\n/**\n * Address inconsistent `text-transform` inheritance for `button` and `select`.\n * All other form control elements do not inherit `text-transform` values.\n * Correct `button` style inheritance in Chrome, Safari 5+, and IE 8+.\n * Correct `select` style inheritance in Firefox 4+ and Opera.\n */\nbutton,\nselect {\n  text-transform: none; }\n\n/**\n * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`\n *  and `video` controls.\n * 2. Correct inability to style clickable `input` types in iOS.\n * 3. Improve usability and consistency of cursor style between image-type\n *  `input` and others.\n */\nbutton,\nhtml input[type=\"button\"], input[type=\"reset\"],\ninput[type=\"submit\"] {\n  cursor: pointer;\n  /* 3 */\n  -webkit-appearance: button;\n  /* 2 */ }\n\n/**\n * Re-set default cursor for disabled elements.\n */\nbutton[disabled],\nhtml input[disabled] {\n  cursor: default; }\n\n/**\n * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.\n * 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome\n *  (include `-moz` to future-proof).\n */\ninput[type=\"search\"] {\n  -webkit-box-sizing: content-box;\n  /* 2 */\n  -moz-box-sizing: content-box;\n  box-sizing: content-box;\n  -webkit-appearance: textfield;\n  /* 1 */ }\n\n/**\n * Remove inner padding and search cancel button in Safari 5 and Chrome\n * on OS X.\n */\ninput[type=\"search\"]::-webkit-search-cancel-button,\ninput[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none; }\n\n/**\n * Remove inner padding and border in Firefox 4+.\n */\nbutton::-moz-focus-inner,\ninput::-moz-focus-inner {\n  padding: 0;\n  border: 0; }\n\n/**\n * 1. Remove default vertical scrollbar in IE 8/9.\n * 2. Improve readability and alignment in all browsers.\n */\ntextarea {\n  overflow: auto;\n  /* 1 */\n  vertical-align: top;\n  /* 2 */ }\n\nimg {\n  -webkit-user-drag: none; }\n\n/* ==========================================================================\n   Tables\n   ========================================================================== */\n/**\n * Remove most spacing between table cells.\n */\ntable {\n  border-spacing: 0;\n  border-collapse: collapse; }\n\n/**\n * Scaffolding\n * --------------------------------------------------\n */\n*,\n*:before,\n*:after {\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box; }\n\nhtml {\n  overflow: hidden;\n  -ms-touch-action: pan-y;\n  touch-action: pan-y; }\n\nbody,\n.ionic-body {\n  -webkit-touch-callout: none;\n  -webkit-font-smoothing: antialiased;\n  font-smoothing: antialiased;\n  -webkit-text-size-adjust: none;\n  -moz-text-size-adjust: none;\n  text-size-adjust: none;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  overflow: hidden;\n  margin: 0;\n  padding: 0;\n  color: #000;\n  word-wrap: break-word;\n  font-size: 14px;\n  font-family: \"Helvetica Neue\", \"Roboto\", \"Segoe UI\", sans-serif;\n  line-height: 20px;\n  text-rendering: optimizeLegibility;\n  -webkit-backface-visibility: hidden;\n  -webkit-user-drag: none;\n  -ms-content-zooming: none; }\n\nbody.grade-b,\nbody.grade-c {\n  text-rendering: auto; }\n\n.content {\n  position: relative; }\n\n.scroll-content {\n  position: absolute;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  overflow: hidden;\n  margin-top: -1px;\n  padding-top: 1px;\n  margin-bottom: -1px;\n  width: auto;\n  height: auto; }\n\n.menu .scroll-content.scroll-content-false {\n  z-index: 11; }\n\n.scroll-view {\n  position: relative;\n  display: block;\n  overflow: hidden;\n  margin-top: -1px; }\n\n/**\n * Scroll is the scroll view component available for complex and custom\n * scroll view functionality.\n */\n.scroll {\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  -webkit-touch-callout: none;\n  -webkit-text-size-adjust: none;\n  -moz-text-size-adjust: none;\n  text-size-adjust: none;\n  -webkit-transform-origin: left top;\n  transform-origin: left top; }\n\n/**\n * Set ms-viewport to prevent MS \"page squish\" and allow fluid scrolling\n * https://msdn.microsoft.com/en-us/library/ie/hh869615(v=vs.85).aspx\n */\n@-ms-viewport {\n  width: device-width; }\n\n.scroll-bar {\n  position: absolute;\n  z-index: 9999; }\n\n.ng-animate .scroll-bar {\n  visibility: hidden; }\n\n.scroll-bar-h {\n  right: 2px;\n  bottom: 3px;\n  left: 2px;\n  height: 3px; }\n  .scroll-bar-h .scroll-bar-indicator {\n    height: 100%; }\n\n.scroll-bar-v {\n  top: 2px;\n  right: 3px;\n  bottom: 2px;\n  width: 3px; }\n  .scroll-bar-v .scroll-bar-indicator {\n    width: 100%; }\n\n.scroll-bar-indicator {\n  position: absolute;\n  border-radius: 4px;\n  background: rgba(0, 0, 0, 0.3);\n  opacity: 1;\n  -webkit-transition: opacity 0.3s linear;\n  transition: opacity 0.3s linear; }\n  .scroll-bar-indicator.scroll-bar-fade-out {\n    opacity: 0; }\n\n.platform-android .scroll-bar-indicator {\n  border-radius: 0; }\n\n.grade-b .scroll-bar-indicator,\n.grade-c .scroll-bar-indicator {\n  background: #aaa; }\n  .grade-b .scroll-bar-indicator.scroll-bar-fade-out,\n  .grade-c .scroll-bar-indicator.scroll-bar-fade-out {\n    -webkit-transition: none;\n    transition: none; }\n\nion-infinite-scroll {\n  height: 60px;\n  width: 100%;\n  display: block;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-direction: normal;\n  -webkit-box-orient: horizontal;\n  -webkit-flex-direction: row;\n  -moz-flex-direction: row;\n  -ms-flex-direction: row;\n  flex-direction: row;\n  -webkit-box-pack: center;\n  -ms-flex-pack: center;\n  -webkit-justify-content: center;\n  -moz-justify-content: center;\n  justify-content: center;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center; }\n  ion-infinite-scroll .icon {\n    color: #666666;\n    font-size: 30px;\n    color: #666666; }\n  ion-infinite-scroll:not(.active) .spinner,\n  ion-infinite-scroll:not(.active) .icon:before {\n    display: none; }\n\n.overflow-scroll {\n  overflow-x: hidden;\n  overflow-y: scroll;\n  -webkit-overflow-scrolling: touch;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  position: absolute; }\n  .overflow-scroll .scroll {\n    position: static;\n    height: 100%;\n    -webkit-transform: translate3d(0, 0, 0); }\n\n/* If you change these, change platform.scss as well */\n.has-header {\n  top: 44px; }\n\n.no-header {\n  top: 0; }\n\n.has-subheader {\n  top: 88px; }\n\n.has-tabs-top {\n  top: 93px; }\n\n.has-header.has-subheader.has-tabs-top {\n  top: 137px; }\n\n.has-footer {\n  bottom: 44px; }\n\n.has-subfooter {\n  bottom: 88px; }\n\n.has-tabs,\n.bar-footer.has-tabs {\n  bottom: 49px; }\n  .has-tabs.pane,\n  .bar-footer.has-tabs.pane {\n    bottom: 49px;\n    height: auto; }\n\n.has-footer.has-tabs {\n  bottom: 93px; }\n\n.pane {\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0);\n  -webkit-transition-duration: 0;\n  transition-duration: 0;\n  z-index: 1; }\n\n.view {\n  z-index: 1; }\n\n.pane,\n.view {\n  position: absolute;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: #fff;\n  overflow: hidden; }\n\n.view-container {\n  position: absolute;\n  display: block;\n  width: 100%;\n  height: 100%; }\n\n/**\n * Typography\n * --------------------------------------------------\n */\np {\n  margin: 0 0 10px; }\n\nsmall {\n  font-size: 85%; }\n\ncite {\n  font-style: normal; }\n\n.text-left {\n  text-align: left; }\n\n.text-right {\n  text-align: right; }\n\n.text-center {\n  text-align: center; }\n\nh1, h2, h3, h4, h5, h6,\n.h1, .h2, .h3, .h4, .h5, .h6 {\n  color: #000;\n  font-weight: 500;\n  font-family: \"Helvetica Neue\", \"Roboto\", \"Segoe UI\", sans-serif;\n  line-height: 1.2; }\n  h1 small, h2 small, h3 small, h4 small, h5 small, h6 small,\n  .h1 small, .h2 small, .h3 small, .h4 small, .h5 small, .h6 small {\n    font-weight: normal;\n    line-height: 1; }\n\nh1, .h1,\nh2, .h2,\nh3, .h3 {\n  margin-top: 20px;\n  margin-bottom: 10px; }\n  h1:first-child, .h1:first-child,\n  h2:first-child, .h2:first-child,\n  h3:first-child, .h3:first-child {\n    margin-top: 0; }\n  h1 + h1, h1 + .h1,\n  h1 + h2, h1 + .h2,\n  h1 + h3, h1 + .h3, .h1 + h1,\n  .h1 + .h1,\n  .h1 + h2,\n  .h1 + .h2,\n  .h1 + h3,\n  .h1 + .h3,\n  h2 + h1, h2 + .h1,\n  h2 + h2, h2 + .h2,\n  h2 + h3, h2 + .h3, .h2 + h1,\n  .h2 + .h1,\n  .h2 + h2,\n  .h2 + .h2,\n  .h2 + h3,\n  .h2 + .h3,\n  h3 + h1, h3 + .h1,\n  h3 + h2, h3 + .h2,\n  h3 + h3, h3 + .h3, .h3 + h1, .h3 + .h1,\n  .h3 + h2, .h3 + .h2,\n  .h3 + h3, .h3 + .h3 {\n    margin-top: 10px; }\n\nh4, .h4,\nh5, .h5,\nh6, .h6 {\n  margin-top: 10px;\n  margin-bottom: 10px; }\n\nh1, .h1 {\n  font-size: 36px; }\n\nh2, .h2 {\n  font-size: 30px; }\n\nh3, .h3 {\n  font-size: 24px; }\n\nh4, .h4 {\n  font-size: 18px; }\n\nh5, .h5 {\n  font-size: 14px; }\n\nh6, .h6 {\n  font-size: 12px; }\n\nh1 small, .h1 small {\n  font-size: 24px; }\n\nh2 small, .h2 small {\n  font-size: 18px; }\n\nh3 small, .h3 small,\nh4 small, .h4 small {\n  font-size: 14px; }\n\ndl {\n  margin-bottom: 20px; }\n\ndt,\ndd {\n  line-height: 1.42857; }\n\ndt {\n  font-weight: bold; }\n\nblockquote {\n  margin: 0 0 20px;\n  padding: 10px 20px;\n  border-left: 5px solid gray; }\n  blockquote p {\n    font-weight: 300;\n    font-size: 17.5px;\n    line-height: 1.25; }\n  blockquote p:last-child {\n    margin-bottom: 0; }\n  blockquote small {\n    display: block;\n    line-height: 1.42857; }\n    blockquote small:before {\n      content: '\\2014 \\00A0'; }\n\nq:before,\nq:after,\nblockquote:before,\nblockquote:after {\n  content: \"\"; }\n\naddress {\n  display: block;\n  margin-bottom: 20px;\n  font-style: normal;\n  line-height: 1.42857; }\n\na.subdued {\n  padding-right: 10px;\n  color: #888;\n  text-decoration: none; }\n  a.subdued:hover {\n    text-decoration: none; }\n  a.subdued:last-child {\n    padding-right: 0; }\n\n/**\n * Action Sheets\n * --------------------------------------------------\n */\n.action-sheet-backdrop {\n  -webkit-transition: background-color 150ms ease-in-out;\n  transition: background-color 150ms ease-in-out;\n  position: fixed;\n  top: 0;\n  left: 0;\n  z-index: 11;\n  width: 100%;\n  height: 100%;\n  background-color: transparent; }\n  .action-sheet-backdrop.active {\n    background-color: rgba(0, 0, 0, 0.4); }\n\n.action-sheet-wrapper {\n  -webkit-transform: translate3d(0, 100%, 0);\n  transform: translate3d(0, 100%, 0);\n  -webkit-transition: all cubic-bezier(0.36, 0.66, 0.04, 1) 500ms;\n  transition: all cubic-bezier(0.36, 0.66, 0.04, 1) 500ms;\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  width: 100%;\n  max-width: 500px;\n  margin: auto; }\n\n.action-sheet-up {\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0); }\n\n.action-sheet {\n  margin-left: 8px;\n  margin-right: 8px;\n  width: auto;\n  z-index: 11;\n  overflow: hidden; }\n  .action-sheet .button {\n    display: block;\n    padding: 1px;\n    width: 100%;\n    border-radius: 0;\n    border-color: #d1d3d6;\n    background-color: transparent;\n    color: #007aff;\n    font-size: 21px; }\n    .action-sheet .button:hover {\n      color: #007aff; }\n    .action-sheet .button.destructive {\n      color: #ff3b30; }\n      .action-sheet .button.destructive:hover {\n        color: #ff3b30; }\n  .action-sheet .button.active, .action-sheet .button.activated {\n    box-shadow: none;\n    border-color: #d1d3d6;\n    color: #007aff;\n    background: #e4e5e7; }\n\n.action-sheet-has-icons .icon {\n  position: absolute;\n  left: 16px; }\n\n.action-sheet-title {\n  padding: 16px;\n  color: #8f8f8f;\n  text-align: center;\n  font-size: 13px; }\n\n.action-sheet-group {\n  margin-bottom: 8px;\n  border-radius: 4px;\n  background-color: #fff;\n  overflow: hidden; }\n  .action-sheet-group .button {\n    border-width: 1px 0px 0px 0px; }\n  .action-sheet-group .button:first-child:last-child {\n    border-width: 0; }\n\n.action-sheet-options {\n  background: #f1f2f3; }\n\n.action-sheet-cancel .button {\n  font-weight: 500; }\n\n.action-sheet-open {\n  pointer-events: none; }\n  .action-sheet-open.modal-open .modal {\n    pointer-events: none; }\n  .action-sheet-open .action-sheet-backdrop {\n    pointer-events: auto; }\n\n.platform-android .action-sheet-backdrop.active {\n  background-color: rgba(0, 0, 0, 0.2); }\n\n.platform-android .action-sheet {\n  margin: 0; }\n  .platform-android .action-sheet .action-sheet-title,\n  .platform-android .action-sheet .button {\n    text-align: left;\n    border-color: transparent;\n    font-size: 16px;\n    color: inherit; }\n  .platform-android .action-sheet .action-sheet-title {\n    font-size: 14px;\n    padding: 16px;\n    color: #666; }\n  .platform-android .action-sheet .button.active,\n  .platform-android .action-sheet .button.activated {\n    background: #e8e8e8; }\n\n.platform-android .action-sheet-group {\n  margin: 0;\n  border-radius: 0;\n  background-color: #fafafa; }\n\n.platform-android .action-sheet-cancel {\n  display: none; }\n\n.platform-android .action-sheet-has-icons .button {\n  padding-left: 56px; }\n\n.backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  z-index: 11;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.4);\n  visibility: hidden;\n  opacity: 0;\n  -webkit-transition: 0.1s opacity linear;\n  transition: 0.1s opacity linear; }\n  .backdrop.visible {\n    visibility: visible; }\n  .backdrop.active {\n    opacity: 1; }\n\n/**\n * Bar (Headers and Footers)\n * --------------------------------------------------\n */\n.bar {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0);\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  position: absolute;\n  right: 0;\n  left: 0;\n  z-index: 9;\n  -webkit-box-sizing: border-box;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n  padding: 5px;\n  width: 100%;\n  height: 44px;\n  border-width: 0;\n  border-style: solid;\n  border-top: 1px solid transparent;\n  border-bottom: 1px solid #ddd;\n  background-color: white;\n  /* border-width: 1px will actually create 2 device pixels on retina */\n  /* this nifty trick sets an actual 1px border on hi-res displays */\n  background-size: 0; }\n  @media (min--moz-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi), (min-resolution: 1.5dppx) {\n    .bar {\n      border: none;\n      background-image: linear-gradient(0deg, #ddd, #ddd 50%, transparent 50%);\n      background-position: bottom;\n      background-size: 100% 1px;\n      background-repeat: no-repeat; } }\n  .bar.bar-clear {\n    border: none;\n    background: none;\n    color: #fff; }\n    .bar.bar-clear .button {\n      color: #fff; }\n    .bar.bar-clear .title {\n      color: #fff; }\n  .bar.item-input-inset .item-input-wrapper {\n    margin-top: -1px; }\n    .bar.item-input-inset .item-input-wrapper input {\n      padding-left: 8px;\n      width: 94%;\n      height: 28px;\n      background: transparent; }\n  .bar.bar-light {\n    border-color: #ddd;\n    background-color: white;\n    background-image: linear-gradient(0deg, #ddd, #ddd 50%, transparent 50%);\n    color: #444; }\n    .bar.bar-light .title {\n      color: #444; }\n    .bar.bar-light.bar-footer {\n      background-image: linear-gradient(180deg, #ddd, #ddd 50%, transparent 50%); }\n  .bar.bar-stable {\n    border-color: #b2b2b2;\n    background-color: #f8f8f8;\n    background-image: linear-gradient(0deg, #b2b2b2, #b2b2b2 50%, transparent 50%);\n    color: #444; }\n    .bar.bar-stable .title {\n      color: #444; }\n    .bar.bar-stable.bar-footer {\n      background-image: linear-gradient(180deg, #b2b2b2, #b2b2b2 50%, transparent 50%); }\n  .bar.bar-positive {\n    border-color: #0c60ee;\n    background-color: #387ef5;\n    background-image: linear-gradient(0deg, #0c60ee, #0c60ee 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-positive .title {\n      color: #fff; }\n    .bar.bar-positive.bar-footer {\n      background-image: linear-gradient(180deg, #0c60ee, #0c60ee 50%, transparent 50%); }\n  .bar.bar-calm {\n    border-color: #0a9dc7;\n    background-color: #11c1f3;\n    background-image: linear-gradient(0deg, #0a9dc7, #0a9dc7 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-calm .title {\n      color: #fff; }\n    .bar.bar-calm.bar-footer {\n      background-image: linear-gradient(180deg, #0a9dc7, #0a9dc7 50%, transparent 50%); }\n  .bar.bar-assertive {\n    border-color: #e42112;\n    background-color: #ef473a;\n    background-image: linear-gradient(0deg, #e42112, #e42112 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-assertive .title {\n      color: #fff; }\n    .bar.bar-assertive.bar-footer {\n      background-image: linear-gradient(180deg, #e42112, #e42112 50%, transparent 50%); }\n  .bar.bar-balanced {\n    border-color: #28a54c;\n    background-color: #33cd5f;\n    background-image: linear-gradient(0deg, #28a54c, #28a54c 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-balanced .title {\n      color: #fff; }\n    .bar.bar-balanced.bar-footer {\n      background-image: linear-gradient(180deg, #28a54c, #0c60ee 50%, transparent 50%); }\n  .bar.bar-energized {\n    border-color: #e6b500;\n    background-color: #ffc900;\n    background-image: linear-gradient(0deg, #e6b500, #e6b500 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-energized .title {\n      color: #fff; }\n    .bar.bar-energized.bar-footer {\n      background-image: linear-gradient(180deg, #e6b500, #e6b500 50%, transparent 50%); }\n  .bar.bar-royal {\n    border-color: #6b46e5;\n    background-color: #886aea;\n    background-image: linear-gradient(0deg, #6b46e5, #6b46e5 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-royal .title {\n      color: #fff; }\n    .bar.bar-royal.bar-footer {\n      background-image: linear-gradient(180deg, #6b46e5, #6b46e5 50%, transparent 50%); }\n  .bar.bar-dark {\n    border-color: #111;\n    background-color: #444444;\n    background-image: linear-gradient(0deg, #111, #111 50%, transparent 50%);\n    color: #fff; }\n    .bar.bar-dark .title {\n      color: #fff; }\n    .bar.bar-dark.bar-footer {\n      background-image: linear-gradient(180deg, #111, #111 50%, transparent 50%); }\n  .bar .title {\n    position: absolute;\n    top: 0;\n    right: 0;\n    left: 0;\n    z-index: 0;\n    overflow: hidden;\n    margin: 0 10px;\n    min-width: 30px;\n    height: 43px;\n    text-align: center;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    font-size: 17px;\n    font-weight: 500;\n    line-height: 44px; }\n    .bar .title.title-left {\n      text-align: left; }\n    .bar .title.title-right {\n      text-align: right; }\n  .bar .title a {\n    color: inherit; }\n  .bar .button {\n    z-index: 1;\n    padding: 0 8px;\n    min-width: initial;\n    min-height: 31px;\n    font-weight: 400;\n    font-size: 13px;\n    line-height: 32px; }\n    .bar .button.button-icon:before,\n    .bar .button .icon:before,\n    .bar .button.icon:before,\n    .bar .button.icon-left:before,\n    .bar .button.icon-right:before {\n      padding-right: 2px;\n      padding-left: 2px;\n      font-size: 20px;\n      line-height: 32px; }\n    .bar .button.button-icon {\n      font-size: 17px; }\n      .bar .button.button-icon .icon:before,\n      .bar .button.button-icon:before,\n      .bar .button.button-icon.icon-left:before,\n      .bar .button.button-icon.icon-right:before {\n        vertical-align: top;\n        font-size: 32px;\n        line-height: 32px; }\n    .bar .button.button-clear {\n      padding-right: 2px;\n      padding-left: 2px;\n      font-weight: 300;\n      font-size: 17px; }\n      .bar .button.button-clear .icon:before,\n      .bar .button.button-clear.icon:before,\n      .bar .button.button-clear.icon-left:before,\n      .bar .button.button-clear.icon-right:before {\n        font-size: 32px;\n        line-height: 32px; }\n    .bar .button.back-button {\n      display: block;\n      margin-right: 5px;\n      padding: 0;\n      white-space: nowrap;\n      font-weight: 400; }\n    .bar .button.back-button.active,\n    .bar .button.back-button.activated {\n      opacity: 0.2; }\n  .bar .button-bar > .button,\n  .bar .buttons > .button {\n    min-height: 31px;\n    line-height: 32px; }\n  .bar .button-bar + .button,\n  .bar .button + .button-bar {\n    margin-left: 5px; }\n  .bar .buttons,\n  .bar .buttons.primary-buttons,\n  .bar .buttons.secondary-buttons {\n    display: inherit; }\n  .bar .buttons span {\n    display: inline-block; }\n  .bar .buttons-left span {\n    margin-right: 5px;\n    display: inherit; }\n  .bar .buttons-right span {\n    margin-left: 5px;\n    display: inherit; }\n  .bar .title + .button:last-child,\n  .bar > .button + .button:last-child,\n  .bar > .button.pull-right,\n  .bar .buttons.pull-right,\n  .bar .title + .buttons {\n    position: absolute;\n    top: 5px;\n    right: 5px;\n    bottom: 5px; }\n\n.platform-android .nav-bar-has-subheader .bar {\n  background-image: none; }\n\n.platform-android .bar .back-button .icon:before {\n  font-size: 24px; }\n\n.platform-android .bar .title {\n  font-size: 19px;\n  line-height: 44px; }\n\n.bar-light .button {\n  border-color: #ddd;\n  background-color: white;\n  color: #444; }\n  .bar-light .button:hover {\n    color: #444;\n    text-decoration: none; }\n  .bar-light .button.active,\n  .bar-light .button.activated {\n    border-color: #ccc;\n    background-color: #fafafa;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-light .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #444;\n    font-size: 17px; }\n  .bar-light .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-stable .button {\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  color: #444; }\n  .bar-stable .button:hover {\n    color: #444;\n    text-decoration: none; }\n  .bar-stable .button.active,\n  .bar-stable .button.activated {\n    border-color: #a2a2a2;\n    background-color: #e5e5e5;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-stable .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #444;\n    font-size: 17px; }\n  .bar-stable .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-positive .button {\n  border-color: #0c60ee;\n  background-color: #387ef5;\n  color: #fff; }\n  .bar-positive .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-positive .button.active,\n  .bar-positive .button.activated {\n    border-color: #0c60ee;\n    background-color: #0c60ee;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-positive .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-positive .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-calm .button {\n  border-color: #0a9dc7;\n  background-color: #11c1f3;\n  color: #fff; }\n  .bar-calm .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-calm .button.active,\n  .bar-calm .button.activated {\n    border-color: #0a9dc7;\n    background-color: #0a9dc7;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-calm .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-calm .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-assertive .button {\n  border-color: #e42112;\n  background-color: #ef473a;\n  color: #fff; }\n  .bar-assertive .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-assertive .button.active,\n  .bar-assertive .button.activated {\n    border-color: #e42112;\n    background-color: #e42112;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-assertive .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-assertive .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-balanced .button {\n  border-color: #28a54c;\n  background-color: #33cd5f;\n  color: #fff; }\n  .bar-balanced .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-balanced .button.active,\n  .bar-balanced .button.activated {\n    border-color: #28a54c;\n    background-color: #28a54c;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-balanced .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-balanced .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-energized .button {\n  border-color: #e6b500;\n  background-color: #ffc900;\n  color: #fff; }\n  .bar-energized .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-energized .button.active,\n  .bar-energized .button.activated {\n    border-color: #e6b500;\n    background-color: #e6b500;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-energized .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-energized .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-royal .button {\n  border-color: #6b46e5;\n  background-color: #886aea;\n  color: #fff; }\n  .bar-royal .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-royal .button.active,\n  .bar-royal .button.activated {\n    border-color: #6b46e5;\n    background-color: #6b46e5;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-royal .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-royal .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-dark .button {\n  border-color: #111;\n  background-color: #444444;\n  color: #fff; }\n  .bar-dark .button:hover {\n    color: #fff;\n    text-decoration: none; }\n  .bar-dark .button.active,\n  .bar-dark .button.activated {\n    border-color: #000;\n    background-color: #262626;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .bar-dark .button.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #fff;\n    font-size: 17px; }\n  .bar-dark .button.button-icon {\n    border-color: transparent;\n    background: none; }\n\n.bar-header {\n  top: 0;\n  border-top-width: 0;\n  border-bottom-width: 1px; }\n  .bar-header.has-tabs-top {\n    border-bottom-width: 0px;\n    background-image: none; }\n\n.tabs-top .bar-header {\n  border-bottom-width: 0px;\n  background-image: none; }\n\n.bar-footer {\n  bottom: 0;\n  border-top-width: 1px;\n  border-bottom-width: 0;\n  background-position: top;\n  height: 44px; }\n  .bar-footer.item-input-inset {\n    position: absolute; }\n\n.bar-tabs {\n  padding: 0; }\n\n.bar-subheader {\n  top: 44px;\n  display: block;\n  height: 44px; }\n\n.bar-subfooter {\n  bottom: 44px;\n  display: block;\n  height: 44px; }\n\n.nav-bar-block {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: 9; }\n\n.bar .back-button.hide,\n.bar .buttons .hide {\n  display: none; }\n\n.nav-bar-tabs-top .bar {\n  background-image: none; }\n\n/**\n * Tabs\n * --------------------------------------------------\n * A navigation bar with any number of tab items supported.\n */\n.tabs {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-direction: normal;\n  -webkit-box-orient: horizontal;\n  -webkit-flex-direction: horizontal;\n  -moz-flex-direction: horizontal;\n  -ms-flex-direction: horizontal;\n  flex-direction: horizontal;\n  -webkit-box-pack: center;\n  -ms-flex-pack: center;\n  -webkit-justify-content: center;\n  -moz-justify-content: center;\n  justify-content: center;\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0);\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  background-image: linear-gradient(0deg, #b2b2b2, #b2b2b2 50%, transparent 50%);\n  color: #444;\n  position: absolute;\n  bottom: 0;\n  z-index: 5;\n  width: 100%;\n  height: 49px;\n  border-style: solid;\n  border-top-width: 1px;\n  background-size: 0;\n  line-height: 49px; }\n  .tabs .tab-item .badge {\n    background-color: #444;\n    color: #f8f8f8; }\n  @media (min--moz-device-pixel-ratio: 1.5), (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi), (min-resolution: 1.5dppx) {\n    .tabs {\n      padding-top: 2px;\n      border-top: none !important;\n      border-bottom: none;\n      background-position: top;\n      background-size: 100% 1px;\n      background-repeat: no-repeat; } }\n\n/* Allow parent element of tabs to define color, or just the tab itself */\n.tabs-light > .tabs,\n.tabs.tabs-light {\n  border-color: #ddd;\n  background-color: #fff;\n  background-image: linear-gradient(0deg, #ddd, #ddd 50%, transparent 50%);\n  color: #444; }\n  .tabs-light > .tabs .tab-item .badge,\n  .tabs.tabs-light .tab-item .badge {\n    background-color: #444;\n    color: #fff; }\n\n.tabs-stable > .tabs,\n.tabs.tabs-stable {\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  background-image: linear-gradient(0deg, #b2b2b2, #b2b2b2 50%, transparent 50%);\n  color: #444; }\n  .tabs-stable > .tabs .tab-item .badge,\n  .tabs.tabs-stable .tab-item .badge {\n    background-color: #444;\n    color: #f8f8f8; }\n\n.tabs-positive > .tabs,\n.tabs.tabs-positive {\n  border-color: #0c60ee;\n  background-color: #387ef5;\n  background-image: linear-gradient(0deg, #0c60ee, #0c60ee 50%, transparent 50%);\n  color: #fff; }\n  .tabs-positive > .tabs .tab-item .badge,\n  .tabs.tabs-positive .tab-item .badge {\n    background-color: #fff;\n    color: #387ef5; }\n\n.tabs-calm > .tabs,\n.tabs.tabs-calm {\n  border-color: #0a9dc7;\n  background-color: #11c1f3;\n  background-image: linear-gradient(0deg, #0a9dc7, #0a9dc7 50%, transparent 50%);\n  color: #fff; }\n  .tabs-calm > .tabs .tab-item .badge,\n  .tabs.tabs-calm .tab-item .badge {\n    background-color: #fff;\n    color: #11c1f3; }\n\n.tabs-assertive > .tabs,\n.tabs.tabs-assertive {\n  border-color: #e42112;\n  background-color: #ef473a;\n  background-image: linear-gradient(0deg, #e42112, #e42112 50%, transparent 50%);\n  color: #fff; }\n  .tabs-assertive > .tabs .tab-item .badge,\n  .tabs.tabs-assertive .tab-item .badge {\n    background-color: #fff;\n    color: #ef473a; }\n\n.tabs-balanced > .tabs,\n.tabs.tabs-balanced {\n  border-color: #28a54c;\n  background-color: #33cd5f;\n  background-image: linear-gradient(0deg, #28a54c, #28a54c 50%, transparent 50%);\n  color: #fff; }\n  .tabs-balanced > .tabs .tab-item .badge,\n  .tabs.tabs-balanced .tab-item .badge {\n    background-color: #fff;\n    color: #33cd5f; }\n\n.tabs-energized > .tabs,\n.tabs.tabs-energized {\n  border-color: #e6b500;\n  background-color: #ffc900;\n  background-image: linear-gradient(0deg, #e6b500, #e6b500 50%, transparent 50%);\n  color: #fff; }\n  .tabs-energized > .tabs .tab-item .badge,\n  .tabs.tabs-energized .tab-item .badge {\n    background-color: #fff;\n    color: #ffc900; }\n\n.tabs-royal > .tabs,\n.tabs.tabs-royal {\n  border-color: #6b46e5;\n  background-color: #886aea;\n  background-image: linear-gradient(0deg, #6b46e5, #6b46e5 50%, transparent 50%);\n  color: #fff; }\n  .tabs-royal > .tabs .tab-item .badge,\n  .tabs.tabs-royal .tab-item .badge {\n    background-color: #fff;\n    color: #886aea; }\n\n.tabs-dark > .tabs,\n.tabs.tabs-dark {\n  border-color: #111;\n  background-color: #444;\n  background-image: linear-gradient(0deg, #111, #111 50%, transparent 50%);\n  color: #fff; }\n  .tabs-dark > .tabs .tab-item .badge,\n  .tabs.tabs-dark .tab-item .badge {\n    background-color: #fff;\n    color: #444; }\n\n.tabs-striped .tabs {\n  background-color: white;\n  background-image: none;\n  border: none;\n  border-bottom: 1px solid #ddd;\n  padding-top: 2px; }\n\n.tabs-striped .tab-item.tab-item-active,\n.tabs-striped .tab-item.active,\n.tabs-striped .tab-item.activated {\n  margin-top: -2px;\n  border-style: solid;\n  border-width: 2px 0 0 0;\n  border-color: #444; }\n  .tabs-striped .tab-item.tab-item-active .badge,\n  .tabs-striped .tab-item.active .badge,\n  .tabs-striped .tab-item.activated .badge {\n    top: 2px;\n    opacity: 1; }\n\n.tabs-striped.tabs-light .tabs {\n  background-color: #fff; }\n\n.tabs-striped.tabs-light .tab-item {\n  color: rgba(68, 68, 68, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-light .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-light .tab-item.tab-item-active,\n  .tabs-striped.tabs-light .tab-item.active,\n  .tabs-striped.tabs-light .tab-item.activated {\n    margin-top: -2px;\n    color: #444;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #444; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-stable .tabs {\n  background-color: #f8f8f8; }\n\n.tabs-striped.tabs-stable .tab-item {\n  color: rgba(68, 68, 68, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-stable .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-stable .tab-item.tab-item-active,\n  .tabs-striped.tabs-stable .tab-item.active,\n  .tabs-striped.tabs-stable .tab-item.activated {\n    margin-top: -2px;\n    color: #444;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #444; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-positive .tabs {\n  background-color: #387ef5; }\n\n.tabs-striped.tabs-positive .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-positive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-positive .tab-item.tab-item-active,\n  .tabs-striped.tabs-positive .tab-item.active,\n  .tabs-striped.tabs-positive .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-calm .tabs {\n  background-color: #11c1f3; }\n\n.tabs-striped.tabs-calm .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-calm .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-calm .tab-item.tab-item-active,\n  .tabs-striped.tabs-calm .tab-item.active,\n  .tabs-striped.tabs-calm .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-assertive .tabs {\n  background-color: #ef473a; }\n\n.tabs-striped.tabs-assertive .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-assertive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-assertive .tab-item.tab-item-active,\n  .tabs-striped.tabs-assertive .tab-item.active,\n  .tabs-striped.tabs-assertive .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-balanced .tabs {\n  background-color: #33cd5f; }\n\n.tabs-striped.tabs-balanced .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-balanced .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-balanced .tab-item.tab-item-active,\n  .tabs-striped.tabs-balanced .tab-item.active,\n  .tabs-striped.tabs-balanced .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-energized .tabs {\n  background-color: #ffc900; }\n\n.tabs-striped.tabs-energized .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-energized .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-energized .tab-item.tab-item-active,\n  .tabs-striped.tabs-energized .tab-item.active,\n  .tabs-striped.tabs-energized .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-royal .tabs {\n  background-color: #886aea; }\n\n.tabs-striped.tabs-royal .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-royal .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-royal .tab-item.tab-item-active,\n  .tabs-striped.tabs-royal .tab-item.active,\n  .tabs-striped.tabs-royal .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-dark .tabs {\n  background-color: #444; }\n\n.tabs-striped.tabs-dark .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-dark .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-dark .tab-item.tab-item-active,\n  .tabs-striped.tabs-dark .tab-item.active,\n  .tabs-striped.tabs-dark .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border-style: solid;\n    border-width: 2px 0 0 0;\n    border-color: #fff; }\n\n.tabs-striped.tabs-top .tab-item.tab-item-active .badge,\n.tabs-striped.tabs-top .tab-item.active .badge,\n.tabs-striped.tabs-top .tab-item.activated .badge {\n  top: 4%; }\n\n.tabs-striped.tabs-background-light .tabs {\n  background-color: #fff;\n  background-image: none; }\n\n.tabs-striped.tabs-background-stable .tabs {\n  background-color: #f8f8f8;\n  background-image: none; }\n\n.tabs-striped.tabs-background-positive .tabs {\n  background-color: #387ef5;\n  background-image: none; }\n\n.tabs-striped.tabs-background-calm .tabs {\n  background-color: #11c1f3;\n  background-image: none; }\n\n.tabs-striped.tabs-background-assertive .tabs {\n  background-color: #ef473a;\n  background-image: none; }\n\n.tabs-striped.tabs-background-balanced .tabs {\n  background-color: #33cd5f;\n  background-image: none; }\n\n.tabs-striped.tabs-background-energized .tabs {\n  background-color: #ffc900;\n  background-image: none; }\n\n.tabs-striped.tabs-background-royal .tabs {\n  background-color: #886aea;\n  background-image: none; }\n\n.tabs-striped.tabs-background-dark .tabs {\n  background-color: #444;\n  background-image: none; }\n\n.tabs-striped.tabs-color-light .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-light .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-light .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-light .tab-item.active,\n  .tabs-striped.tabs-color-light .tab-item.activated {\n    margin-top: -2px;\n    color: #fff;\n    border: 0 solid #fff;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-light .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-light .tab-item.active .badge,\n    .tabs-striped.tabs-color-light .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-stable .tab-item {\n  color: rgba(248, 248, 248, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-stable .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-stable .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-stable .tab-item.active,\n  .tabs-striped.tabs-color-stable .tab-item.activated {\n    margin-top: -2px;\n    color: #f8f8f8;\n    border: 0 solid #f8f8f8;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-stable .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-stable .tab-item.active .badge,\n    .tabs-striped.tabs-color-stable .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-positive .tab-item {\n  color: rgba(56, 126, 245, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-positive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-positive .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-positive .tab-item.active,\n  .tabs-striped.tabs-color-positive .tab-item.activated {\n    margin-top: -2px;\n    color: #387ef5;\n    border: 0 solid #387ef5;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-positive .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-positive .tab-item.active .badge,\n    .tabs-striped.tabs-color-positive .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-calm .tab-item {\n  color: rgba(17, 193, 243, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-calm .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-calm .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-calm .tab-item.active,\n  .tabs-striped.tabs-color-calm .tab-item.activated {\n    margin-top: -2px;\n    color: #11c1f3;\n    border: 0 solid #11c1f3;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-calm .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-calm .tab-item.active .badge,\n    .tabs-striped.tabs-color-calm .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-assertive .tab-item {\n  color: rgba(239, 71, 58, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-assertive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-assertive .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-assertive .tab-item.active,\n  .tabs-striped.tabs-color-assertive .tab-item.activated {\n    margin-top: -2px;\n    color: #ef473a;\n    border: 0 solid #ef473a;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-assertive .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-assertive .tab-item.active .badge,\n    .tabs-striped.tabs-color-assertive .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-balanced .tab-item {\n  color: rgba(51, 205, 95, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-balanced .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-balanced .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-balanced .tab-item.active,\n  .tabs-striped.tabs-color-balanced .tab-item.activated {\n    margin-top: -2px;\n    color: #33cd5f;\n    border: 0 solid #33cd5f;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-balanced .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-balanced .tab-item.active .badge,\n    .tabs-striped.tabs-color-balanced .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-energized .tab-item {\n  color: rgba(255, 201, 0, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-energized .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-energized .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-energized .tab-item.active,\n  .tabs-striped.tabs-color-energized .tab-item.activated {\n    margin-top: -2px;\n    color: #ffc900;\n    border: 0 solid #ffc900;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-energized .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-energized .tab-item.active .badge,\n    .tabs-striped.tabs-color-energized .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-royal .tab-item {\n  color: rgba(136, 106, 234, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-royal .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-royal .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-royal .tab-item.active,\n  .tabs-striped.tabs-color-royal .tab-item.activated {\n    margin-top: -2px;\n    color: #886aea;\n    border: 0 solid #886aea;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-royal .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-royal .tab-item.active .badge,\n    .tabs-striped.tabs-color-royal .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-striped.tabs-color-dark .tab-item {\n  color: rgba(68, 68, 68, 0.4);\n  opacity: 1; }\n  .tabs-striped.tabs-color-dark .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-striped.tabs-color-dark .tab-item.tab-item-active,\n  .tabs-striped.tabs-color-dark .tab-item.active,\n  .tabs-striped.tabs-color-dark .tab-item.activated {\n    margin-top: -2px;\n    color: #444;\n    border: 0 solid #444;\n    border-top-width: 2px; }\n    .tabs-striped.tabs-color-dark .tab-item.tab-item-active .badge,\n    .tabs-striped.tabs-color-dark .tab-item.active .badge,\n    .tabs-striped.tabs-color-dark .tab-item.activated .badge {\n      top: 2px;\n      opacity: 1; }\n\n.tabs-background-light .tabs,\n.tabs-background-light > .tabs {\n  background-color: #fff;\n  background-image: linear-gradient(0deg, #ddd, #ddd 50%, transparent 50%);\n  border-color: #ddd; }\n\n.tabs-background-stable .tabs,\n.tabs-background-stable > .tabs {\n  background-color: #f8f8f8;\n  background-image: linear-gradient(0deg, #b2b2b2, #b2b2b2 50%, transparent 50%);\n  border-color: #b2b2b2; }\n\n.tabs-background-positive .tabs,\n.tabs-background-positive > .tabs {\n  background-color: #387ef5;\n  background-image: linear-gradient(0deg, #0c60ee, #0c60ee 50%, transparent 50%);\n  border-color: #0c60ee; }\n\n.tabs-background-calm .tabs,\n.tabs-background-calm > .tabs {\n  background-color: #11c1f3;\n  background-image: linear-gradient(0deg, #0a9dc7, #0a9dc7 50%, transparent 50%);\n  border-color: #0a9dc7; }\n\n.tabs-background-assertive .tabs,\n.tabs-background-assertive > .tabs {\n  background-color: #ef473a;\n  background-image: linear-gradient(0deg, #e42112, #e42112 50%, transparent 50%);\n  border-color: #e42112; }\n\n.tabs-background-balanced .tabs,\n.tabs-background-balanced > .tabs {\n  background-color: #33cd5f;\n  background-image: linear-gradient(0deg, #28a54c, #28a54c 50%, transparent 50%);\n  border-color: #28a54c; }\n\n.tabs-background-energized .tabs,\n.tabs-background-energized > .tabs {\n  background-color: #ffc900;\n  background-image: linear-gradient(0deg, #e6b500, #e6b500 50%, transparent 50%);\n  border-color: #e6b500; }\n\n.tabs-background-royal .tabs,\n.tabs-background-royal > .tabs {\n  background-color: #886aea;\n  background-image: linear-gradient(0deg, #6b46e5, #6b46e5 50%, transparent 50%);\n  border-color: #6b46e5; }\n\n.tabs-background-dark .tabs,\n.tabs-background-dark > .tabs {\n  background-color: #444;\n  background-image: linear-gradient(0deg, #111, #111 50%, transparent 50%);\n  border-color: #111; }\n\n.tabs-color-light .tab-item {\n  color: rgba(255, 255, 255, 0.4);\n  opacity: 1; }\n  .tabs-color-light .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-light .tab-item.tab-item-active,\n  .tabs-color-light .tab-item.active,\n  .tabs-color-light .tab-item.activated {\n    color: #fff;\n    border: 0 solid #fff; }\n    .tabs-color-light .tab-item.tab-item-active .badge,\n    .tabs-color-light .tab-item.active .badge,\n    .tabs-color-light .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-stable .tab-item {\n  color: rgba(248, 248, 248, 0.4);\n  opacity: 1; }\n  .tabs-color-stable .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-stable .tab-item.tab-item-active,\n  .tabs-color-stable .tab-item.active,\n  .tabs-color-stable .tab-item.activated {\n    color: #f8f8f8;\n    border: 0 solid #f8f8f8; }\n    .tabs-color-stable .tab-item.tab-item-active .badge,\n    .tabs-color-stable .tab-item.active .badge,\n    .tabs-color-stable .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-positive .tab-item {\n  color: rgba(56, 126, 245, 0.4);\n  opacity: 1; }\n  .tabs-color-positive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-positive .tab-item.tab-item-active,\n  .tabs-color-positive .tab-item.active,\n  .tabs-color-positive .tab-item.activated {\n    color: #387ef5;\n    border: 0 solid #387ef5; }\n    .tabs-color-positive .tab-item.tab-item-active .badge,\n    .tabs-color-positive .tab-item.active .badge,\n    .tabs-color-positive .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-calm .tab-item {\n  color: rgba(17, 193, 243, 0.4);\n  opacity: 1; }\n  .tabs-color-calm .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-calm .tab-item.tab-item-active,\n  .tabs-color-calm .tab-item.active,\n  .tabs-color-calm .tab-item.activated {\n    color: #11c1f3;\n    border: 0 solid #11c1f3; }\n    .tabs-color-calm .tab-item.tab-item-active .badge,\n    .tabs-color-calm .tab-item.active .badge,\n    .tabs-color-calm .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-assertive .tab-item {\n  color: rgba(239, 71, 58, 0.4);\n  opacity: 1; }\n  .tabs-color-assertive .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-assertive .tab-item.tab-item-active,\n  .tabs-color-assertive .tab-item.active,\n  .tabs-color-assertive .tab-item.activated {\n    color: #ef473a;\n    border: 0 solid #ef473a; }\n    .tabs-color-assertive .tab-item.tab-item-active .badge,\n    .tabs-color-assertive .tab-item.active .badge,\n    .tabs-color-assertive .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-balanced .tab-item {\n  color: rgba(51, 205, 95, 0.4);\n  opacity: 1; }\n  .tabs-color-balanced .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-balanced .tab-item.tab-item-active,\n  .tabs-color-balanced .tab-item.active,\n  .tabs-color-balanced .tab-item.activated {\n    color: #33cd5f;\n    border: 0 solid #33cd5f; }\n    .tabs-color-balanced .tab-item.tab-item-active .badge,\n    .tabs-color-balanced .tab-item.active .badge,\n    .tabs-color-balanced .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-energized .tab-item {\n  color: rgba(255, 201, 0, 0.4);\n  opacity: 1; }\n  .tabs-color-energized .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-energized .tab-item.tab-item-active,\n  .tabs-color-energized .tab-item.active,\n  .tabs-color-energized .tab-item.activated {\n    color: #ffc900;\n    border: 0 solid #ffc900; }\n    .tabs-color-energized .tab-item.tab-item-active .badge,\n    .tabs-color-energized .tab-item.active .badge,\n    .tabs-color-energized .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-royal .tab-item {\n  color: rgba(136, 106, 234, 0.4);\n  opacity: 1; }\n  .tabs-color-royal .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-royal .tab-item.tab-item-active,\n  .tabs-color-royal .tab-item.active,\n  .tabs-color-royal .tab-item.activated {\n    color: #886aea;\n    border: 0 solid #886aea; }\n    .tabs-color-royal .tab-item.tab-item-active .badge,\n    .tabs-color-royal .tab-item.active .badge,\n    .tabs-color-royal .tab-item.activated .badge {\n      opacity: 1; }\n\n.tabs-color-dark .tab-item {\n  color: rgba(68, 68, 68, 0.4);\n  opacity: 1; }\n  .tabs-color-dark .tab-item .badge {\n    opacity: 0.4; }\n  .tabs-color-dark .tab-item.tab-item-active,\n  .tabs-color-dark .tab-item.active,\n  .tabs-color-dark .tab-item.activated {\n    color: #444;\n    border: 0 solid #444; }\n    .tabs-color-dark .tab-item.tab-item-active .badge,\n    .tabs-color-dark .tab-item.active .badge,\n    .tabs-color-dark .tab-item.activated .badge {\n      opacity: 1; }\n\nion-tabs.tabs-color-active-light .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-light .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-light .tab-item.active,\n  ion-tabs.tabs-color-active-light .tab-item.activated {\n    color: #fff; }\n\nion-tabs.tabs-color-active-stable .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-stable .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-stable .tab-item.active,\n  ion-tabs.tabs-color-active-stable .tab-item.activated {\n    color: #f8f8f8; }\n\nion-tabs.tabs-color-active-positive .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-positive .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-positive .tab-item.active,\n  ion-tabs.tabs-color-active-positive .tab-item.activated {\n    color: #387ef5; }\n\nion-tabs.tabs-color-active-calm .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-calm .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-calm .tab-item.active,\n  ion-tabs.tabs-color-active-calm .tab-item.activated {\n    color: #11c1f3; }\n\nion-tabs.tabs-color-active-assertive .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-assertive .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-assertive .tab-item.active,\n  ion-tabs.tabs-color-active-assertive .tab-item.activated {\n    color: #ef473a; }\n\nion-tabs.tabs-color-active-balanced .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-balanced .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-balanced .tab-item.active,\n  ion-tabs.tabs-color-active-balanced .tab-item.activated {\n    color: #33cd5f; }\n\nion-tabs.tabs-color-active-energized .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-energized .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-energized .tab-item.active,\n  ion-tabs.tabs-color-active-energized .tab-item.activated {\n    color: #ffc900; }\n\nion-tabs.tabs-color-active-royal .tab-item {\n  color: #444; }\n  ion-tabs.tabs-color-active-royal .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-royal .tab-item.active,\n  ion-tabs.tabs-color-active-royal .tab-item.activated {\n    color: #886aea; }\n\nion-tabs.tabs-color-active-dark .tab-item {\n  color: #fff; }\n  ion-tabs.tabs-color-active-dark .tab-item.tab-item-active,\n  ion-tabs.tabs-color-active-dark .tab-item.active,\n  ion-tabs.tabs-color-active-dark .tab-item.activated {\n    color: #444; }\n\n.tabs-top.tabs-striped {\n  padding-bottom: 0; }\n  .tabs-top.tabs-striped .tab-item {\n    background: transparent;\n    -webkit-transition: color 0.1s ease;\n    -moz-transition: color 0.1s ease;\n    -ms-transition: color 0.1s ease;\n    -o-transition: color 0.1s ease;\n    transition: color 0.1s ease; }\n    .tabs-top.tabs-striped .tab-item.tab-item-active,\n    .tabs-top.tabs-striped .tab-item.active,\n    .tabs-top.tabs-striped .tab-item.activated {\n      margin-top: 1px;\n      border-width: 0px 0px 2px 0px !important;\n      border-style: solid; }\n      .tabs-top.tabs-striped .tab-item.tab-item-active > .badge,\n      .tabs-top.tabs-striped .tab-item.tab-item-active > i,\n      .tabs-top.tabs-striped .tab-item.active > .badge,\n      .tabs-top.tabs-striped .tab-item.active > i,\n      .tabs-top.tabs-striped .tab-item.activated > .badge, .tabs-top.tabs-striped .tab-item.activated > i {\n        margin-top: -1px; }\n    .tabs-top.tabs-striped .tab-item .badge {\n      -webkit-transition: color 0.2s ease;\n      -moz-transition: color 0.2s ease;\n      -ms-transition: color 0.2s ease;\n      -o-transition: color 0.2s ease;\n      transition: color 0.2s ease; }\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.tab-item-active .tab-title,\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.tab-item-active i,\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.active .tab-title,\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.active i,\n  .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.activated .tab-title, .tabs-top.tabs-striped:not(.tabs-icon-left):not(.tabs-icon-top) .tab-item.activated i {\n    display: block;\n    margin-top: -1px; }\n  .tabs-top.tabs-striped.tabs-icon-left .tab-item {\n    margin-top: 1px; }\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.tab-item-active .tab-title,\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.tab-item-active i,\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.active .tab-title,\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.active i,\n    .tabs-top.tabs-striped.tabs-icon-left .tab-item.activated .tab-title, .tabs-top.tabs-striped.tabs-icon-left .tab-item.activated i {\n      margin-top: -0.1em; }\n\n/* Allow parent element to have tabs-top */\n/* If you change this, change platform.scss as well */\n.tabs-top > .tabs,\n.tabs.tabs-top {\n  top: 44px;\n  padding-top: 0;\n  background-position: bottom;\n  border-top-width: 0;\n  border-bottom-width: 1px; }\n  .tabs-top > .tabs .tab-item.tab-item-active .badge,\n  .tabs-top > .tabs .tab-item.active .badge,\n  .tabs-top > .tabs .tab-item.activated .badge,\n  .tabs.tabs-top .tab-item.tab-item-active .badge,\n  .tabs.tabs-top .tab-item.active .badge,\n  .tabs.tabs-top .tab-item.activated .badge {\n    top: 4%; }\n\n.tabs-top ~ .bar-header {\n  border-bottom-width: 0; }\n\n.tab-item {\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  display: block;\n  overflow: hidden;\n  max-width: 150px;\n  height: 100%;\n  color: inherit;\n  text-align: center;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  font-weight: 400;\n  font-size: 14px;\n  font-family: \"Helvetica Neue\", \"Roboto\", \"Segoe UI\", sans-serif;\n  opacity: 0.7; }\n  .tab-item:hover {\n    cursor: pointer; }\n  .tab-item.tab-hidden {\n    display: none; }\n\n.tabs-item-hide > .tabs,\n.tabs.tabs-item-hide {\n  display: none; }\n\n.tabs-icon-top > .tabs .tab-item,\n.tabs-icon-top.tabs .tab-item,\n.tabs-icon-bottom > .tabs .tab-item,\n.tabs-icon-bottom.tabs .tab-item {\n  font-size: 10px;\n  line-height: 14px; }\n\n.tab-item .icon {\n  display: block;\n  margin: 0 auto;\n  height: 32px;\n  font-size: 32px; }\n\n.tabs-icon-left.tabs .tab-item,\n.tabs-icon-left > .tabs .tab-item,\n.tabs-icon-right.tabs .tab-item,\n.tabs-icon-right > .tabs .tab-item {\n  font-size: 10px; }\n  .tabs-icon-left.tabs .tab-item .icon,\n  .tabs-icon-left.tabs .tab-item .tab-title,\n  .tabs-icon-left > .tabs .tab-item .icon,\n  .tabs-icon-left > .tabs .tab-item .tab-title,\n  .tabs-icon-right.tabs .tab-item .icon,\n  .tabs-icon-right.tabs .tab-item .tab-title,\n  .tabs-icon-right > .tabs .tab-item .icon, .tabs-icon-right > .tabs .tab-item .tab-title {\n    display: inline-block;\n    vertical-align: top;\n    margin-top: -.1em; }\n    .tabs-icon-left.tabs .tab-item .icon:before,\n    .tabs-icon-left.tabs .tab-item .tab-title:before,\n    .tabs-icon-left > .tabs .tab-item .icon:before,\n    .tabs-icon-left > .tabs .tab-item .tab-title:before,\n    .tabs-icon-right.tabs .tab-item .icon:before,\n    .tabs-icon-right.tabs .tab-item .tab-title:before,\n    .tabs-icon-right > .tabs .tab-item .icon:before, .tabs-icon-right > .tabs .tab-item .tab-title:before {\n      font-size: 24px;\n      line-height: 49px; }\n\n.tabs-icon-left > .tabs .tab-item .icon,\n.tabs-icon-left.tabs .tab-item .icon {\n  padding-right: 3px; }\n\n.tabs-icon-right > .tabs .tab-item .icon,\n.tabs-icon-right.tabs .tab-item .icon {\n  padding-left: 3px; }\n\n.tabs-icon-only > .tabs .icon,\n.tabs-icon-only.tabs .icon {\n  line-height: inherit; }\n\n.tab-item.has-badge {\n  position: relative; }\n\n.tab-item .badge {\n  position: absolute;\n  top: 4%;\n  right: 33%;\n  right: calc(50% - 26px);\n  padding: 1px 6px;\n  height: auto;\n  font-size: 12px;\n  line-height: 16px; }\n\n/* Navigational tab */\n/* Active state for tab */\n.tab-item.tab-item-active,\n.tab-item.active,\n.tab-item.activated {\n  opacity: 1; }\n  .tab-item.tab-item-active.tab-item-light,\n  .tab-item.active.tab-item-light,\n  .tab-item.activated.tab-item-light {\n    color: #fff; }\n  .tab-item.tab-item-active.tab-item-stable,\n  .tab-item.active.tab-item-stable,\n  .tab-item.activated.tab-item-stable {\n    color: #f8f8f8; }\n  .tab-item.tab-item-active.tab-item-positive,\n  .tab-item.active.tab-item-positive,\n  .tab-item.activated.tab-item-positive {\n    color: #387ef5; }\n  .tab-item.tab-item-active.tab-item-calm,\n  .tab-item.active.tab-item-calm,\n  .tab-item.activated.tab-item-calm {\n    color: #11c1f3; }\n  .tab-item.tab-item-active.tab-item-assertive,\n  .tab-item.active.tab-item-assertive,\n  .tab-item.activated.tab-item-assertive {\n    color: #ef473a; }\n  .tab-item.tab-item-active.tab-item-balanced,\n  .tab-item.active.tab-item-balanced,\n  .tab-item.activated.tab-item-balanced {\n    color: #33cd5f; }\n  .tab-item.tab-item-active.tab-item-energized,\n  .tab-item.active.tab-item-energized,\n  .tab-item.activated.tab-item-energized {\n    color: #ffc900; }\n  .tab-item.tab-item-active.tab-item-royal,\n  .tab-item.active.tab-item-royal,\n  .tab-item.activated.tab-item-royal {\n    color: #886aea; }\n  .tab-item.tab-item-active.tab-item-dark,\n  .tab-item.active.tab-item-dark,\n  .tab-item.activated.tab-item-dark {\n    color: #444; }\n\n.item.tabs {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  padding: 0; }\n  .item.tabs .icon:before {\n    position: relative; }\n\n.tab-item.disabled,\n.tab-item[disabled] {\n  opacity: .4;\n  cursor: default;\n  pointer-events: none; }\n\n.nav-bar-tabs-top.hide ~ .view-container .tabs-top .tabs {\n  top: 0; }\n\n.pane[hide-nav-bar=\"true\"] .has-tabs-top {\n  top: 49px; }\n\n/**\n * Menus\n * --------------------------------------------------\n * Side panel structure\n */\n.menu {\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  z-index: 0;\n  overflow: hidden;\n  min-height: 100%;\n  max-height: 100%;\n  width: 275px;\n  background-color: #fff; }\n  .menu .scroll-content {\n    z-index: 10; }\n  .menu .bar-header {\n    z-index: 11; }\n\n.menu-content {\n  -webkit-transform: none;\n  transform: none;\n  box-shadow: -1px 0px 2px rgba(0, 0, 0, 0.2), 1px 0px 2px rgba(0, 0, 0, 0.2); }\n\n.menu-open .menu-content .pane,\n.menu-open .menu-content .scroll-content {\n  pointer-events: none;\n  overflow: hidden; }\n\n.grade-b .menu-content,\n.grade-c .menu-content {\n  -webkit-box-sizing: content-box;\n  -moz-box-sizing: content-box;\n  box-sizing: content-box;\n  right: -1px;\n  left: -1px;\n  border-right: 1px solid #ccc;\n  border-left: 1px solid #ccc;\n  box-shadow: none; }\n\n.menu-left {\n  left: 0; }\n\n.menu-right {\n  right: 0; }\n\n.aside-open.aside-resizing .menu-right {\n  display: none; }\n\n.menu-animated {\n  -webkit-transition: -webkit-transform 200ms ease;\n  transition: transform 200ms ease; }\n\n/**\n * Modals\n * --------------------------------------------------\n * Modals are independent windows that slide in from off-screen.\n */\n.modal-backdrop,\n.modal-backdrop-bg {\n  position: fixed;\n  top: 0;\n  left: 0;\n  z-index: 10;\n  width: 100%;\n  height: 100%; }\n\n.modal-backdrop-bg {\n  pointer-events: none; }\n\n.modal {\n  display: block;\n  position: absolute;\n  top: 0;\n  z-index: 10;\n  overflow: hidden;\n  min-height: 100%;\n  width: 100%;\n  background-color: #fff; }\n\n@media (min-width: 680px) {\n  .modal {\n    top: 20%;\n    right: 20%;\n    bottom: 20%;\n    left: 20%;\n    min-height: 240px;\n    width: 60%; }\n  .modal.ng-leave-active {\n    bottom: 0; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .bar-header:not(.bar-subheader) {\n    height: 44px; }\n    .platform-ios.platform-cordova .modal-wrapper .modal .bar-header:not(.bar-subheader) > * {\n      margin-top: 0; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .tabs-top > .tabs,\n  .platform-ios.platform-cordova .modal-wrapper .modal .tabs.tabs-top {\n    top: 44px; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .has-header,\n  .platform-ios.platform-cordova .modal-wrapper .modal .bar-subheader {\n    top: 44px; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .has-subheader {\n    top: 88px; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .has-header.has-tabs-top {\n    top: 93px; }\n  .platform-ios.platform-cordova .modal-wrapper .modal .has-header.has-subheader.has-tabs-top {\n    top: 137px; }\n  .modal-backdrop-bg {\n    -webkit-transition: opacity 300ms ease-in-out;\n    transition: opacity 300ms ease-in-out;\n    background-color: #000;\n    opacity: 0; }\n  .active .modal-backdrop-bg {\n    opacity: 0.5; } }\n\n.modal-open {\n  pointer-events: none; }\n  .modal-open .modal,\n  .modal-open .modal-backdrop {\n    pointer-events: auto; }\n  .modal-open.loading-active .modal,\n  .modal-open.loading-active .modal-backdrop {\n    pointer-events: none; }\n\n/**\n * Popovers\n * --------------------------------------------------\n * Popovers are independent views which float over content\n */\n.popover-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  z-index: 10;\n  width: 100%;\n  height: 100%;\n  background-color: transparent; }\n  .popover-backdrop.active {\n    background-color: rgba(0, 0, 0, 0.1); }\n\n.popover {\n  position: absolute;\n  top: 25%;\n  left: 50%;\n  z-index: 10;\n  display: block;\n  margin-top: 12px;\n  margin-left: -110px;\n  height: 280px;\n  width: 220px;\n  background-color: #fff;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);\n  opacity: 0; }\n  .popover .item:first-child {\n    border-top: 0; }\n  .popover .item:last-child {\n    border-bottom: 0; }\n  .popover.popover-bottom {\n    margin-top: -12px; }\n\n.popover,\n.popover .bar-header {\n  border-radius: 2px; }\n\n.popover .scroll-content {\n  z-index: 1;\n  margin: 2px 0; }\n\n.popover .bar-header {\n  border-bottom-right-radius: 0;\n  border-bottom-left-radius: 0; }\n\n.popover .has-header {\n  border-top-right-radius: 0;\n  border-top-left-radius: 0; }\n\n.popover-arrow {\n  display: none; }\n\n.platform-ios .popover {\n  box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);\n  border-radius: 10px; }\n\n.platform-ios .popover .bar-header {\n  -webkit-border-top-right-radius: 10px;\n  border-top-right-radius: 10px;\n  -webkit-border-top-left-radius: 10px;\n  border-top-left-radius: 10px; }\n\n.platform-ios .popover .scroll-content {\n  margin: 8px 0;\n  border-radius: 10px; }\n\n.platform-ios .popover .scroll-content.has-header {\n  margin-top: 0; }\n\n.platform-ios .popover-arrow {\n  position: absolute;\n  display: block;\n  top: -17px;\n  width: 30px;\n  height: 19px;\n  overflow: hidden; }\n  .platform-ios .popover-arrow:after {\n    position: absolute;\n    top: 12px;\n    left: 5px;\n    width: 20px;\n    height: 20px;\n    background-color: #fff;\n    border-radius: 3px;\n    content: '';\n    -webkit-transform: rotate(-45deg);\n    transform: rotate(-45deg); }\n\n.platform-ios .popover-bottom .popover-arrow {\n  top: auto;\n  bottom: -10px; }\n  .platform-ios .popover-bottom .popover-arrow:after {\n    top: -6px; }\n\n.platform-android .popover {\n  margin-top: -32px;\n  background-color: #fafafa;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }\n  .platform-android .popover .item {\n    border-color: #fafafa;\n    background-color: #fafafa;\n    color: #4d4d4d; }\n  .platform-android .popover.popover-bottom {\n    margin-top: 32px; }\n\n.platform-android .popover-backdrop,\n.platform-android .popover-backdrop.active {\n  background-color: transparent; }\n\n.popover-open {\n  pointer-events: none; }\n  .popover-open .popover,\n  .popover-open .popover-backdrop {\n    pointer-events: auto; }\n  .popover-open.loading-active .popover,\n  .popover-open.loading-active .popover-backdrop {\n    pointer-events: none; }\n\n@media (min-width: 680px) {\n  .popover {\n    width: 360px; } }\n\n/**\n * Popups\n * --------------------------------------------------\n */\n.popup-container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  background: transparent;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n  -ms-flex-pack: center;\n  -webkit-justify-content: center;\n  -moz-justify-content: center;\n  justify-content: center;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  z-index: 12;\n  visibility: hidden; }\n  .popup-container.popup-showing {\n    visibility: visible; }\n  .popup-container.popup-hidden .popup {\n    -webkit-animation-name: scaleOut;\n    animation-name: scaleOut;\n    -webkit-animation-duration: 0.1s;\n    animation-duration: 0.1s;\n    -webkit-animation-timing-function: ease-in-out;\n    animation-timing-function: ease-in-out;\n    -webkit-animation-fill-mode: both;\n    animation-fill-mode: both; }\n  .popup-container.active .popup {\n    -webkit-animation-name: superScaleIn;\n    animation-name: superScaleIn;\n    -webkit-animation-duration: 0.2s;\n    animation-duration: 0.2s;\n    -webkit-animation-timing-function: ease-in-out;\n    animation-timing-function: ease-in-out;\n    -webkit-animation-fill-mode: both;\n    animation-fill-mode: both; }\n  .popup-container .popup {\n    width: 250px;\n    max-width: 100%;\n    max-height: 90%;\n    border-radius: 0px;\n    background-color: rgba(255, 255, 255, 0.9);\n    display: -webkit-box;\n    display: -webkit-flex;\n    display: -moz-box;\n    display: -moz-flex;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-direction: normal;\n    -webkit-box-orient: vertical;\n    -webkit-flex-direction: column;\n    -moz-flex-direction: column;\n    -ms-flex-direction: column;\n    flex-direction: column; }\n  .popup-container input,\n  .popup-container textarea {\n    width: 100%; }\n\n.popup-head {\n  padding: 15px 10px;\n  border-bottom: 1px solid #eee;\n  text-align: center; }\n\n.popup-title {\n  margin: 0;\n  padding: 0;\n  font-size: 15px; }\n\n.popup-sub-title {\n  margin: 5px 0 0 0;\n  padding: 0;\n  font-weight: normal;\n  font-size: 11px; }\n\n.popup-body {\n  padding: 10px;\n  overflow: auto; }\n\n.popup-buttons {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-direction: normal;\n  -webkit-box-orient: horizontal;\n  -webkit-flex-direction: row;\n  -moz-flex-direction: row;\n  -ms-flex-direction: row;\n  flex-direction: row;\n  padding: 10px;\n  min-height: 65px; }\n  .popup-buttons .button {\n    -webkit-box-flex: 1;\n    -webkit-flex: 1;\n    -moz-box-flex: 1;\n    -moz-flex: 1;\n    -ms-flex: 1;\n    flex: 1;\n    display: block;\n    min-height: 45px;\n    border-radius: 2px;\n    line-height: 20px;\n    margin-right: 5px; }\n    .popup-buttons .button:last-child {\n      margin-right: 0px; }\n\n.popup-open {\n  pointer-events: none; }\n  .popup-open.modal-open .modal {\n    pointer-events: none; }\n  .popup-open .popup-backdrop, .popup-open .popup {\n    pointer-events: auto; }\n\n/**\n * Loading\n * --------------------------------------------------\n */\n.loading-container {\n  position: absolute;\n  left: 0;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  z-index: 13;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n  -ms-flex-pack: center;\n  -webkit-justify-content: center;\n  -moz-justify-content: center;\n  justify-content: center;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  -webkit-transition: 0.2s opacity linear;\n  transition: 0.2s opacity linear;\n  visibility: hidden;\n  opacity: 0; }\n  .loading-container:not(.visible) .icon,\n  .loading-container:not(.visible) .spinner {\n    display: none; }\n  .loading-container.visible {\n    visibility: visible; }\n  .loading-container.active {\n    opacity: 1; }\n  .loading-container .loading {\n    padding: 20px;\n    border-radius: 5px;\n    background-color: rgba(0, 0, 0, 0.7);\n    color: #fff;\n    text-align: center;\n    text-overflow: ellipsis;\n    font-size: 15px; }\n    .loading-container .loading h1, .loading-container .loading h2, .loading-container .loading h3, .loading-container .loading h4, .loading-container .loading h5, .loading-container .loading h6 {\n      color: #fff; }\n\n/**\n * Items\n * --------------------------------------------------\n */\n.item {\n  border-color: #ddd;\n  background-color: #fff;\n  color: #444;\n  position: relative;\n  z-index: 2;\n  display: block;\n  margin: -1px;\n  padding: 16px;\n  border-width: 1px;\n  border-style: solid;\n  font-size: 16px; }\n  .item h2 {\n    margin: 0 0 2px 0;\n    font-size: 16px;\n    font-weight: normal; }\n  .item h3 {\n    margin: 0 0 4px 0;\n    font-size: 14px; }\n  .item h4 {\n    margin: 0 0 4px 0;\n    font-size: 12px; }\n  .item h5, .item h6 {\n    margin: 0 0 3px 0;\n    font-size: 10px; }\n  .item p {\n    color: #666;\n    font-size: 14px;\n    margin-bottom: 2px; }\n  .item h1:last-child,\n  .item h2:last-child,\n  .item h3:last-child,\n  .item h4:last-child,\n  .item h5:last-child,\n  .item h6:last-child,\n  .item p:last-child {\n    margin-bottom: 0; }\n  .item .badge {\n    display: -webkit-box;\n    display: -webkit-flex;\n    display: -moz-box;\n    display: -moz-flex;\n    display: -ms-flexbox;\n    display: flex;\n    position: absolute;\n    top: 16px;\n    right: 32px; }\n  .item.item-button-right .badge {\n    right: 67px; }\n  .item.item-divider .badge {\n    top: 8px; }\n  .item .badge + .badge {\n    margin-right: 5px; }\n  .item.item-light {\n    border-color: #ddd;\n    background-color: #fff;\n    color: #444; }\n  .item.item-stable {\n    border-color: #b2b2b2;\n    background-color: #f8f8f8;\n    color: #444; }\n  .item.item-positive {\n    border-color: #0c60ee;\n    background-color: #387ef5;\n    color: #fff; }\n  .item.item-calm {\n    border-color: #0a9dc7;\n    background-color: #11c1f3;\n    color: #fff; }\n  .item.item-assertive {\n    border-color: #e42112;\n    background-color: #ef473a;\n    color: #fff; }\n  .item.item-balanced {\n    border-color: #28a54c;\n    background-color: #33cd5f;\n    color: #fff; }\n  .item.item-energized {\n    border-color: #e6b500;\n    background-color: #ffc900;\n    color: #fff; }\n  .item.item-royal {\n    border-color: #6b46e5;\n    background-color: #886aea;\n    color: #fff; }\n  .item.item-dark {\n    border-color: #111;\n    background-color: #444;\n    color: #fff; }\n  .item[ng-click]:hover {\n    cursor: pointer; }\n\n.list-borderless .item,\n.item-borderless {\n  border-width: 0; }\n\n.item.active,\n.item.activated,\n.item-complex.active .item-content,\n.item-complex.activated .item-content,\n.item .item-content.active,\n.item .item-content.activated {\n  border-color: #ccc;\n  background-color: #D9D9D9; }\n  .item.active.item-light,\n  .item.activated.item-light,\n  .item-complex.active .item-content.item-light,\n  .item-complex.activated .item-content.item-light,\n  .item .item-content.active.item-light,\n  .item .item-content.activated.item-light {\n    border-color: #ccc;\n    background-color: #fafafa; }\n  .item.active.item-stable,\n  .item.activated.item-stable,\n  .item-complex.active .item-content.item-stable,\n  .item-complex.activated .item-content.item-stable,\n  .item .item-content.active.item-stable,\n  .item .item-content.activated.item-stable {\n    border-color: #a2a2a2;\n    background-color: #e5e5e5; }\n  .item.active.item-positive,\n  .item.activated.item-positive,\n  .item-complex.active .item-content.item-positive,\n  .item-complex.activated .item-content.item-positive,\n  .item .item-content.active.item-positive,\n  .item .item-content.activated.item-positive {\n    border-color: #0c60ee;\n    background-color: #0c60ee; }\n  .item.active.item-calm,\n  .item.activated.item-calm,\n  .item-complex.active .item-content.item-calm,\n  .item-complex.activated .item-content.item-calm,\n  .item .item-content.active.item-calm,\n  .item .item-content.activated.item-calm {\n    border-color: #0a9dc7;\n    background-color: #0a9dc7; }\n  .item.active.item-assertive,\n  .item.activated.item-assertive,\n  .item-complex.active .item-content.item-assertive,\n  .item-complex.activated .item-content.item-assertive,\n  .item .item-content.active.item-assertive,\n  .item .item-content.activated.item-assertive {\n    border-color: #e42112;\n    background-color: #e42112; }\n  .item.active.item-balanced,\n  .item.activated.item-balanced,\n  .item-complex.active .item-content.item-balanced,\n  .item-complex.activated .item-content.item-balanced,\n  .item .item-content.active.item-balanced,\n  .item .item-content.activated.item-balanced {\n    border-color: #28a54c;\n    background-color: #28a54c; }\n  .item.active.item-energized,\n  .item.activated.item-energized,\n  .item-complex.active .item-content.item-energized,\n  .item-complex.activated .item-content.item-energized,\n  .item .item-content.active.item-energized,\n  .item .item-content.activated.item-energized {\n    border-color: #e6b500;\n    background-color: #e6b500; }\n  .item.active.item-royal,\n  .item.activated.item-royal,\n  .item-complex.active .item-content.item-royal,\n  .item-complex.activated .item-content.item-royal,\n  .item .item-content.active.item-royal,\n  .item .item-content.activated.item-royal {\n    border-color: #6b46e5;\n    background-color: #6b46e5; }\n  .item.active.item-dark,\n  .item.activated.item-dark,\n  .item-complex.active .item-content.item-dark,\n  .item-complex.activated .item-content.item-dark,\n  .item .item-content.active.item-dark,\n  .item .item-content.activated.item-dark {\n    border-color: #000;\n    background-color: #262626; }\n\n.item,\n.item h1,\n.item h2,\n.item h3,\n.item h4,\n.item h5,\n.item h6,\n.item p,\n.item-content,\n.item-content h1,\n.item-content h2,\n.item-content h3,\n.item-content h4,\n.item-content h5,\n.item-content h6,\n.item-content p {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap; }\n\na.item {\n  color: inherit;\n  text-decoration: none; }\n  a.item:hover,\n  a.item:focus {\n    text-decoration: none; }\n\n/**\n * Complex Items\n * --------------------------------------------------\n * Adding .item-complex allows the .item to be slidable and\n * have options underneath the button, but also requires an\n * additional .item-content element inside .item.\n * Basically .item-complex removes any default settings which\n * .item added, so that .item-content looks them as just .item.\n */\n.item-complex,\na.item.item-complex,\nbutton.item.item-complex {\n  padding: 0; }\n\n.item-complex .item-content,\n.item-radio .item-content {\n  position: relative;\n  z-index: 2;\n  padding: 16px 49px 16px 16px;\n  border: none;\n  background-color: #fff; }\n\na.item-content {\n  display: block;\n  color: inherit;\n  text-decoration: none; }\n\n.item-text-wrap .item,\n.item-text-wrap .item-content,\n.item-text-wrap,\n.item-text-wrap h1,\n.item-text-wrap h2,\n.item-text-wrap h3,\n.item-text-wrap h4,\n.item-text-wrap h5,\n.item-text-wrap h6,\n.item-text-wrap p,\n.item-complex.item-text-wrap .item-content,\n.item-body h1,\n.item-body h2,\n.item-body h3,\n.item-body h4,\n.item-body h5,\n.item-body h6,\n.item-body p {\n  overflow: visible;\n  white-space: normal; }\n\n.item-complex.item-text-wrap,\n.item-complex.item-text-wrap h1,\n.item-complex.item-text-wrap h2,\n.item-complex.item-text-wrap h3,\n.item-complex.item-text-wrap h4,\n.item-complex.item-text-wrap h5,\n.item-complex.item-text-wrap h6,\n.item-complex.item-text-wrap p {\n  overflow: visible;\n  white-space: normal; }\n\n.item-complex.item-light > .item-content {\n  border-color: #ddd;\n  background-color: #fff;\n  color: #444; }\n  .item-complex.item-light > .item-content.active, .item-complex.item-light > .item-content:active {\n    border-color: #ccc;\n    background-color: #fafafa; }\n\n.item-complex.item-stable > .item-content {\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  color: #444; }\n  .item-complex.item-stable > .item-content.active, .item-complex.item-stable > .item-content:active {\n    border-color: #a2a2a2;\n    background-color: #e5e5e5; }\n\n.item-complex.item-positive > .item-content {\n  border-color: #0c60ee;\n  background-color: #387ef5;\n  color: #fff; }\n  .item-complex.item-positive > .item-content.active, .item-complex.item-positive > .item-content:active {\n    border-color: #0c60ee;\n    background-color: #0c60ee; }\n\n.item-complex.item-calm > .item-content {\n  border-color: #0a9dc7;\n  background-color: #11c1f3;\n  color: #fff; }\n  .item-complex.item-calm > .item-content.active, .item-complex.item-calm > .item-content:active {\n    border-color: #0a9dc7;\n    background-color: #0a9dc7; }\n\n.item-complex.item-assertive > .item-content {\n  border-color: #e42112;\n  background-color: #ef473a;\n  color: #fff; }\n  .item-complex.item-assertive > .item-content.active, .item-complex.item-assertive > .item-content:active {\n    border-color: #e42112;\n    background-color: #e42112; }\n\n.item-complex.item-balanced > .item-content {\n  border-color: #28a54c;\n  background-color: #33cd5f;\n  color: #fff; }\n  .item-complex.item-balanced > .item-content.active, .item-complex.item-balanced > .item-content:active {\n    border-color: #28a54c;\n    background-color: #28a54c; }\n\n.item-complex.item-energized > .item-content {\n  border-color: #e6b500;\n  background-color: #ffc900;\n  color: #fff; }\n  .item-complex.item-energized > .item-content.active, .item-complex.item-energized > .item-content:active {\n    border-color: #e6b500;\n    background-color: #e6b500; }\n\n.item-complex.item-royal > .item-content {\n  border-color: #6b46e5;\n  background-color: #886aea;\n  color: #fff; }\n  .item-complex.item-royal > .item-content.active, .item-complex.item-royal > .item-content:active {\n    border-color: #6b46e5;\n    background-color: #6b46e5; }\n\n.item-complex.item-dark > .item-content {\n  border-color: #111;\n  background-color: #444;\n  color: #fff; }\n  .item-complex.item-dark > .item-content.active, .item-complex.item-dark > .item-content:active {\n    border-color: #000;\n    background-color: #262626; }\n\n/**\n * Item Icons\n * --------------------------------------------------\n */\n.item-icon-left .icon,\n.item-icon-right .icon {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: absolute;\n  top: 0;\n  height: 100%;\n  font-size: 32px; }\n  .item-icon-left .icon:before,\n  .item-icon-right .icon:before {\n    display: block;\n    width: 32px;\n    text-align: center; }\n\n.item .fill-icon {\n  min-width: 30px;\n  min-height: 30px;\n  font-size: 28px; }\n\n.item-icon-left {\n  padding-left: 54px; }\n  .item-icon-left .icon {\n    left: 11px; }\n\n.item-complex.item-icon-left {\n  padding-left: 0; }\n  .item-complex.item-icon-left .item-content {\n    padding-left: 54px; }\n\n.item-icon-right {\n  padding-right: 54px; }\n  .item-icon-right .icon {\n    right: 11px; }\n\n.item-complex.item-icon-right {\n  padding-right: 0; }\n  .item-complex.item-icon-right .item-content {\n    padding-right: 54px; }\n\n.item-icon-left.item-icon-right .icon:first-child {\n  right: auto; }\n\n.item-icon-left.item-icon-right .icon:last-child,\n.item-icon-left .item-delete .icon {\n  left: auto; }\n\n.item-icon-left .icon-accessory,\n.item-icon-right .icon-accessory {\n  color: #ccc;\n  font-size: 16px; }\n\n.item-icon-left .icon-accessory {\n  left: 3px; }\n\n.item-icon-right .icon-accessory {\n  right: 3px; }\n\n/**\n * Item Button\n * --------------------------------------------------\n * An item button is a child button inside an .item (not the entire .item)\n */\n.item-button-left {\n  padding-left: 72px; }\n\n.item-button-left > .button,\n.item-button-left .item-content > .button {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: absolute;\n  top: 8px;\n  left: 11px;\n  min-width: 34px;\n  min-height: 34px;\n  font-size: 18px;\n  line-height: 32px; }\n  .item-button-left > .button .icon:before,\n  .item-button-left .item-content > .button .icon:before {\n    position: relative;\n    left: auto;\n    width: auto;\n    line-height: 31px; }\n  .item-button-left > .button > .button,\n  .item-button-left .item-content > .button > .button {\n    margin: 0px 2px;\n    min-height: 34px;\n    font-size: 18px;\n    line-height: 32px; }\n\n.item-button-right,\na.item.item-button-right,\nbutton.item.item-button-right {\n  padding-right: 80px; }\n\n.item-button-right > .button,\n.item-button-right .item-content > .button,\n.item-button-right > .buttons,\n.item-button-right .item-content > .buttons {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: absolute;\n  top: 8px;\n  right: 16px;\n  min-width: 34px;\n  min-height: 34px;\n  font-size: 18px;\n  line-height: 32px; }\n  .item-button-right > .button .icon:before,\n  .item-button-right .item-content > .button .icon:before,\n  .item-button-right > .buttons .icon:before,\n  .item-button-right .item-content > .buttons .icon:before {\n    position: relative;\n    left: auto;\n    width: auto;\n    line-height: 31px; }\n  .item-button-right > .button > .button,\n  .item-button-right .item-content > .button > .button,\n  .item-button-right > .buttons > .button,\n  .item-button-right .item-content > .buttons > .button {\n    margin: 0px 2px;\n    min-width: 34px;\n    min-height: 34px;\n    font-size: 18px;\n    line-height: 32px; }\n\n.item-avatar,\n.item-avatar .item-content,\n.item-avatar-left,\n.item-avatar-left .item-content {\n  padding-left: 72px;\n  min-height: 72px; }\n  .item-avatar > img:first-child,\n  .item-avatar .item-image,\n  .item-avatar .item-content > img:first-child,\n  .item-avatar .item-content .item-image,\n  .item-avatar-left > img:first-child,\n  .item-avatar-left .item-image,\n  .item-avatar-left .item-content > img:first-child,\n  .item-avatar-left .item-content .item-image {\n    position: absolute;\n    top: 16px;\n    left: 16px;\n    max-width: 40px;\n    max-height: 40px;\n    width: 100%;\n    height: 100%;\n    border-radius: 50%; }\n\n.item-avatar-right,\n.item-avatar-right .item-content {\n  padding-right: 72px;\n  min-height: 72px; }\n  .item-avatar-right > img:first-child,\n  .item-avatar-right .item-image,\n  .item-avatar-right .item-content > img:first-child,\n  .item-avatar-right .item-content .item-image {\n    position: absolute;\n    top: 16px;\n    right: 16px;\n    max-width: 40px;\n    max-height: 40px;\n    width: 100%;\n    height: 100%;\n    border-radius: 50%; }\n\n.item-thumbnail-left,\n.item-thumbnail-left .item-content {\n  padding-top: 8px;\n  padding-left: 106px;\n  min-height: 100px; }\n  .item-thumbnail-left > img:first-child,\n  .item-thumbnail-left .item-image,\n  .item-thumbnail-left .item-content > img:first-child,\n  .item-thumbnail-left .item-content .item-image {\n    position: absolute;\n    top: 10px;\n    left: 10px;\n    max-width: 80px;\n    max-height: 80px;\n    width: 100%;\n    height: 100%; }\n\n.item-avatar.item-complex,\n.item-avatar-left.item-complex,\n.item-thumbnail-left.item-complex {\n  padding-top: 0;\n  padding-left: 0; }\n\n.item-thumbnail-right,\n.item-thumbnail-right .item-content {\n  padding-top: 8px;\n  padding-right: 106px;\n  min-height: 100px; }\n  .item-thumbnail-right > img:first-child,\n  .item-thumbnail-right .item-image,\n  .item-thumbnail-right .item-content > img:first-child,\n  .item-thumbnail-right .item-content .item-image {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    max-width: 80px;\n    max-height: 80px;\n    width: 100%;\n    height: 100%; }\n\n.item-avatar-right.item-complex,\n.item-thumbnail-right.item-complex {\n  padding-top: 0;\n  padding-right: 0; }\n\n.item-image {\n  padding: 0;\n  text-align: center; }\n  .item-image img:first-child, .item-image .list-img {\n    width: 100%;\n    vertical-align: middle; }\n\n.item-body {\n  overflow: auto;\n  padding: 16px;\n  text-overflow: inherit;\n  white-space: normal; }\n  .item-body h1, .item-body h2, .item-body h3, .item-body h4, .item-body h5, .item-body h6, .item-body p {\n    margin-top: 16px;\n    margin-bottom: 16px; }\n\n.item-divider {\n  padding-top: 8px;\n  padding-bottom: 8px;\n  min-height: 30px;\n  background-color: #f5f5f5;\n  color: #222;\n  font-weight: 500; }\n\n.platform-ios .item-divider-platform,\n.item-divider-ios {\n  padding-top: 26px;\n  text-transform: uppercase;\n  font-weight: 300;\n  font-size: 13px;\n  background-color: #efeff4;\n  color: #555; }\n\n.platform-android .item-divider-platform,\n.item-divider-android {\n  font-weight: 300;\n  font-size: 13px; }\n\n.item-note {\n  float: right;\n  color: #aaa;\n  font-size: 14px; }\n\n.item-left-editable .item-content,\n.item-right-editable .item-content {\n  -webkit-transition-duration: 250ms;\n  transition-duration: 250ms;\n  -webkit-transition-timing-function: ease-in-out;\n  transition-timing-function: ease-in-out;\n  -webkit-transition-property: -webkit-transform;\n  -moz-transition-property: -moz-transform;\n  transition-property: transform; }\n\n.list-left-editing .item-left-editable .item-content,\n.item-left-editing.item-left-editable .item-content {\n  -webkit-transform: translate3d(50px, 0, 0);\n  transform: translate3d(50px, 0, 0); }\n\n.item-remove-animate.ng-leave {\n  -webkit-transition-duration: 300ms;\n  transition-duration: 300ms; }\n\n.item-remove-animate.ng-leave .item-content,\n.item-remove-animate.ng-leave:last-of-type {\n  -webkit-transition-duration: 300ms;\n  transition-duration: 300ms;\n  -webkit-transition-timing-function: ease-in;\n  transition-timing-function: ease-in;\n  -webkit-transition-property: all;\n  transition-property: all; }\n\n.item-remove-animate.ng-leave.ng-leave-active .item-content {\n  opacity: 0;\n  -webkit-transform: translate3d(-100%, 0, 0) !important;\n  transform: translate3d(-100%, 0, 0) !important; }\n\n.item-remove-animate.ng-leave.ng-leave-active:last-of-type {\n  opacity: 0; }\n\n.item-remove-animate.ng-leave.ng-leave-active ~ ion-item:not(.ng-leave) {\n  -webkit-transform: translate3d(0, -webkit-calc(-100% + 1px), 0);\n  transform: translate3d(0, calc(-100% + 1px), 0);\n  -webkit-transition-duration: 300ms;\n  transition-duration: 300ms;\n  -webkit-transition-timing-function: cubic-bezier(0.25, 0.81, 0.24, 1);\n  transition-timing-function: cubic-bezier(0.25, 0.81, 0.24, 1);\n  -webkit-transition-property: all;\n  transition-property: all; }\n\n.item-left-edit {\n  -webkit-transition: all ease-in-out 125ms;\n  transition: all ease-in-out 125ms;\n  position: absolute;\n  top: 0;\n  left: 0;\n  z-index: 0;\n  width: 50px;\n  height: 100%;\n  line-height: 100%;\n  display: none;\n  opacity: 0;\n  -webkit-transform: translate3d(-21px, 0, 0);\n  transform: translate3d(-21px, 0, 0); }\n  .item-left-edit .button {\n    height: 100%; }\n    .item-left-edit .button.icon {\n      display: -webkit-box;\n      display: -webkit-flex;\n      display: -moz-box;\n      display: -moz-flex;\n      display: -ms-flexbox;\n      display: flex;\n      -webkit-box-align: center;\n      -ms-flex-align: center;\n      -webkit-align-items: center;\n      -moz-align-items: center;\n      align-items: center;\n      position: absolute;\n      top: 0;\n      height: 100%; }\n  .item-left-edit.visible {\n    display: block; }\n    .item-left-edit.visible.active {\n      opacity: 1;\n      -webkit-transform: translate3d(8px, 0, 0);\n      transform: translate3d(8px, 0, 0); }\n\n.list-left-editing .item-left-edit {\n  -webkit-transition-delay: 125ms;\n  transition-delay: 125ms; }\n\n.item-delete .button.icon {\n  color: #ef473a;\n  font-size: 24px; }\n  .item-delete .button.icon:hover {\n    opacity: .7; }\n\n.item-right-edit {\n  -webkit-transition: all ease-in-out 250ms;\n  transition: all ease-in-out 250ms;\n  position: absolute;\n  top: 0;\n  right: 0;\n  z-index: 3;\n  width: 75px;\n  height: 100%;\n  background: inherit;\n  padding-left: 20px;\n  display: block;\n  opacity: 0;\n  -webkit-transform: translate3d(75px, 0, 0);\n  transform: translate3d(75px, 0, 0); }\n  .item-right-edit .button {\n    min-width: 50px;\n    height: 100%; }\n    .item-right-edit .button.icon {\n      display: -webkit-box;\n      display: -webkit-flex;\n      display: -moz-box;\n      display: -moz-flex;\n      display: -ms-flexbox;\n      display: flex;\n      -webkit-box-align: center;\n      -ms-flex-align: center;\n      -webkit-align-items: center;\n      -moz-align-items: center;\n      align-items: center;\n      position: absolute;\n      top: 0;\n      height: 100%;\n      font-size: 32px; }\n  .item-right-edit.visible {\n    display: block; }\n    .item-right-edit.visible.active {\n      opacity: 1;\n      -webkit-transform: translate3d(0, 0, 0);\n      transform: translate3d(0, 0, 0); }\n\n.item-reorder .button.icon {\n  color: #444;\n  font-size: 32px; }\n\n.item-reordering {\n  position: absolute;\n  left: 0;\n  top: 0;\n  z-index: 9;\n  width: 100%;\n  box-shadow: 0px 0px 10px 0px #aaa; }\n  .item-reordering .item-reorder {\n    z-index: 9; }\n\n.item-placeholder {\n  opacity: 0.7; }\n\n/**\n * The hidden right-side buttons that can be exposed under a list item\n * with dragging.\n */\n.item-options {\n  position: absolute;\n  top: 0;\n  right: 0;\n  z-index: 1;\n  height: 100%; }\n  .item-options .button {\n    height: 100%;\n    border: none;\n    border-radius: 0;\n    display: -webkit-inline-box;\n    display: -webkit-inline-flex;\n    display: -moz-inline-flex;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n    -ms-flex-align: center;\n    -webkit-align-items: center;\n    -moz-align-items: center;\n    align-items: center; }\n    .item-options .button:before {\n      margin: 0 auto; }\n\n/**\n * Lists\n * --------------------------------------------------\n */\n.list {\n  position: relative;\n  padding-top: 1px;\n  padding-bottom: 1px;\n  padding-left: 0;\n  margin-bottom: 20px; }\n\n.list:last-child {\n  margin-bottom: 0px; }\n  .list:last-child.card {\n    margin-bottom: 40px; }\n\n/**\n * List Header\n * --------------------------------------------------\n */\n.list-header {\n  margin-top: 20px;\n  padding: 5px 15px;\n  background-color: transparent;\n  color: #222;\n  font-weight: bold; }\n\n.card.list .list-item {\n  padding-right: 1px;\n  padding-left: 1px; }\n\n/**\n * Cards and Inset Lists\n * --------------------------------------------------\n * A card and list-inset are close to the same thing, except a card as a box shadow.\n */\n.card,\n.list-inset {\n  overflow: hidden;\n  margin: 20px 10px;\n  border-radius: 2px;\n  background-color: #fff; }\n\n.card {\n  padding-top: 1px;\n  padding-bottom: 1px;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }\n  .card .item {\n    border-left: 0;\n    border-right: 0; }\n  .card .item:first-child {\n    border-top: 0; }\n  .card .item:last-child {\n    border-bottom: 0; }\n\n.padding .card, .padding .list-inset {\n  margin-left: 0;\n  margin-right: 0; }\n\n.card .item:first-child,\n.list-inset .item:first-child,\n.padding > .list .item:first-child {\n  border-top-left-radius: 2px;\n  border-top-right-radius: 2px; }\n  .card .item:first-child .item-content,\n  .list-inset .item:first-child .item-content,\n  .padding > .list .item:first-child .item-content {\n    border-top-left-radius: 2px;\n    border-top-right-radius: 2px; }\n\n.card .item:last-child,\n.list-inset .item:last-child,\n.padding > .list .item:last-child {\n  border-bottom-right-radius: 2px;\n  border-bottom-left-radius: 2px; }\n  .card .item:last-child .item-content,\n  .list-inset .item:last-child .item-content,\n  .padding > .list .item:last-child .item-content {\n    border-bottom-right-radius: 2px;\n    border-bottom-left-radius: 2px; }\n\n.card .item:last-child,\n.list-inset .item:last-child {\n  margin-bottom: -1px; }\n\n.card .item,\n.list-inset .item,\n.padding > .list .item,\n.padding-horizontal > .list .item {\n  margin-right: 0;\n  margin-left: 0; }\n  .card .item.item-input input,\n  .list-inset .item.item-input input,\n  .padding > .list .item.item-input input,\n  .padding-horizontal > .list .item.item-input input {\n    padding-right: 44px; }\n\n.padding-left > .list .item {\n  margin-left: 0; }\n\n.padding-right > .list .item {\n  margin-right: 0; }\n\n/**\n * Badges\n * --------------------------------------------------\n */\n.badge {\n  background-color: transparent;\n  color: #AAAAAA;\n  z-index: 1;\n  display: inline-block;\n  padding: 3px 8px;\n  min-width: 10px;\n  border-radius: 10px;\n  vertical-align: baseline;\n  text-align: center;\n  white-space: nowrap;\n  font-weight: bold;\n  font-size: 14px;\n  line-height: 16px; }\n  .badge:empty {\n    display: none; }\n\n.tabs .tab-item .badge.badge-light,\n.badge.badge-light {\n  background-color: #fff;\n  color: #444; }\n\n.tabs .tab-item .badge.badge-stable,\n.badge.badge-stable {\n  background-color: #f8f8f8;\n  color: #444; }\n\n.tabs .tab-item .badge.badge-positive,\n.badge.badge-positive {\n  background-color: #387ef5;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-calm,\n.badge.badge-calm {\n  background-color: #11c1f3;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-assertive,\n.badge.badge-assertive {\n  background-color: #ef473a;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-balanced,\n.badge.badge-balanced {\n  background-color: #33cd5f;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-energized,\n.badge.badge-energized {\n  background-color: #ffc900;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-royal,\n.badge.badge-royal {\n  background-color: #886aea;\n  color: #fff; }\n\n.tabs .tab-item .badge.badge-dark,\n.badge.badge-dark {\n  background-color: #444;\n  color: #fff; }\n\n.button .badge {\n  position: relative;\n  top: -1px; }\n\n/**\n * Slide Box\n * --------------------------------------------------\n */\n.slider {\n  position: relative;\n  visibility: hidden;\n  overflow: hidden; }\n\n.slider-slides {\n  position: relative;\n  height: 100%; }\n\n.slider-slide {\n  position: relative;\n  display: block;\n  float: left;\n  width: 100%;\n  height: 100%;\n  vertical-align: top; }\n\n.slider-slide-image > img {\n  width: 100%; }\n\n.slider-pager {\n  position: absolute;\n  bottom: 20px;\n  z-index: 1;\n  width: 100%;\n  height: 15px;\n  text-align: center; }\n  .slider-pager .slider-pager-page {\n    display: inline-block;\n    margin: 0px 3px;\n    width: 15px;\n    color: #000;\n    text-decoration: none;\n    opacity: 0.3; }\n    .slider-pager .slider-pager-page.active {\n      -webkit-transition: opacity 0.4s ease-in;\n      transition: opacity 0.4s ease-in;\n      opacity: 1; }\n\n.slider-slide.ng-enter,\n.slider-slide.ng-leave,\n.slider-slide.ng-animate,\n.slider-pager-page.ng-enter,\n.slider-pager-page.ng-leave,\n.slider-pager-page.ng-animate {\n  -webkit-transition: none !important;\n  transition: none !important; }\n\n.slider-slide.ng-animate,\n.slider-pager-page.ng-animate {\n  -webkit-animation: none 0s;\n  animation: none 0s; }\n\n.scroll-refresher {\n  position: absolute;\n  top: -60px;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  margin: auto;\n  height: 60px; }\n  .scroll-refresher .ionic-refresher-content {\n    position: absolute;\n    bottom: 15px;\n    left: 0;\n    width: 100%;\n    color: #666666;\n    text-align: center;\n    font-size: 30px; }\n    .scroll-refresher .ionic-refresher-content .text-refreshing,\n    .scroll-refresher .ionic-refresher-content .text-pulling {\n      font-size: 16px;\n      line-height: 16px; }\n    .scroll-refresher .ionic-refresher-content.ionic-refresher-with-text {\n      bottom: 10px; }\n  .scroll-refresher .icon-refreshing,\n  .scroll-refresher .icon-pulling {\n    width: 100%;\n    -webkit-backface-visibility: hidden;\n    backface-visibility: hidden;\n    -webkit-transform-style: preserve-3d;\n    transform-style: preserve-3d; }\n  .scroll-refresher .icon-pulling {\n    -webkit-animation-name: refresh-spin-back;\n    animation-name: refresh-spin-back;\n    -webkit-animation-duration: 200ms;\n    animation-duration: 200ms;\n    -webkit-animation-timing-function: linear;\n    animation-timing-function: linear;\n    -webkit-animation-fill-mode: none;\n    animation-fill-mode: none;\n    -webkit-transform: translate3d(0, 0, 0) rotate(0deg);\n    transform: translate3d(0, 0, 0) rotate(0deg); }\n  .scroll-refresher .icon-refreshing,\n  .scroll-refresher .text-refreshing {\n    display: none; }\n  .scroll-refresher .icon-refreshing {\n    -webkit-animation-duration: 1.5s;\n    animation-duration: 1.5s; }\n  .scroll-refresher.active .icon-pulling:not(.pulling-rotation-disabled) {\n    -webkit-animation-name: refresh-spin;\n    animation-name: refresh-spin;\n    -webkit-transform: translate3d(0, 0, 0) rotate(-180deg);\n    transform: translate3d(0, 0, 0) rotate(-180deg); }\n  .scroll-refresher.active.refreshing {\n    -webkit-transition: -webkit-transform 0.2s;\n    transition: -webkit-transform 0.2s;\n    -webkit-transition: transform 0.2s;\n    transition: transform 0.2s;\n    -webkit-transform: scale(1, 1);\n    transform: scale(1, 1); }\n    .scroll-refresher.active.refreshing .icon-pulling,\n    .scroll-refresher.active.refreshing .text-pulling {\n      display: none; }\n    .scroll-refresher.active.refreshing .icon-refreshing,\n    .scroll-refresher.active.refreshing .text-refreshing {\n      display: block; }\n    .scroll-refresher.active.refreshing.refreshing-tail {\n      -webkit-transform: scale(0, 0);\n      transform: scale(0, 0); }\n\n.overflow-scroll > .scroll {\n  -webkit-overflow-scrolling: touch;\n  width: 100%; }\n  .overflow-scroll > .scroll.overscroll {\n    position: fixed;\n    right: 0;\n    left: 0; }\n\n.overflow-scroll.padding > .scroll.overscroll {\n  padding: 10px; }\n\n@-webkit-keyframes refresh-spin {\n  0% {\n    -webkit-transform: translate3d(0, 0, 0) rotate(0); }\n  100% {\n    -webkit-transform: translate3d(0, 0, 0) rotate(180deg); } }\n\n@keyframes refresh-spin {\n  0% {\n    transform: translate3d(0, 0, 0) rotate(0); }\n  100% {\n    transform: translate3d(0, 0, 0) rotate(180deg); } }\n\n@-webkit-keyframes refresh-spin-back {\n  0% {\n    -webkit-transform: translate3d(0, 0, 0) rotate(180deg); }\n  100% {\n    -webkit-transform: translate3d(0, 0, 0) rotate(0); } }\n\n@keyframes refresh-spin-back {\n  0% {\n    transform: translate3d(0, 0, 0) rotate(180deg); }\n  100% {\n    transform: translate3d(0, 0, 0) rotate(0); } }\n\n/**\n * Spinners\n * --------------------------------------------------\n */\n.spinner {\n  stroke: #444;\n  fill: #444; }\n  .spinner svg {\n    width: 28px;\n    height: 28px; }\n  .spinner.spinner-light {\n    stroke: #fff;\n    fill: #fff; }\n  .spinner.spinner-stable {\n    stroke: #f8f8f8;\n    fill: #f8f8f8; }\n  .spinner.spinner-positive {\n    stroke: #387ef5;\n    fill: #387ef5; }\n  .spinner.spinner-calm {\n    stroke: #11c1f3;\n    fill: #11c1f3; }\n  .spinner.spinner-balanced {\n    stroke: #33cd5f;\n    fill: #33cd5f; }\n  .spinner.spinner-assertive {\n    stroke: #ef473a;\n    fill: #ef473a; }\n  .spinner.spinner-energized {\n    stroke: #ffc900;\n    fill: #ffc900; }\n  .spinner.spinner-royal {\n    stroke: #886aea;\n    fill: #886aea; }\n  .spinner.spinner-dark {\n    stroke: #444;\n    fill: #444; }\n\n.spinner-android {\n  stroke: #4b8bf4; }\n\n.spinner-ios,\n.spinner-ios-small {\n  stroke: #69717d; }\n\n.spinner-spiral .stop1 {\n  stop-color: #fff;\n  stop-opacity: 0; }\n\n.spinner-spiral.spinner-light .stop1 {\n  stop-color: #444; }\n\n.spinner-spiral.spinner-light .stop2 {\n  stop-color: #fff; }\n\n.spinner-spiral.spinner-stable .stop2 {\n  stop-color: #f8f8f8; }\n\n.spinner-spiral.spinner-positive .stop2 {\n  stop-color: #387ef5; }\n\n.spinner-spiral.spinner-calm .stop2 {\n  stop-color: #11c1f3; }\n\n.spinner-spiral.spinner-balanced .stop2 {\n  stop-color: #33cd5f; }\n\n.spinner-spiral.spinner-assertive .stop2 {\n  stop-color: #ef473a; }\n\n.spinner-spiral.spinner-energized .stop2 {\n  stop-color: #ffc900; }\n\n.spinner-spiral.spinner-royal .stop2 {\n  stop-color: #886aea; }\n\n.spinner-spiral.spinner-dark .stop2 {\n  stop-color: #444; }\n\n/**\n * Forms\n * --------------------------------------------------\n */\nform {\n  margin: 0 0 1.42857; }\n\nlegend {\n  display: block;\n  margin-bottom: 1.42857;\n  padding: 0;\n  width: 100%;\n  border: 1px solid #ddd;\n  color: #444;\n  font-size: 21px;\n  line-height: 2.85714; }\n  legend small {\n    color: #f8f8f8;\n    font-size: 1.07143; }\n\nlabel,\ninput,\nbutton,\nselect,\ntextarea {\n  font-weight: normal;\n  font-size: 14px;\n  line-height: 1.42857; }\n\ninput,\nbutton,\nselect,\ntextarea {\n  font-family: \"Helvetica Neue\", \"Roboto\", \"Segoe UI\", sans-serif; }\n\n.item-input {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: relative;\n  overflow: hidden;\n  padding: 6px 0 5px 16px; }\n  .item-input input {\n    -webkit-border-radius: 0;\n    border-radius: 0;\n    -webkit-box-flex: 1;\n    -webkit-flex: 1 220px;\n    -moz-box-flex: 1;\n    -moz-flex: 1 220px;\n    -ms-flex: 1 220px;\n    flex: 1 220px;\n    -webkit-appearance: none;\n    -moz-appearance: none;\n    appearance: none;\n    margin: 0;\n    padding-right: 24px;\n    background-color: transparent; }\n  .item-input .button .icon {\n    -webkit-box-flex: 0;\n    -webkit-flex: 0 0 24px;\n    -moz-box-flex: 0;\n    -moz-flex: 0 0 24px;\n    -ms-flex: 0 0 24px;\n    flex: 0 0 24px;\n    position: static;\n    display: inline-block;\n    height: auto;\n    text-align: center;\n    font-size: 16px; }\n  .item-input .button-bar {\n    -webkit-border-radius: 0;\n    border-radius: 0;\n    -webkit-box-flex: 1;\n    -webkit-flex: 1 0 220px;\n    -moz-box-flex: 1;\n    -moz-flex: 1 0 220px;\n    -ms-flex: 1 0 220px;\n    flex: 1 0 220px;\n    -webkit-appearance: none;\n    -moz-appearance: none;\n    appearance: none; }\n  .item-input .icon {\n    min-width: 14px; }\n\n.platform-windowsphone .item-input input {\n  flex-shrink: 1; }\n\n.item-input-inset {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  position: relative;\n  overflow: hidden;\n  padding: 10.66667px; }\n\n.item-input-wrapper {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-flex: 1;\n  -webkit-flex: 1 0;\n  -moz-box-flex: 1;\n  -moz-flex: 1 0;\n  -ms-flex: 1 0;\n  flex: 1 0;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  -webkit-border-radius: 4px;\n  border-radius: 4px;\n  padding-right: 8px;\n  padding-left: 8px;\n  background: #eee; }\n\n.item-input-inset .item-input-wrapper input {\n  padding-left: 4px;\n  height: 29px;\n  background: transparent;\n  line-height: 18px; }\n\n.item-input-wrapper ~ .button {\n  margin-left: 10.66667px; }\n\n.input-label {\n  display: table;\n  padding: 7px 10px 7px 0px;\n  max-width: 200px;\n  width: 35%;\n  color: #444;\n  font-size: 16px; }\n\n.placeholder-icon {\n  color: #aaa; }\n  .placeholder-icon:first-child {\n    padding-right: 6px; }\n  .placeholder-icon:last-child {\n    padding-left: 6px; }\n\n.item-stacked-label {\n  display: block;\n  background-color: transparent;\n  box-shadow: none; }\n  .item-stacked-label .input-label, .item-stacked-label .icon {\n    display: inline-block;\n    padding: 4px 0 0 0px;\n    vertical-align: middle; }\n\n.item-stacked-label input,\n.item-stacked-label textarea {\n  -webkit-border-radius: 2px;\n  border-radius: 2px;\n  padding: 4px 8px 3px 0;\n  border: none;\n  background-color: #fff; }\n\n.item-stacked-label input {\n  overflow: hidden;\n  height: 46px; }\n\n.item-floating-label {\n  display: block;\n  background-color: transparent;\n  box-shadow: none; }\n  .item-floating-label .input-label {\n    position: relative;\n    padding: 5px 0 0 0;\n    opacity: 0;\n    top: 10px;\n    -webkit-transition: opacity 0.15s ease-in, top 0.2s linear;\n    transition: opacity 0.15s ease-in, top 0.2s linear; }\n    .item-floating-label .input-label.has-input {\n      opacity: 1;\n      top: 0;\n      -webkit-transition: opacity 0.15s ease-in, top 0.2s linear;\n      transition: opacity 0.15s ease-in, top 0.2s linear; }\n\ntextarea,\ninput[type=\"text\"],\ninput[type=\"password\"],\ninput[type=\"datetime\"],\ninput[type=\"datetime-local\"],\ninput[type=\"date\"],\ninput[type=\"month\"],\ninput[type=\"time\"],\ninput[type=\"week\"],\ninput[type=\"number\"],\ninput[type=\"email\"],\ninput[type=\"url\"],\ninput[type=\"search\"],\ninput[type=\"tel\"],\ninput[type=\"color\"] {\n  display: block;\n  padding-top: 2px;\n  padding-left: 0;\n  height: 34px;\n  color: #111;\n  vertical-align: middle;\n  font-size: 14px;\n  line-height: 16px; }\n\n.platform-ios input[type=\"datetime-local\"],\n.platform-ios input[type=\"date\"],\n.platform-ios input[type=\"month\"],\n.platform-ios input[type=\"time\"],\n.platform-ios input[type=\"week\"],\n.platform-android input[type=\"datetime-local\"],\n.platform-android input[type=\"date\"],\n.platform-android input[type=\"month\"],\n.platform-android input[type=\"time\"],\n.platform-android input[type=\"week\"] {\n  padding-top: 8px; }\n\n.item-input input,\n.item-input textarea {\n  width: 100%; }\n\ntextarea {\n  padding-left: 0; }\n  textarea::-moz-placeholder {\n    color: #aaaaaa; }\n  textarea:-ms-input-placeholder {\n    color: #aaaaaa; }\n  textarea::-webkit-input-placeholder {\n    color: #aaaaaa;\n    text-indent: -3px; }\n\ntextarea {\n  height: auto; }\n\ntextarea,\ninput[type=\"text\"],\ninput[type=\"password\"],\ninput[type=\"datetime\"],\ninput[type=\"datetime-local\"],\ninput[type=\"date\"],\ninput[type=\"month\"],\ninput[type=\"time\"],\ninput[type=\"week\"],\ninput[type=\"number\"],\ninput[type=\"email\"],\ninput[type=\"url\"],\ninput[type=\"search\"],\ninput[type=\"tel\"],\ninput[type=\"color\"] {\n  border: 0; }\n\ninput[type=\"radio\"],\ninput[type=\"checkbox\"] {\n  margin: 0;\n  line-height: normal; }\n\n.item-input input[type=\"file\"],\n.item-input input[type=\"image\"],\n.item-input input[type=\"submit\"],\n.item-input input[type=\"reset\"],\n.item-input input[type=\"button\"],\n.item-input input[type=\"radio\"],\n.item-input input[type=\"checkbox\"] {\n  width: auto; }\n\ninput[type=\"file\"] {\n  line-height: 34px; }\n\n.previous-input-focus,\n.cloned-text-input + input,\n.cloned-text-input + textarea {\n  position: absolute !important;\n  left: -9999px;\n  width: 200px; }\n\ninput::-moz-placeholder,\ntextarea::-moz-placeholder {\n  color: #aaaaaa; }\n\ninput:-ms-input-placeholder,\ntextarea:-ms-input-placeholder {\n  color: #aaaaaa; }\n\ninput::-webkit-input-placeholder,\ntextarea::-webkit-input-placeholder {\n  color: #aaaaaa;\n  text-indent: 0; }\n\ninput[disabled],\nselect[disabled],\ntextarea[disabled],\ninput[readonly]:not(.cloned-text-input),\ntextarea[readonly]:not(.cloned-text-input),\nselect[readonly] {\n  background-color: #f8f8f8;\n  cursor: not-allowed; }\n\ninput[type=\"radio\"][disabled],\ninput[type=\"checkbox\"][disabled],\ninput[type=\"radio\"][readonly],\ninput[type=\"checkbox\"][readonly] {\n  background-color: transparent; }\n\n/**\n * Checkbox\n * --------------------------------------------------\n */\n.checkbox {\n  position: relative;\n  display: inline-block;\n  padding: 7px 7px;\n  cursor: pointer; }\n  .checkbox input:before,\n  .checkbox .checkbox-icon:before {\n    border-color: #ddd; }\n  .checkbox input:checked:before,\n  .checkbox input:checked + .checkbox-icon:before {\n    background: #387ef5;\n    border-color: #387ef5; }\n\n.checkbox-light input:before,\n.checkbox-light .checkbox-icon:before {\n  border-color: #ddd; }\n\n.checkbox-light input:checked:before,\n.checkbox-light input:checked + .checkbox-icon:before {\n  background: #ddd;\n  border-color: #ddd; }\n\n.checkbox-stable input:before,\n.checkbox-stable .checkbox-icon:before {\n  border-color: #b2b2b2; }\n\n.checkbox-stable input:checked:before,\n.checkbox-stable input:checked + .checkbox-icon:before {\n  background: #b2b2b2;\n  border-color: #b2b2b2; }\n\n.checkbox-positive input:before,\n.checkbox-positive .checkbox-icon:before {\n  border-color: #387ef5; }\n\n.checkbox-positive input:checked:before,\n.checkbox-positive input:checked + .checkbox-icon:before {\n  background: #387ef5;\n  border-color: #387ef5; }\n\n.checkbox-calm input:before,\n.checkbox-calm .checkbox-icon:before {\n  border-color: #11c1f3; }\n\n.checkbox-calm input:checked:before,\n.checkbox-calm input:checked + .checkbox-icon:before {\n  background: #11c1f3;\n  border-color: #11c1f3; }\n\n.checkbox-assertive input:before,\n.checkbox-assertive .checkbox-icon:before {\n  border-color: #ef473a; }\n\n.checkbox-assertive input:checked:before,\n.checkbox-assertive input:checked + .checkbox-icon:before {\n  background: #ef473a;\n  border-color: #ef473a; }\n\n.checkbox-balanced input:before,\n.checkbox-balanced .checkbox-icon:before {\n  border-color: #33cd5f; }\n\n.checkbox-balanced input:checked:before,\n.checkbox-balanced input:checked + .checkbox-icon:before {\n  background: #33cd5f;\n  border-color: #33cd5f; }\n\n.checkbox-energized input:before,\n.checkbox-energized .checkbox-icon:before {\n  border-color: #ffc900; }\n\n.checkbox-energized input:checked:before,\n.checkbox-energized input:checked + .checkbox-icon:before {\n  background: #ffc900;\n  border-color: #ffc900; }\n\n.checkbox-royal input:before,\n.checkbox-royal .checkbox-icon:before {\n  border-color: #886aea; }\n\n.checkbox-royal input:checked:before,\n.checkbox-royal input:checked + .checkbox-icon:before {\n  background: #886aea;\n  border-color: #886aea; }\n\n.checkbox-dark input:before,\n.checkbox-dark .checkbox-icon:before {\n  border-color: #444; }\n\n.checkbox-dark input:checked:before,\n.checkbox-dark input:checked + .checkbox-icon:before {\n  background: #444;\n  border-color: #444; }\n\n.checkbox input:disabled:before,\n.checkbox input:disabled + .checkbox-icon:before {\n  border-color: #ddd; }\n\n.checkbox input:disabled:checked:before,\n.checkbox input:disabled:checked + .checkbox-icon:before {\n  background: #ddd; }\n\n.checkbox.checkbox-input-hidden input {\n  display: none !important; }\n\n.checkbox input,\n.checkbox-icon {\n  position: relative;\n  width: 28px;\n  height: 28px;\n  display: block;\n  border: 0;\n  background: transparent;\n  cursor: pointer;\n  -webkit-appearance: none; }\n  .checkbox input:before,\n  .checkbox-icon:before {\n    display: table;\n    width: 100%;\n    height: 100%;\n    border-width: 1px;\n    border-style: solid;\n    border-radius: 28px;\n    background: #fff;\n    content: ' ';\n    -webkit-transition: background-color 20ms ease-in-out;\n    transition: background-color 20ms ease-in-out; }\n\n.checkbox input:checked:before,\ninput:checked + .checkbox-icon:before {\n  border-width: 2px; }\n\n.checkbox input:after,\n.checkbox-icon:after {\n  -webkit-transition: opacity 0.05s ease-in-out;\n  transition: opacity 0.05s ease-in-out;\n  -webkit-transform: rotate(-45deg);\n  transform: rotate(-45deg);\n  position: absolute;\n  top: 33%;\n  left: 25%;\n  display: table;\n  width: 14px;\n  height: 6px;\n  border: 1px solid #fff;\n  border-top: 0;\n  border-right: 0;\n  content: ' ';\n  opacity: 0; }\n\n.platform-android .checkbox-platform input:before,\n.platform-android .checkbox-platform .checkbox-icon:before,\n.checkbox-square input:before,\n.checkbox-square .checkbox-icon:before {\n  border-radius: 2px;\n  width: 72%;\n  height: 72%;\n  margin-top: 14%;\n  margin-left: 14%;\n  border-width: 2px; }\n\n.platform-android .checkbox-platform input:after,\n.platform-android .checkbox-platform .checkbox-icon:after,\n.checkbox-square input:after,\n.checkbox-square .checkbox-icon:after {\n  border-width: 2px;\n  top: 19%;\n  left: 25%;\n  width: 13px;\n  height: 7px; }\n\n.grade-c .checkbox input:after,\n.grade-c .checkbox-icon:after {\n  -webkit-transform: rotate(0);\n  transform: rotate(0);\n  top: 3px;\n  left: 4px;\n  border: none;\n  color: #fff;\n  content: '\\2713';\n  font-weight: bold;\n  font-size: 20px; }\n\n.checkbox input:checked:after,\ninput:checked + .checkbox-icon:after {\n  opacity: 1; }\n\n.item-checkbox {\n  padding-left: 60px; }\n  .item-checkbox.active {\n    box-shadow: none; }\n\n.item-checkbox .checkbox {\n  position: absolute;\n  top: 50%;\n  right: 8px;\n  left: 8px;\n  z-index: 3;\n  margin-top: -21px; }\n\n.item-checkbox.item-checkbox-right {\n  padding-right: 60px;\n  padding-left: 16px; }\n\n.item-checkbox-right .checkbox input,\n.item-checkbox-right .checkbox-icon {\n  float: right; }\n\n/**\n * Toggle\n * --------------------------------------------------\n */\n.item-toggle {\n  pointer-events: none; }\n\n.toggle {\n  position: relative;\n  display: inline-block;\n  pointer-events: auto;\n  margin: -5px;\n  padding: 5px; }\n  .toggle input:checked + .track {\n    border-color: #4cd964;\n    background-color: #4cd964; }\n  .toggle.dragging .handle {\n    background-color: #f2f2f2 !important; }\n\n.toggle.toggle-light input:checked + .track {\n  border-color: #ddd;\n  background-color: #ddd; }\n\n.toggle.toggle-stable input:checked + .track {\n  border-color: #b2b2b2;\n  background-color: #b2b2b2; }\n\n.toggle.toggle-positive input:checked + .track {\n  border-color: #387ef5;\n  background-color: #387ef5; }\n\n.toggle.toggle-calm input:checked + .track {\n  border-color: #11c1f3;\n  background-color: #11c1f3; }\n\n.toggle.toggle-assertive input:checked + .track {\n  border-color: #ef473a;\n  background-color: #ef473a; }\n\n.toggle.toggle-balanced input:checked + .track {\n  border-color: #33cd5f;\n  background-color: #33cd5f; }\n\n.toggle.toggle-energized input:checked + .track {\n  border-color: #ffc900;\n  background-color: #ffc900; }\n\n.toggle.toggle-royal input:checked + .track {\n  border-color: #886aea;\n  background-color: #886aea; }\n\n.toggle.toggle-dark input:checked + .track {\n  border-color: #444;\n  background-color: #444; }\n\n.toggle input {\n  display: none; }\n\n/* the track appearance when the toggle is \"off\" */\n.toggle .track {\n  -webkit-transition-timing-function: ease-in-out;\n  transition-timing-function: ease-in-out;\n  -webkit-transition-duration: 0.3s;\n  transition-duration: 0.3s;\n  -webkit-transition-property: background-color, border;\n  transition-property: background-color, border;\n  display: inline-block;\n  box-sizing: border-box;\n  width: 51px;\n  height: 31px;\n  border: solid 2px #e6e6e6;\n  border-radius: 20px;\n  background-color: #fff;\n  content: ' ';\n  cursor: pointer;\n  pointer-events: none; }\n\n/* Fix to avoid background color bleeding */\n/* (occured on (at least) Android 4.2, Asus MeMO Pad HD7 ME173X) */\n.platform-android4_2 .toggle .track {\n  -webkit-background-clip: padding-box; }\n\n/* the handle (circle) thats inside the toggle's track area */\n/* also the handle's appearance when it is \"off\" */\n.toggle .handle {\n  -webkit-transition: 0.3s cubic-bezier(0, 1.1, 1, 1.1);\n  transition: 0.3s cubic-bezier(0, 1.1, 1, 1.1);\n  -webkit-transition-property: background-color, transform;\n  transition-property: background-color, transform;\n  position: absolute;\n  display: block;\n  width: 27px;\n  height: 27px;\n  border-radius: 27px;\n  background-color: #fff;\n  top: 7px;\n  left: 7px;\n  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.15); }\n  .toggle .handle:before {\n    position: absolute;\n    top: -4px;\n    left: -21.5px;\n    padding: 18.5px 34px;\n    content: \" \"; }\n\n.toggle input:checked + .track .handle {\n  -webkit-transform: translate3d(20px, 0, 0);\n  transform: translate3d(20px, 0, 0);\n  background-color: #fff; }\n\n.item-toggle.active {\n  box-shadow: none; }\n\n.item-toggle,\n.item-toggle.item-complex .item-content {\n  padding-right: 99px; }\n\n.item-toggle.item-complex {\n  padding-right: 0; }\n\n.item-toggle .toggle {\n  position: absolute;\n  top: 10px;\n  right: 16px;\n  z-index: 3; }\n\n.toggle input:disabled + .track {\n  opacity: .6; }\n\n.toggle-small .track {\n  border: 0;\n  width: 34px;\n  height: 15px;\n  background: #9e9e9e; }\n\n.toggle-small input:checked + .track {\n  background: rgba(0, 150, 137, 0.5); }\n\n.toggle-small .handle {\n  top: 2px;\n  left: 4px;\n  width: 21px;\n  height: 21px;\n  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25); }\n\n.toggle-small input:checked + .track .handle {\n  -webkit-transform: translate3d(16px, 0, 0);\n  transform: translate3d(16px, 0, 0);\n  background: #009689; }\n\n.toggle-small.item-toggle .toggle {\n  top: 19px; }\n\n.toggle-small .toggle-light input:checked + .track {\n  background-color: rgba(221, 221, 221, 0.5); }\n\n.toggle-small .toggle-light input:checked + .track .handle {\n  background-color: #ddd; }\n\n.toggle-small .toggle-stable input:checked + .track {\n  background-color: rgba(178, 178, 178, 0.5); }\n\n.toggle-small .toggle-stable input:checked + .track .handle {\n  background-color: #b2b2b2; }\n\n.toggle-small .toggle-positive input:checked + .track {\n  background-color: rgba(56, 126, 245, 0.5); }\n\n.toggle-small .toggle-positive input:checked + .track .handle {\n  background-color: #387ef5; }\n\n.toggle-small .toggle-calm input:checked + .track {\n  background-color: rgba(17, 193, 243, 0.5); }\n\n.toggle-small .toggle-calm input:checked + .track .handle {\n  background-color: #11c1f3; }\n\n.toggle-small .toggle-assertive input:checked + .track {\n  background-color: rgba(239, 71, 58, 0.5); }\n\n.toggle-small .toggle-assertive input:checked + .track .handle {\n  background-color: #ef473a; }\n\n.toggle-small .toggle-balanced input:checked + .track {\n  background-color: rgba(51, 205, 95, 0.5); }\n\n.toggle-small .toggle-balanced input:checked + .track .handle {\n  background-color: #33cd5f; }\n\n.toggle-small .toggle-energized input:checked + .track {\n  background-color: rgba(255, 201, 0, 0.5); }\n\n.toggle-small .toggle-energized input:checked + .track .handle {\n  background-color: #ffc900; }\n\n.toggle-small .toggle-royal input:checked + .track {\n  background-color: rgba(136, 106, 234, 0.5); }\n\n.toggle-small .toggle-royal input:checked + .track .handle {\n  background-color: #886aea; }\n\n.toggle-small .toggle-dark input:checked + .track {\n  background-color: rgba(68, 68, 68, 0.5); }\n\n.toggle-small .toggle-dark input:checked + .track .handle {\n  background-color: #444; }\n\n/**\n * Radio Button Inputs\n * --------------------------------------------------\n */\n.item-radio {\n  padding: 0; }\n  .item-radio:hover {\n    cursor: pointer; }\n\n.item-radio .item-content {\n  /* give some room to the right for the checkmark icon */\n  padding-right: 64px; }\n\n.item-radio .radio-icon {\n  /* checkmark icon will be hidden by default */\n  position: absolute;\n  top: 0;\n  right: 0;\n  z-index: 3;\n  visibility: hidden;\n  padding: 14px;\n  height: 100%;\n  font-size: 24px; }\n\n.item-radio input {\n  /* hide any radio button inputs elements (the ugly circles) */\n  position: absolute;\n  left: -9999px; }\n  .item-radio input:checked + .radio-content .item-content {\n    /* style the item content when its checked */\n    background: #f7f7f7; }\n  .item-radio input:checked + .radio-content .radio-icon {\n    /* show the checkmark icon when its checked */\n    visibility: visible; }\n\n/**\n * Range\n * --------------------------------------------------\n */\n.range input {\n  display: inline-block;\n  overflow: hidden;\n  margin-top: 5px;\n  margin-bottom: 5px;\n  padding-right: 2px;\n  padding-left: 1px;\n  width: auto;\n  height: 43px;\n  outline: none;\n  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ccc), color-stop(100%, #ccc));\n  background: linear-gradient(to right, #ccc 0%, #ccc 100%);\n  background-position: center;\n  background-size: 99% 2px;\n  background-repeat: no-repeat;\n  -webkit-appearance: none; }\n  .range input::-webkit-slider-thumb {\n    position: relative;\n    width: 28px;\n    height: 28px;\n    border-radius: 50%;\n    background-color: #fff;\n    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2);\n    cursor: pointer;\n    -webkit-appearance: none;\n    border: 0; }\n  .range input::-webkit-slider-thumb:before {\n    /* what creates the colorful line on the left side of the slider */\n    position: absolute;\n    top: 13px;\n    left: -2001px;\n    width: 2000px;\n    height: 2px;\n    background: #444;\n    content: ' '; }\n  .range input::-webkit-slider-thumb:after {\n    /* create a larger (but hidden) hit area */\n    position: absolute;\n    top: -15px;\n    left: -15px;\n    padding: 30px;\n    content: ' '; }\n  .range input::-ms-track {\n    background: transparent;\n    border-color: transparent;\n    border-width: 11px 0 16px;\n    color: transparent;\n    margin-top: 20px; }\n  .range input::-ms-thumb {\n    width: 28px;\n    height: 28px;\n    border-radius: 50%;\n    background-color: #fff;\n    border-color: #fff;\n    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2);\n    margin-left: 1px;\n    margin-right: 1px;\n    outline: none; }\n  .range input::-ms-fill-lower {\n    height: 2px;\n    background: #444; }\n  .range input::-ms-fill-upper {\n    height: 2px;\n    background: #ccc; }\n\n.range {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center;\n  padding: 2px 11px; }\n  .range.range-light input::-webkit-slider-thumb:before {\n    background: #ddd; }\n  .range.range-light input::-ms-fill-lower {\n    background: #ddd; }\n  .range.range-stable input::-webkit-slider-thumb:before {\n    background: #b2b2b2; }\n  .range.range-stable input::-ms-fill-lower {\n    background: #b2b2b2; }\n  .range.range-positive input::-webkit-slider-thumb:before {\n    background: #387ef5; }\n  .range.range-positive input::-ms-fill-lower {\n    background: #387ef5; }\n  .range.range-calm input::-webkit-slider-thumb:before {\n    background: #11c1f3; }\n  .range.range-calm input::-ms-fill-lower {\n    background: #11c1f3; }\n  .range.range-balanced input::-webkit-slider-thumb:before {\n    background: #33cd5f; }\n  .range.range-balanced input::-ms-fill-lower {\n    background: #33cd5f; }\n  .range.range-assertive input::-webkit-slider-thumb:before {\n    background: #ef473a; }\n  .range.range-assertive input::-ms-fill-lower {\n    background: #ef473a; }\n  .range.range-energized input::-webkit-slider-thumb:before {\n    background: #ffc900; }\n  .range.range-energized input::-ms-fill-lower {\n    background: #ffc900; }\n  .range.range-royal input::-webkit-slider-thumb:before {\n    background: #886aea; }\n  .range.range-royal input::-ms-fill-lower {\n    background: #886aea; }\n  .range.range-dark input::-webkit-slider-thumb:before {\n    background: #444; }\n  .range.range-dark input::-ms-fill-lower {\n    background: #444; }\n\n.range .icon {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0;\n  -moz-box-flex: 0;\n  -moz-flex: 0;\n  -ms-flex: 0;\n  flex: 0;\n  display: block;\n  min-width: 24px;\n  text-align: center;\n  font-size: 24px; }\n\n.range input {\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  display: block;\n  margin-right: 10px;\n  margin-left: 10px; }\n\n.range-label {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 auto;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 auto;\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n  display: block;\n  white-space: nowrap; }\n\n.range-label:first-child {\n  padding-left: 5px; }\n\n.range input + .range-label {\n  padding-right: 5px;\n  padding-left: 0; }\n\n.platform-windowsphone .range input {\n  height: auto; }\n\n/**\n * Select\n * --------------------------------------------------\n */\n.item-select {\n  position: relative; }\n  .item-select select {\n    -webkit-appearance: none;\n    -moz-appearance: none;\n    appearance: none;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    right: 0;\n    padding: 0 48px 0 16px;\n    max-width: 65%;\n    border: none;\n    background: #fff;\n    color: #333;\n    text-indent: .01px;\n    text-overflow: '';\n    white-space: nowrap;\n    font-size: 14px;\n    cursor: pointer;\n    direction: rtl; }\n  .item-select select::-ms-expand {\n    display: none; }\n  .item-select option {\n    direction: ltr; }\n  .item-select:after {\n    position: absolute;\n    top: 50%;\n    right: 16px;\n    margin-top: -3px;\n    width: 0;\n    height: 0;\n    border-top: 5px solid;\n    border-right: 5px solid transparent;\n    border-left: 5px solid transparent;\n    color: #999;\n    content: \"\";\n    pointer-events: none; }\n  .item-select.item-light select {\n    background: #fff;\n    color: #444; }\n  .item-select.item-stable select {\n    background: #f8f8f8;\n    color: #444; }\n  .item-select.item-stable:after, .item-select.item-stable .input-label {\n    color: #656565; }\n  .item-select.item-positive select {\n    background: #387ef5;\n    color: #fff; }\n  .item-select.item-positive:after, .item-select.item-positive .input-label {\n    color: #fff; }\n  .item-select.item-calm select {\n    background: #11c1f3;\n    color: #fff; }\n  .item-select.item-calm:after, .item-select.item-calm .input-label {\n    color: #fff; }\n  .item-select.item-assertive select {\n    background: #ef473a;\n    color: #fff; }\n  .item-select.item-assertive:after, .item-select.item-assertive .input-label {\n    color: #fff; }\n  .item-select.item-balanced select {\n    background: #33cd5f;\n    color: #fff; }\n  .item-select.item-balanced:after, .item-select.item-balanced .input-label {\n    color: #fff; }\n  .item-select.item-energized select {\n    background: #ffc900;\n    color: #fff; }\n  .item-select.item-energized:after, .item-select.item-energized .input-label {\n    color: #fff; }\n  .item-select.item-royal select {\n    background: #886aea;\n    color: #fff; }\n  .item-select.item-royal:after, .item-select.item-royal .input-label {\n    color: #fff; }\n  .item-select.item-dark select {\n    background: #444;\n    color: #fff; }\n  .item-select.item-dark:after, .item-select.item-dark .input-label {\n    color: #fff; }\n\nselect[multiple],\nselect[size] {\n  height: auto; }\n\n/**\n * Progress\n * --------------------------------------------------\n */\nprogress {\n  display: block;\n  margin: 15px auto;\n  width: 100%; }\n\n/**\n * Buttons\n * --------------------------------------------------\n */\n.button {\n  border-color: #b2b2b2;\n  background-color: #f8f8f8;\n  color: #444;\n  position: relative;\n  display: inline-block;\n  margin: 0;\n  padding: 0 12px;\n  min-width: 52px;\n  min-height: 47px;\n  border-width: 1px;\n  border-style: solid;\n  border-radius: 2px;\n  vertical-align: top;\n  text-align: center;\n  text-overflow: ellipsis;\n  font-size: 16px;\n  line-height: 42px;\n  cursor: pointer; }\n  .button:hover {\n    color: #444;\n    text-decoration: none; }\n  .button.active,\n  .button.activated {\n    border-color: #a2a2a2;\n    background-color: #e5e5e5;\n    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n  .button:after {\n    position: absolute;\n    top: -6px;\n    right: -6px;\n    bottom: -6px;\n    left: -6px;\n    content: ' '; }\n  .button .icon {\n    vertical-align: top;\n    pointer-events: none; }\n  .button .icon:before,\n  .button.icon:before,\n  .button.icon-left:before,\n  .button.icon-right:before {\n    display: inline-block;\n    padding: 0 0 1px 0;\n    vertical-align: inherit;\n    font-size: 24px;\n    line-height: 41px;\n    pointer-events: none; }\n  .button.icon-left:before {\n    float: left;\n    padding-right: .2em;\n    padding-left: 0; }\n  .button.icon-right:before {\n    float: right;\n    padding-right: 0;\n    padding-left: .2em; }\n  .button.button-block, .button.button-full {\n    margin-top: 10px;\n    margin-bottom: 10px; }\n  .button.button-light {\n    border-color: #ddd;\n    background-color: #fff;\n    color: #444; }\n    .button.button-light:hover {\n      color: #444;\n      text-decoration: none; }\n    .button.button-light.active,\n    .button.button-light.activated {\n      border-color: #ccc;\n      background-color: #fafafa;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-light.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #ddd; }\n    .button.button-light.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-light.button-outline {\n      border-color: #ddd;\n      background: transparent;\n      color: #ddd; }\n      .button.button-light.button-outline.active,\n      .button.button-light.button-outline.activated {\n        background-color: #ddd;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-stable {\n    border-color: #b2b2b2;\n    background-color: #f8f8f8;\n    color: #444; }\n    .button.button-stable:hover {\n      color: #444;\n      text-decoration: none; }\n    .button.button-stable.active,\n    .button.button-stable.activated {\n      border-color: #a2a2a2;\n      background-color: #e5e5e5;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-stable.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #b2b2b2; }\n    .button.button-stable.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-stable.button-outline {\n      border-color: #b2b2b2;\n      background: transparent;\n      color: #b2b2b2; }\n      .button.button-stable.button-outline.active,\n      .button.button-stable.button-outline.activated {\n        background-color: #b2b2b2;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-positive {\n    border-color: #0c60ee;\n    background-color: #387ef5;\n    color: #fff; }\n    .button.button-positive:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-positive.active,\n    .button.button-positive.activated {\n      border-color: #0c60ee;\n      background-color: #0c60ee;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-positive.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #387ef5; }\n    .button.button-positive.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-positive.button-outline {\n      border-color: #387ef5;\n      background: transparent;\n      color: #387ef5; }\n      .button.button-positive.button-outline.active,\n      .button.button-positive.button-outline.activated {\n        background-color: #387ef5;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-calm {\n    border-color: #0a9dc7;\n    background-color: #11c1f3;\n    color: #fff; }\n    .button.button-calm:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-calm.active,\n    .button.button-calm.activated {\n      border-color: #0a9dc7;\n      background-color: #0a9dc7;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-calm.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #11c1f3; }\n    .button.button-calm.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-calm.button-outline {\n      border-color: #11c1f3;\n      background: transparent;\n      color: #11c1f3; }\n      .button.button-calm.button-outline.active,\n      .button.button-calm.button-outline.activated {\n        background-color: #11c1f3;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-assertive {\n    border-color: #e42112;\n    background-color: #ef473a;\n    color: #fff; }\n    .button.button-assertive:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-assertive.active,\n    .button.button-assertive.activated {\n      border-color: #e42112;\n      background-color: #e42112;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-assertive.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #ef473a; }\n    .button.button-assertive.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-assertive.button-outline {\n      border-color: #ef473a;\n      background: transparent;\n      color: #ef473a; }\n      .button.button-assertive.button-outline.active,\n      .button.button-assertive.button-outline.activated {\n        background-color: #ef473a;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-balanced {\n    border-color: #28a54c;\n    background-color: #33cd5f;\n    color: #fff; }\n    .button.button-balanced:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-balanced.active,\n    .button.button-balanced.activated {\n      border-color: #28a54c;\n      background-color: #28a54c;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-balanced.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #33cd5f; }\n    .button.button-balanced.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-balanced.button-outline {\n      border-color: #33cd5f;\n      background: transparent;\n      color: #33cd5f; }\n      .button.button-balanced.button-outline.active,\n      .button.button-balanced.button-outline.activated {\n        background-color: #33cd5f;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-energized {\n    border-color: #e6b500;\n    background-color: #ffc900;\n    color: #fff; }\n    .button.button-energized:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-energized.active,\n    .button.button-energized.activated {\n      border-color: #e6b500;\n      background-color: #e6b500;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-energized.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #ffc900; }\n    .button.button-energized.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-energized.button-outline {\n      border-color: #ffc900;\n      background: transparent;\n      color: #ffc900; }\n      .button.button-energized.button-outline.active,\n      .button.button-energized.button-outline.activated {\n        background-color: #ffc900;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-royal {\n    border-color: #6b46e5;\n    background-color: #886aea;\n    color: #fff; }\n    .button.button-royal:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-royal.active,\n    .button.button-royal.activated {\n      border-color: #6b46e5;\n      background-color: #6b46e5;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-royal.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #886aea; }\n    .button.button-royal.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-royal.button-outline {\n      border-color: #886aea;\n      background: transparent;\n      color: #886aea; }\n      .button.button-royal.button-outline.active,\n      .button.button-royal.button-outline.activated {\n        background-color: #886aea;\n        box-shadow: none;\n        color: #fff; }\n  .button.button-dark {\n    border-color: #111;\n    background-color: #444;\n    color: #fff; }\n    .button.button-dark:hover {\n      color: #fff;\n      text-decoration: none; }\n    .button.button-dark.active,\n    .button.button-dark.activated {\n      border-color: #000;\n      background-color: #262626;\n      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.1); }\n    .button.button-dark.button-clear {\n      border-color: transparent;\n      background: none;\n      box-shadow: none;\n      color: #444; }\n    .button.button-dark.button-icon {\n      border-color: transparent;\n      background: none; }\n    .button.button-dark.button-outline {\n      border-color: #444;\n      background: transparent;\n      color: #444; }\n      .button.button-dark.button-outline.active,\n      .button.button-dark.button-outline.activated {\n        background-color: #444;\n        box-shadow: none;\n        color: #fff; }\n\n.button-small {\n  padding: 2px 4px 1px;\n  min-width: 28px;\n  min-height: 30px;\n  font-size: 12px;\n  line-height: 26px; }\n  .button-small .icon:before,\n  .button-small.icon:before,\n  .button-small.icon-left:before,\n  .button-small.icon-right:before {\n    font-size: 16px;\n    line-height: 19px;\n    margin-top: 3px; }\n\n.button-large {\n  padding: 0 16px;\n  min-width: 68px;\n  min-height: 59px;\n  font-size: 20px;\n  line-height: 53px; }\n  .button-large .icon:before,\n  .button-large.icon:before,\n  .button-large.icon-left:before,\n  .button-large.icon-right:before {\n    padding-bottom: 2px;\n    font-size: 32px;\n    line-height: 51px; }\n\n.button-icon {\n  -webkit-transition: opacity 0.1s;\n  transition: opacity 0.1s;\n  padding: 0 6px;\n  min-width: initial;\n  border-color: transparent;\n  background: none; }\n  .button-icon.button.active,\n  .button-icon.button.activated {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    opacity: 0.3; }\n  .button-icon .icon:before,\n  .button-icon.icon:before {\n    font-size: 32px; }\n\n.button-clear {\n  -webkit-transition: opacity 0.1s;\n  transition: opacity 0.1s;\n  padding: 0 6px;\n  max-height: 42px;\n  border-color: transparent;\n  background: none;\n  box-shadow: none; }\n  .button-clear.button-clear {\n    border-color: transparent;\n    background: none;\n    box-shadow: none;\n    color: #b2b2b2; }\n  .button-clear.button-icon {\n    border-color: transparent;\n    background: none; }\n  .button-clear.active,\n  .button-clear.activated {\n    opacity: 0.3; }\n\n.button-outline {\n  -webkit-transition: opacity 0.1s;\n  transition: opacity 0.1s;\n  background: none;\n  box-shadow: none; }\n  .button-outline.button-outline {\n    border-color: #b2b2b2;\n    background: transparent;\n    color: #b2b2b2; }\n    .button-outline.button-outline.active,\n    .button-outline.button-outline.activated {\n      background-color: #b2b2b2;\n      box-shadow: none;\n      color: #fff; }\n\n.padding > .button.button-block:first-child {\n  margin-top: 0; }\n\n.button-block {\n  display: block;\n  clear: both; }\n  .button-block:after {\n    clear: both; }\n\n.button-full,\n.button-full > .button {\n  display: block;\n  margin-right: 0;\n  margin-left: 0;\n  border-right-width: 0;\n  border-left-width: 0;\n  border-radius: 0; }\n\nbutton.button-block,\nbutton.button-full,\n.button-full > button.button,\ninput.button.button-block {\n  width: 100%; }\n\na.button {\n  text-decoration: none; }\n  a.button .icon:before,\n  a.button.icon:before,\n  a.button.icon-left:before,\n  a.button.icon-right:before {\n    margin-top: 2px; }\n\n.button.disabled,\n.button[disabled] {\n  opacity: .4;\n  cursor: default !important;\n  pointer-events: none; }\n\n/**\n * Button Bar\n * --------------------------------------------------\n */\n.button-bar {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  width: 100%; }\n  .button-bar.button-bar-inline {\n    display: block;\n    width: auto;\n    *zoom: 1; }\n    .button-bar.button-bar-inline:before,\n    .button-bar.button-bar-inline:after {\n      display: table;\n      content: \"\";\n      line-height: 0; }\n    .button-bar.button-bar-inline:after {\n      clear: both; }\n    .button-bar.button-bar-inline > .button {\n      width: auto;\n      display: inline-block;\n      float: left; }\n\n.button-bar > .button {\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  display: block;\n  overflow: hidden;\n  padding: 0 16px;\n  width: 0;\n  border-width: 1px 0px 1px 1px;\n  border-radius: 0;\n  text-align: center;\n  text-overflow: ellipsis;\n  white-space: nowrap; }\n  .button-bar > .button:before,\n  .button-bar > .button .icon:before {\n    line-height: 44px; }\n  .button-bar > .button:first-child {\n    border-radius: 2px 0px 0px 2px; }\n  .button-bar > .button:last-child {\n    border-right-width: 1px;\n    border-radius: 0px 2px 2px 0px; }\n\n.button-bar > .button-small:before,\n.button-bar > .button-small .icon:before {\n  line-height: 28px; }\n\n/**\n * Grid\n * --------------------------------------------------\n * Using flexbox for the grid, inspired by Philip Walton:\n * http://philipwalton.github.io/solved-by-flexbox/demos/grids/\n * By default each .col within a .row will evenly take up\n * available width, and the height of each .col with take\n * up the height of the tallest .col in the same .row.\n */\n.row {\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -moz-box;\n  display: -moz-flex;\n  display: -ms-flexbox;\n  display: flex;\n  padding: 5px;\n  width: 100%; }\n\n.row-wrap {\n  -webkit-flex-wrap: wrap;\n  -moz-flex-wrap: wrap;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap; }\n\n.row-no-padding {\n  padding: 0; }\n  .row-no-padding > .col {\n    padding: 0; }\n\n.row + .row {\n  margin-top: -5px;\n  padding-top: 0; }\n\n.col {\n  -webkit-box-flex: 1;\n  -webkit-flex: 1;\n  -moz-box-flex: 1;\n  -moz-flex: 1;\n  -ms-flex: 1;\n  flex: 1;\n  display: block;\n  padding: 5px;\n  width: 100%; }\n\n/* Vertically Align Columns */\n/* .row-* vertically aligns every .col in the .row */\n.row-top {\n  -webkit-box-align: start;\n  -ms-flex-align: start;\n  -webkit-align-items: flex-start;\n  -moz-align-items: flex-start;\n  align-items: flex-start; }\n\n.row-bottom {\n  -webkit-box-align: end;\n  -ms-flex-align: end;\n  -webkit-align-items: flex-end;\n  -moz-align-items: flex-end;\n  align-items: flex-end; }\n\n.row-center {\n  -webkit-box-align: center;\n  -ms-flex-align: center;\n  -webkit-align-items: center;\n  -moz-align-items: center;\n  align-items: center; }\n\n.row-stretch {\n  -webkit-box-align: stretch;\n  -ms-flex-align: stretch;\n  -webkit-align-items: stretch;\n  -moz-align-items: stretch;\n  align-items: stretch; }\n\n.row-baseline {\n  -webkit-box-align: baseline;\n  -ms-flex-align: baseline;\n  -webkit-align-items: baseline;\n  -moz-align-items: baseline;\n  align-items: baseline; }\n\n/* .col-* vertically aligns an individual .col */\n.col-top {\n  -webkit-align-self: flex-start;\n  -moz-align-self: flex-start;\n  -ms-flex-item-align: start;\n  align-self: flex-start; }\n\n.col-bottom {\n  -webkit-align-self: flex-end;\n  -moz-align-self: flex-end;\n  -ms-flex-item-align: end;\n  align-self: flex-end; }\n\n.col-center {\n  -webkit-align-self: center;\n  -moz-align-self: center;\n  -ms-flex-item-align: center;\n  align-self: center; }\n\n/* Column Offsets */\n.col-offset-10 {\n  margin-left: 10%; }\n\n.col-offset-20 {\n  margin-left: 20%; }\n\n.col-offset-25 {\n  margin-left: 25%; }\n\n.col-offset-33, .col-offset-34 {\n  margin-left: 33.3333%; }\n\n.col-offset-50 {\n  margin-left: 50%; }\n\n.col-offset-66, .col-offset-67 {\n  margin-left: 66.6666%; }\n\n.col-offset-75 {\n  margin-left: 75%; }\n\n.col-offset-80 {\n  margin-left: 80%; }\n\n.col-offset-90 {\n  margin-left: 90%; }\n\n/* Explicit Column Percent Sizes */\n/* By default each grid column will evenly distribute */\n/* across the grid. However, you can specify individual */\n/* columns to take up a certain size of the available area */\n.col-10 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 10%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 10%;\n  -ms-flex: 0 0 10%;\n  flex: 0 0 10%;\n  max-width: 10%; }\n\n.col-20 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 20%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 20%;\n  -ms-flex: 0 0 20%;\n  flex: 0 0 20%;\n  max-width: 20%; }\n\n.col-25 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 25%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 25%;\n  -ms-flex: 0 0 25%;\n  flex: 0 0 25%;\n  max-width: 25%; }\n\n.col-33, .col-34 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 33.3333%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 33.3333%;\n  -ms-flex: 0 0 33.3333%;\n  flex: 0 0 33.3333%;\n  max-width: 33.3333%; }\n\n.col-50 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 50%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 50%;\n  -ms-flex: 0 0 50%;\n  flex: 0 0 50%;\n  max-width: 50%; }\n\n.col-66, .col-67 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 66.6666%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 66.6666%;\n  -ms-flex: 0 0 66.6666%;\n  flex: 0 0 66.6666%;\n  max-width: 66.6666%; }\n\n.col-75 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 75%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 75%;\n  -ms-flex: 0 0 75%;\n  flex: 0 0 75%;\n  max-width: 75%; }\n\n.col-80 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 80%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 80%;\n  -ms-flex: 0 0 80%;\n  flex: 0 0 80%;\n  max-width: 80%; }\n\n.col-90 {\n  -webkit-box-flex: 0;\n  -webkit-flex: 0 0 90%;\n  -moz-box-flex: 0;\n  -moz-flex: 0 0 90%;\n  -ms-flex: 0 0 90%;\n  flex: 0 0 90%;\n  max-width: 90%; }\n\n/* Responsive Grid Classes */\n/* Adding a class of responsive-X to a row */\n/* will trigger the flex-direction to */\n/* change to column and add some margin */\n/* to any columns in the row for clearity */\n@media (max-width: 567px) {\n  .responsive-sm {\n    -webkit-box-direction: normal;\n    -moz-box-direction: normal;\n    -webkit-box-orient: vertical;\n    -moz-box-orient: vertical;\n    -webkit-flex-direction: column;\n    -ms-flex-direction: column;\n    flex-direction: column; }\n    .responsive-sm .col, .responsive-sm .col-10, .responsive-sm .col-20, .responsive-sm .col-25, .responsive-sm .col-33, .responsive-sm .col-34, .responsive-sm .col-50, .responsive-sm .col-66, .responsive-sm .col-67, .responsive-sm .col-75, .responsive-sm .col-80, .responsive-sm .col-90 {\n      -webkit-box-flex: 1;\n      -webkit-flex: 1;\n      -moz-box-flex: 1;\n      -moz-flex: 1;\n      -ms-flex: 1;\n      flex: 1;\n      margin-bottom: 15px;\n      margin-left: 0;\n      max-width: 100%;\n      width: 100%; } }\n\n@media (max-width: 767px) {\n  .responsive-md {\n    -webkit-box-direction: normal;\n    -moz-box-direction: normal;\n    -webkit-box-orient: vertical;\n    -moz-box-orient: vertical;\n    -webkit-flex-direction: column;\n    -ms-flex-direction: column;\n    flex-direction: column; }\n    .responsive-md .col, .responsive-md .col-10, .responsive-md .col-20, .responsive-md .col-25, .responsive-md .col-33, .responsive-md .col-34, .responsive-md .col-50, .responsive-md .col-66, .responsive-md .col-67, .responsive-md .col-75, .responsive-md .col-80, .responsive-md .col-90 {\n      -webkit-box-flex: 1;\n      -webkit-flex: 1;\n      -moz-box-flex: 1;\n      -moz-flex: 1;\n      -ms-flex: 1;\n      flex: 1;\n      margin-bottom: 15px;\n      margin-left: 0;\n      max-width: 100%;\n      width: 100%; } }\n\n@media (max-width: 1023px) {\n  .responsive-lg {\n    -webkit-box-direction: normal;\n    -moz-box-direction: normal;\n    -webkit-box-orient: vertical;\n    -moz-box-orient: vertical;\n    -webkit-flex-direction: column;\n    -ms-flex-direction: column;\n    flex-direction: column; }\n    .responsive-lg .col, .responsive-lg .col-10, .responsive-lg .col-20, .responsive-lg .col-25, .responsive-lg .col-33, .responsive-lg .col-34, .responsive-lg .col-50, .responsive-lg .col-66, .responsive-lg .col-67, .responsive-lg .col-75, .responsive-lg .col-80, .responsive-lg .col-90 {\n      -webkit-box-flex: 1;\n      -webkit-flex: 1;\n      -moz-box-flex: 1;\n      -moz-flex: 1;\n      -ms-flex: 1;\n      flex: 1;\n      margin-bottom: 15px;\n      margin-left: 0;\n      max-width: 100%;\n      width: 100%; } }\n\n/**\n * Utility Classes\n * --------------------------------------------------\n */\n.hide {\n  display: none; }\n\n.opacity-hide {\n  opacity: 0; }\n\n.grade-b .opacity-hide,\n.grade-c .opacity-hide {\n  opacity: 1;\n  display: none; }\n\n.show {\n  display: block; }\n\n.opacity-show {\n  opacity: 1; }\n\n.invisible {\n  visibility: hidden; }\n\n.keyboard-open .hide-on-keyboard-open {\n  display: none; }\n\n.keyboard-open .tabs.hide-on-keyboard-open + .pane .has-tabs,\n.keyboard-open .bar-footer.hide-on-keyboard-open + .pane .has-footer {\n  bottom: 0; }\n\n.inline {\n  display: inline-block; }\n\n.disable-pointer-events {\n  pointer-events: none; }\n\n.enable-pointer-events {\n  pointer-events: auto; }\n\n.disable-user-behavior {\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  -webkit-touch-callout: none;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-user-drag: none;\n  -ms-touch-action: none;\n  -ms-content-zooming: none; }\n\n.click-block {\n  position: absolute;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  opacity: 0;\n  z-index: 99999;\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0);\n  overflow: hidden; }\n\n.click-block-hide {\n  -webkit-transform: translate3d(-9999px, 0, 0);\n  transform: translate3d(-9999px, 0, 0); }\n\n.no-resize {\n  resize: none; }\n\n.block {\n  display: block;\n  clear: both; }\n  .block:after {\n    display: block;\n    visibility: hidden;\n    clear: both;\n    height: 0;\n    content: \".\"; }\n\n.full-image {\n  width: 100%; }\n\n.clearfix {\n  *zoom: 1; }\n  .clearfix:before,\n  .clearfix:after {\n    display: table;\n    content: \"\";\n    line-height: 0; }\n  .clearfix:after {\n    clear: both; }\n\n/**\n * Content Padding\n * --------------------------------------------------\n */\n.padding {\n  padding: 10px; }\n\n.padding-top,\n.padding-vertical {\n  padding-top: 10px; }\n\n.padding-right,\n.padding-horizontal {\n  padding-right: 10px; }\n\n.padding-bottom,\n.padding-vertical {\n  padding-bottom: 10px; }\n\n.padding-left,\n.padding-horizontal {\n  padding-left: 10px; }\n\n/**\n * Scrollable iFrames\n * --------------------------------------------------\n */\n.iframe-wrapper {\n  position: fixed;\n  -webkit-overflow-scrolling: touch;\n  overflow: scroll; }\n  .iframe-wrapper iframe {\n    height: 100%;\n    width: 100%; }\n\n/**\n * Rounded\n * --------------------------------------------------\n */\n.rounded {\n  border-radius: 4px; }\n\n/**\n * Utility Colors\n * --------------------------------------------------\n * Utility colors are added to help set a naming convention. You'll\n * notice we purposely do not use words like \"red\" or \"blue\", but\n * instead have colors which represent an emotion or generic theme.\n */\n.light, a.light {\n  color: #fff; }\n\n.light-bg {\n  background-color: #fff; }\n\n.light-border {\n  border-color: #ddd; }\n\n.stable, a.stable {\n  color: #f8f8f8; }\n\n.stable-bg {\n  background-color: #f8f8f8; }\n\n.stable-border {\n  border-color: #b2b2b2; }\n\n.positive, a.positive {\n  color: #387ef5; }\n\n.positive-bg {\n  background-color: #387ef5; }\n\n.positive-border {\n  border-color: #0c60ee; }\n\n.calm, a.calm {\n  color: #11c1f3; }\n\n.calm-bg {\n  background-color: #11c1f3; }\n\n.calm-border {\n  border-color: #0a9dc7; }\n\n.assertive, a.assertive {\n  color: #ef473a; }\n\n.assertive-bg {\n  background-color: #ef473a; }\n\n.assertive-border {\n  border-color: #e42112; }\n\n.balanced, a.balanced {\n  color: #33cd5f; }\n\n.balanced-bg {\n  background-color: #33cd5f; }\n\n.balanced-border {\n  border-color: #28a54c; }\n\n.energized, a.energized {\n  color: #ffc900; }\n\n.energized-bg {\n  background-color: #ffc900; }\n\n.energized-border {\n  border-color: #e6b500; }\n\n.royal, a.royal {\n  color: #886aea; }\n\n.royal-bg {\n  background-color: #886aea; }\n\n.royal-border {\n  border-color: #6b46e5; }\n\n.dark, a.dark {\n  color: #444; }\n\n.dark-bg {\n  background-color: #444; }\n\n.dark-border {\n  border-color: #111; }\n\n[collection-repeat] {\n  /* Position is set by transforms */\n  left: 0 !important;\n  top: 0 !important;\n  position: absolute !important;\n  z-index: 1; }\n\n.collection-repeat-container {\n  position: relative;\n  z-index: 1; }\n\n.collection-repeat-after-container {\n  z-index: 0;\n  display: block;\n  /* when scrolling horizontally, make sure the after container doesn't take up 100% width */ }\n  .collection-repeat-after-container.horizontal {\n    display: inline-block; }\n\n[ng\\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak,\n.x-ng-cloak, .ng-hide:not(.ng-hide-animate) {\n  display: none !important; }\n\n/**\n * Platform\n * --------------------------------------------------\n * Platform specific tweaks\n */\n.platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader) {\n  height: 64px; }\n  .platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader).item-input-inset .item-input-wrapper {\n    margin-top: 19px !important; }\n  .platform-ios.platform-cordova:not(.fullscreen) .bar-header:not(.bar-subheader) > * {\n    margin-top: 20px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .tabs-top > .tabs,\n.platform-ios.platform-cordova:not(.fullscreen) .tabs.tabs-top {\n  top: 64px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .has-header,\n.platform-ios.platform-cordova:not(.fullscreen) .bar-subheader {\n  top: 64px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .has-subheader {\n  top: 108px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .has-header.has-tabs-top {\n  top: 113px; }\n\n.platform-ios.platform-cordova:not(.fullscreen) .has-header.has-subheader.has-tabs-top {\n  top: 157px; }\n\n.platform-ios.platform-cordova .popover .bar-header:not(.bar-subheader) {\n  height: 44px; }\n  .platform-ios.platform-cordova .popover .bar-header:not(.bar-subheader).item-input-inset .item-input-wrapper {\n    margin-top: -1px; }\n  .platform-ios.platform-cordova .popover .bar-header:not(.bar-subheader) > * {\n    margin-top: 0; }\n\n.platform-ios.platform-cordova .popover .has-header,\n.platform-ios.platform-cordova .popover .bar-subheader {\n  top: 44px; }\n\n.platform-ios.platform-cordova .popover .has-subheader {\n  top: 88px; }\n\n.platform-ios.platform-cordova.status-bar-hide {\n  margin-bottom: 20px; }\n\n@media (orientation: landscape) {\n  .platform-ios.platform-browser.platform-ipad {\n    position: fixed; } }\n\n.platform-c:not(.enable-transitions) * {\n  -webkit-transition: none !important;\n  transition: none !important; }\n\n.slide-in-up {\n  -webkit-transform: translate3d(0, 100%, 0);\n  transform: translate3d(0, 100%, 0); }\n\n.slide-in-up.ng-enter,\n.slide-in-up > .ng-enter {\n  -webkit-transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms;\n  transition: all cubic-bezier(0.1, 0.7, 0.1, 1) 400ms; }\n\n.slide-in-up.ng-enter-active,\n.slide-in-up > .ng-enter-active {\n  -webkit-transform: translate3d(0, 0, 0);\n  transform: translate3d(0, 0, 0); }\n\n.slide-in-up.ng-leave,\n.slide-in-up > .ng-leave {\n  -webkit-transition: all ease-in-out 250ms;\n  transition: all ease-in-out 250ms; }\n\n@-webkit-keyframes scaleOut {\n  from {\n    -webkit-transform: scale(1);\n    opacity: 1; }\n  to {\n    -webkit-transform: scale(0.8);\n    opacity: 0; } }\n\n@keyframes scaleOut {\n  from {\n    transform: scale(1);\n    opacity: 1; }\n  to {\n    transform: scale(0.8);\n    opacity: 0; } }\n\n@-webkit-keyframes superScaleIn {\n  from {\n    -webkit-transform: scale(1.2);\n    opacity: 0; }\n  to {\n    -webkit-transform: scale(1);\n    opacity: 1; } }\n\n@keyframes superScaleIn {\n  from {\n    transform: scale(1.2);\n    opacity: 0; }\n  to {\n    transform: scale(1);\n    opacity: 1; } }\n\n[nav-view-transition=\"ios\"] [nav-view=\"entering\"],\n[nav-view-transition=\"ios\"] [nav-view=\"leaving\"] {\n  -webkit-transition-duration: 500ms;\n  transition-duration: 500ms;\n  -webkit-transition-timing-function: cubic-bezier(0.36, 0.66, 0.04, 1);\n  transition-timing-function: cubic-bezier(0.36, 0.66, 0.04, 1);\n  -webkit-transition-property: opacity, -webkit-transform, box-shadow;\n  transition-property: opacity, transform, box-shadow; }\n\n[nav-view-transition=\"ios\"][nav-view-direction=\"forward\"],\n[nav-view-transition=\"ios\"][nav-view-direction=\"back\"] {\n  background-color: #000; }\n\n[nav-view-transition=\"ios\"] [nav-view=\"active\"],\n[nav-view-transition=\"ios\"][nav-view-direction=\"forward\"] [nav-view=\"entering\"],\n[nav-view-transition=\"ios\"][nav-view-direction=\"back\"] [nav-view=\"leaving\"] {\n  z-index: 3; }\n\n[nav-view-transition=\"ios\"][nav-view-direction=\"back\"] [nav-view=\"entering\"],\n[nav-view-transition=\"ios\"][nav-view-direction=\"forward\"] [nav-view=\"leaving\"] {\n  z-index: 2; }\n\n[nav-bar-transition=\"ios\"] .title,\n[nav-bar-transition=\"ios\"] .buttons,\n[nav-bar-transition=\"ios\"] .back-text {\n  -webkit-transition-duration: 500ms;\n  transition-duration: 500ms;\n  -webkit-transition-timing-function: cubic-bezier(0.36, 0.66, 0.04, 1);\n  transition-timing-function: cubic-bezier(0.36, 0.66, 0.04, 1);\n  -webkit-transition-property: opacity, -webkit-transform;\n  transition-property: opacity, transform; }\n\n[nav-bar-transition=\"ios\"] [nav-bar=\"active\"],\n[nav-bar-transition=\"ios\"] [nav-bar=\"entering\"] {\n  z-index: 10; }\n  [nav-bar-transition=\"ios\"] [nav-bar=\"active\"] .bar,\n  [nav-bar-transition=\"ios\"] [nav-bar=\"entering\"] .bar {\n    background: transparent; }\n\n[nav-bar-transition=\"ios\"] [nav-bar=\"cached\"] {\n  display: block; }\n  [nav-bar-transition=\"ios\"] [nav-bar=\"cached\"] .header-item {\n    display: none; }\n\n[nav-view-transition=\"android\"] [nav-view=\"entering\"],\n[nav-view-transition=\"android\"] [nav-view=\"leaving\"] {\n  -webkit-transition-duration: 200ms;\n  transition-duration: 200ms;\n  -webkit-transition-timing-function: cubic-bezier(0.4, 0.6, 0.2, 1);\n  transition-timing-function: cubic-bezier(0.4, 0.6, 0.2, 1);\n  -webkit-transition-property: -webkit-transform;\n  transition-property: transform; }\n\n[nav-view-transition=\"android\"] [nav-view=\"active\"],\n[nav-view-transition=\"android\"][nav-view-direction=\"forward\"] [nav-view=\"entering\"],\n[nav-view-transition=\"android\"][nav-view-direction=\"back\"] [nav-view=\"leaving\"] {\n  z-index: 3; }\n\n[nav-view-transition=\"android\"][nav-view-direction=\"back\"] [nav-view=\"entering\"],\n[nav-view-transition=\"android\"][nav-view-direction=\"forward\"] [nav-view=\"leaving\"] {\n  z-index: 2; }\n\n[nav-bar-transition=\"android\"] .title,\n[nav-bar-transition=\"android\"] .buttons {\n  -webkit-transition-duration: 200ms;\n  transition-duration: 200ms;\n  -webkit-transition-timing-function: cubic-bezier(0.4, 0.6, 0.2, 1);\n  transition-timing-function: cubic-bezier(0.4, 0.6, 0.2, 1);\n  -webkit-transition-property: opacity;\n  transition-property: opacity; }\n\n[nav-bar-transition=\"android\"] [nav-bar=\"active\"],\n[nav-bar-transition=\"android\"] [nav-bar=\"entering\"] {\n  z-index: 10; }\n  [nav-bar-transition=\"android\"] [nav-bar=\"active\"] .bar,\n  [nav-bar-transition=\"android\"] [nav-bar=\"entering\"] .bar {\n    background: transparent; }\n\n[nav-bar-transition=\"android\"] [nav-bar=\"cached\"] {\n  display: block; }\n  [nav-bar-transition=\"android\"] [nav-bar=\"cached\"] .header-item {\n    display: none; }\n\n[nav-swipe=\"fast\"] [nav-view],\n[nav-swipe=\"fast\"] .title,\n[nav-swipe=\"fast\"] .buttons,\n[nav-swipe=\"fast\"] .back-text {\n  -webkit-transition-duration: 50ms;\n  transition-duration: 50ms;\n  -webkit-transition-timing-function: linear;\n  transition-timing-function: linear; }\n\n[nav-swipe=\"slow\"] [nav-view],\n[nav-swipe=\"slow\"] .title,\n[nav-swipe=\"slow\"] .buttons,\n[nav-swipe=\"slow\"] .back-text {\n  -webkit-transition-duration: 160ms;\n  transition-duration: 160ms;\n  -webkit-transition-timing-function: linear;\n  transition-timing-function: linear; }\n\n[nav-view=\"cached\"],\n[nav-bar=\"cached\"] {\n  display: none; }\n\n[nav-view=\"stage\"] {\n  opacity: 0;\n  -webkit-transition-duration: 0;\n  transition-duration: 0; }\n\n[nav-bar=\"stage\"] .title,\n[nav-bar=\"stage\"] .buttons,\n[nav-bar=\"stage\"] .back-text {\n  position: absolute;\n  opacity: 0;\n  -webkit-transition-duration: 0s;\n  transition-duration: 0s; }\n"],"sourceRoot":"webpack://"}]);
+
+	// exports
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "2c2ae068be3b089e0a5b59abb1831550.eot";
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "24712f6c47821394fba7942fbb52c3b2.ttf";
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "05acfdb568b3df49ad31355b19495d4a.woff";
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "05acfdb568b3df49ad31355b19495d4a.woff";
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "621bd386841f74e0053cb8e67f8a0604.svg";
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+
+	// load the styles
+	var content = __webpack_require__(15);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(4)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../../node_modules/css-loader/index.js!./../../../node_modules/sass-loader/index.js!./style.scss", function() {
+				var newContent = require("!!./../../../node_modules/css-loader/index.js!./../../../node_modules/sass-loader/index.js!./style.scss");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(3)();
+	// imports
+
+
+	// module
+	exports.push([module.id, "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\n/* view imports */\nheader {\n  height: 65px;\n  background-color: #c2b280;\n  position: fixed; }\n\ndiv.content-from-header.extra-specificity {\n  margin-top: 75px; }\n\n.game {\n  display: block;\n  background-color: tan;\n  hieght: 100%;\n  width: 200px;\n  border: solid 3px brown; }\n\n.stat-item {\n  display: block; }\n\n/* directive imports */\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n/* meter*/\n.spinner {\n  width: 250px;\n  height: 100px; }\n\n.section {\n  display: inline-block;\n  width: 2.5px;\n  hieght: 100px;\n  background-color: #222;\n  color: #222; }\n\n#section-id-0 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-1 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-2 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-3 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-4 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-5 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-6 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-7 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-8 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-9 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-10 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-11 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-12 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-13 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-14 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-15 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-16 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-17 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-18 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-19 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-20 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-21 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-22 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-23 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-24 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-25 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-26 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-27 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-28 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-29 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-30 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-31 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-32 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-33 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-34 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-35 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-36 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-37 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-38 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-39 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-40 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-41 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-42 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-43 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-44 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-45 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-46 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-47 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-48 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-49 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-50 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-51 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-52 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-53 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-54 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-55 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-56 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-57 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-58 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-59 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-60 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-61 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-62 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-63 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-64 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-65 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-66 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-67 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-68 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-69 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-70 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-71 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-72 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-73 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-74 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-75 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-76 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-77 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-78 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-79 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-80 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-81 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-82 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-83 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-84 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-85 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-86 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-87 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-88 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-89 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-90 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-91 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-92 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-93 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-94 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-95 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-96 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-97 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-98 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-99 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-100 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n.active-meter {\n  background-color: #000 !important;\n  color: #000 !important; }\n\n.application-settings {\n  font-family: Galindo; }\n\n.background-image {\n  background: url(" + __webpack_require__(77) + ") no-repeat center center;\n  min-height: 100%;\n  background-size: auto; }\n", ""]);
+
+	// exports
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(17);
 	module.exports = angular;
 
 
 /***/ },
-/* 2 */
+/* 17 */
 /***/ function(module, exports) {
 
 	/**
@@ -29104,15 +29570,15 @@
 	!window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
 
 /***/ },
-/* 3 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	module.exports = __webpack_require__(4);
+	module.exports = __webpack_require__(19);
 
 
 /***/ },
-/* 4 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -29120,10 +29586,10 @@
 	 * Module dependencies.
 	 */
 
-	var url = __webpack_require__(5);
-	var parser = __webpack_require__(8);
-	var Manager = __webpack_require__(16);
-	var debug = __webpack_require__(7)('socket.io-client');
+	var url = __webpack_require__(20);
+	var parser = __webpack_require__(23);
+	var Manager = __webpack_require__(30);
+	var debug = __webpack_require__(22)('socket.io-client');
 
 	/**
 	 * Module exports.
@@ -29200,12 +29666,12 @@
 	 * @api public
 	 */
 
-	exports.Manager = __webpack_require__(16);
-	exports.Socket = __webpack_require__(47);
+	exports.Manager = __webpack_require__(30);
+	exports.Socket = __webpack_require__(62);
 
 
 /***/ },
-/* 5 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -29213,8 +29679,8 @@
 	 * Module dependencies.
 	 */
 
-	var parseuri = __webpack_require__(6);
-	var debug = __webpack_require__(7)('socket.io-client:url');
+	var parseuri = __webpack_require__(21);
+	var debug = __webpack_require__(22)('socket.io-client:url');
 
 	/**
 	 * Module exports.
@@ -29285,7 +29751,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 6 */
+/* 21 */
 /***/ function(module, exports) {
 
 	/**
@@ -29316,7 +29782,7 @@
 
 
 /***/ },
-/* 7 */
+/* 22 */
 /***/ function(module, exports) {
 
 	
@@ -29459,7 +29925,7 @@
 
 
 /***/ },
-/* 8 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -29467,12 +29933,12 @@
 	 * Module dependencies.
 	 */
 
-	var debug = __webpack_require__(9)('socket.io-parser');
-	var json = __webpack_require__(10);
-	var isArray = __webpack_require__(12);
-	var Emitter = __webpack_require__(13);
-	var binary = __webpack_require__(14);
-	var isBuf = __webpack_require__(15);
+	var debug = __webpack_require__(22)('socket.io-parser');
+	var json = __webpack_require__(24);
+	var isArray = __webpack_require__(26);
+	var Emitter = __webpack_require__(27);
+	var binary = __webpack_require__(28);
+	var isBuf = __webpack_require__(29);
 
 	/**
 	 * Protocol version.
@@ -29865,150 +30331,7 @@
 
 
 /***/ },
-/* 9 */
-/***/ function(module, exports) {
-
-	
-	/**
-	 * Expose `debug()` as the module.
-	 */
-
-	module.exports = debug;
-
-	/**
-	 * Create a debugger with the given `name`.
-	 *
-	 * @param {String} name
-	 * @return {Type}
-	 * @api public
-	 */
-
-	function debug(name) {
-	  if (!debug.enabled(name)) return function(){};
-
-	  return function(fmt){
-	    fmt = coerce(fmt);
-
-	    var curr = new Date;
-	    var ms = curr - (debug[name] || curr);
-	    debug[name] = curr;
-
-	    fmt = name
-	      + ' '
-	      + fmt
-	      + ' +' + debug.humanize(ms);
-
-	    // This hackery is required for IE8
-	    // where `console.log` doesn't have 'apply'
-	    window.console
-	      && console.log
-	      && Function.prototype.apply.call(console.log, console, arguments);
-	  }
-	}
-
-	/**
-	 * The currently active debug mode names.
-	 */
-
-	debug.names = [];
-	debug.skips = [];
-
-	/**
-	 * Enables a debug mode by name. This can include modes
-	 * separated by a colon and wildcards.
-	 *
-	 * @param {String} name
-	 * @api public
-	 */
-
-	debug.enable = function(name) {
-	  try {
-	    localStorage.debug = name;
-	  } catch(e){}
-
-	  var split = (name || '').split(/[\s,]+/)
-	    , len = split.length;
-
-	  for (var i = 0; i < len; i++) {
-	    name = split[i].replace('*', '.*?');
-	    if (name[0] === '-') {
-	      debug.skips.push(new RegExp('^' + name.substr(1) + '$'));
-	    }
-	    else {
-	      debug.names.push(new RegExp('^' + name + '$'));
-	    }
-	  }
-	};
-
-	/**
-	 * Disable debug output.
-	 *
-	 * @api public
-	 */
-
-	debug.disable = function(){
-	  debug.enable('');
-	};
-
-	/**
-	 * Humanize the given `ms`.
-	 *
-	 * @param {Number} m
-	 * @return {String}
-	 * @api private
-	 */
-
-	debug.humanize = function(ms) {
-	  var sec = 1000
-	    , min = 60 * 1000
-	    , hour = 60 * min;
-
-	  if (ms >= hour) return (ms / hour).toFixed(1) + 'h';
-	  if (ms >= min) return (ms / min).toFixed(1) + 'm';
-	  if (ms >= sec) return (ms / sec | 0) + 's';
-	  return ms + 'ms';
-	};
-
-	/**
-	 * Returns true if the given mode name is enabled, false otherwise.
-	 *
-	 * @param {String} name
-	 * @return {Boolean}
-	 * @api public
-	 */
-
-	debug.enabled = function(name) {
-	  for (var i = 0, len = debug.skips.length; i < len; i++) {
-	    if (debug.skips[i].test(name)) {
-	      return false;
-	    }
-	  }
-	  for (var i = 0, len = debug.names.length; i < len; i++) {
-	    if (debug.names[i].test(name)) {
-	      return true;
-	    }
-	  }
-	  return false;
-	};
-
-	/**
-	 * Coerce `val`.
-	 */
-
-	function coerce(val) {
-	  if (val instanceof Error) return val.stack || val.message;
-	  return val;
-	}
-
-	// persist
-
-	try {
-	  if (window.localStorage) debug.enable(localStorage.debug);
-	} catch(e){}
-
-
-/***/ },
-/* 10 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*! JSON v3.2.6 | http://bestiejs.github.io/json3 | Copyright 2012-2013, Kit Cambridge | http://kit.mit-license.org */
@@ -30018,7 +30341,7 @@
 
 	  // Detect the `define` function exposed by asynchronous module loaders. The
 	  // strict `define` check is necessary for compatibility with `r.js`.
-	  var isLoader = "function" === "function" && __webpack_require__(11);
+	  var isLoader = "function" === "function" && __webpack_require__(25);
 
 	  // Detect native implementations.
 	  var nativeJSON = typeof JSON == "object" && JSON;
@@ -30875,7 +31198,7 @@
 
 
 /***/ },
-/* 11 */
+/* 25 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -30883,7 +31206,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 12 */
+/* 26 */
 /***/ function(module, exports) {
 
 	module.exports = Array.isArray || function (arr) {
@@ -30892,7 +31215,7 @@
 
 
 /***/ },
-/* 13 */
+/* 27 */
 /***/ function(module, exports) {
 
 	
@@ -31062,7 +31385,7 @@
 
 
 /***/ },
-/* 14 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/*global Blob,File*/
@@ -31071,8 +31394,8 @@
 	 * Module requirements
 	 */
 
-	var isArray = __webpack_require__(12);
-	var isBuf = __webpack_require__(15);
+	var isArray = __webpack_require__(26);
+	var isBuf = __webpack_require__(29);
 
 	/**
 	 * Replaces every Buffer | ArrayBuffer in packet with a numbered placeholder.
@@ -31210,7 +31533,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 15 */
+/* 29 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -31230,7 +31553,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 16 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -31238,17 +31561,17 @@
 	 * Module dependencies.
 	 */
 
-	var url = __webpack_require__(5);
-	var eio = __webpack_require__(17);
-	var Socket = __webpack_require__(47);
-	var Emitter = __webpack_require__(13);
-	var parser = __webpack_require__(8);
-	var on = __webpack_require__(49);
-	var bind = __webpack_require__(50);
-	var object = __webpack_require__(51);
-	var debug = __webpack_require__(7)('socket.io-client:manager');
-	var indexOf = __webpack_require__(44);
-	var Backoff = __webpack_require__(52);
+	var url = __webpack_require__(20);
+	var eio = __webpack_require__(31);
+	var Socket = __webpack_require__(62);
+	var Emitter = __webpack_require__(27);
+	var parser = __webpack_require__(23);
+	var on = __webpack_require__(64);
+	var bind = __webpack_require__(65);
+	var object = __webpack_require__(66);
+	var debug = __webpack_require__(22)('socket.io-client:manager');
+	var indexOf = __webpack_require__(59);
+	var Backoff = __webpack_require__(67);
 
 	/**
 	 * Module exports
@@ -31739,19 +32062,19 @@
 
 
 /***/ },
-/* 17 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	module.exports =  __webpack_require__(18);
+	module.exports =  __webpack_require__(32);
 
 
 /***/ },
-/* 18 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	module.exports = __webpack_require__(19);
+	module.exports = __webpack_require__(33);
 
 	/**
 	 * Exports parser
@@ -31759,25 +32082,25 @@
 	 * @api public
 	 *
 	 */
-	module.exports.parser = __webpack_require__(27);
+	module.exports.parser = __webpack_require__(41);
 
 
 /***/ },
-/* 19 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
 	 * Module dependencies.
 	 */
 
-	var transports = __webpack_require__(20);
-	var Emitter = __webpack_require__(13);
-	var debug = __webpack_require__(38)('engine.io-client:socket');
-	var index = __webpack_require__(44);
-	var parser = __webpack_require__(27);
-	var parseuri = __webpack_require__(45);
-	var parsejson = __webpack_require__(46);
-	var parseqs = __webpack_require__(36);
+	var transports = __webpack_require__(34);
+	var Emitter = __webpack_require__(27);
+	var debug = __webpack_require__(53)('engine.io-client:socket');
+	var index = __webpack_require__(59);
+	var parser = __webpack_require__(41);
+	var parseuri = __webpack_require__(60);
+	var parsejson = __webpack_require__(61);
+	var parseqs = __webpack_require__(51);
 
 	/**
 	 * Module exports.
@@ -31892,9 +32215,9 @@
 	 */
 
 	Socket.Socket = Socket;
-	Socket.Transport = __webpack_require__(26);
-	Socket.transports = __webpack_require__(20);
-	Socket.parser = __webpack_require__(27);
+	Socket.Transport = __webpack_require__(40);
+	Socket.transports = __webpack_require__(34);
+	Socket.parser = __webpack_require__(41);
 
 	/**
 	 * Creates transport of the given type.
@@ -32475,17 +32798,17 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 20 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
 	 * Module dependencies
 	 */
 
-	var XMLHttpRequest = __webpack_require__(21);
-	var XHR = __webpack_require__(24);
-	var JSONP = __webpack_require__(41);
-	var websocket = __webpack_require__(42);
+	var XMLHttpRequest = __webpack_require__(35);
+	var XHR = __webpack_require__(38);
+	var JSONP = __webpack_require__(56);
+	var websocket = __webpack_require__(57);
 
 	/**
 	 * Export transports.
@@ -32535,11 +32858,11 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 21 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// browser shim for xmlhttprequest module
-	var hasCORS = __webpack_require__(22);
+	var hasCORS = __webpack_require__(36);
 
 	module.exports = function(opts) {
 	  var xdomain = opts.xdomain;
@@ -32577,7 +32900,7 @@
 
 
 /***/ },
-/* 22 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -32585,7 +32908,7 @@
 	 * Module dependencies.
 	 */
 
-	var global = __webpack_require__(23);
+	var global = __webpack_require__(37);
 
 	/**
 	 * Module exports.
@@ -32606,7 +32929,7 @@
 
 
 /***/ },
-/* 23 */
+/* 37 */
 /***/ function(module, exports) {
 
 	
@@ -32620,18 +32943,18 @@
 
 
 /***/ },
-/* 24 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
 	 * Module requirements.
 	 */
 
-	var XMLHttpRequest = __webpack_require__(21);
-	var Polling = __webpack_require__(25);
-	var Emitter = __webpack_require__(13);
-	var inherit = __webpack_require__(37);
-	var debug = __webpack_require__(38)('engine.io-client:polling-xhr');
+	var XMLHttpRequest = __webpack_require__(35);
+	var Polling = __webpack_require__(39);
+	var Emitter = __webpack_require__(27);
+	var inherit = __webpack_require__(52);
+	var debug = __webpack_require__(53)('engine.io-client:polling-xhr');
 
 	/**
 	 * Module exports.
@@ -33011,18 +33334,18 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 25 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Module dependencies.
 	 */
 
-	var Transport = __webpack_require__(26);
-	var parseqs = __webpack_require__(36);
-	var parser = __webpack_require__(27);
-	var inherit = __webpack_require__(37);
-	var debug = __webpack_require__(38)('engine.io-client:polling');
+	var Transport = __webpack_require__(40);
+	var parseqs = __webpack_require__(51);
+	var parser = __webpack_require__(41);
+	var inherit = __webpack_require__(52);
+	var debug = __webpack_require__(53)('engine.io-client:polling');
 
 	/**
 	 * Module exports.
@@ -33035,7 +33358,7 @@
 	 */
 
 	var hasXHR2 = (function() {
-	  var XMLHttpRequest = __webpack_require__(21);
+	  var XMLHttpRequest = __webpack_require__(35);
 	  var xhr = new XMLHttpRequest({ xdomain: false });
 	  return null != xhr.responseType;
 	})();
@@ -33262,15 +33585,15 @@
 
 
 /***/ },
-/* 26 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Module dependencies.
 	 */
 
-	var parser = __webpack_require__(27);
-	var Emitter = __webpack_require__(13);
+	var parser = __webpack_require__(41);
+	var Emitter = __webpack_require__(27);
 
 	/**
 	 * Module exports.
@@ -33427,19 +33750,19 @@
 
 
 /***/ },
-/* 27 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
 	 * Module dependencies.
 	 */
 
-	var keys = __webpack_require__(28);
-	var hasBinary = __webpack_require__(29);
-	var sliceBuffer = __webpack_require__(30);
-	var base64encoder = __webpack_require__(31);
-	var after = __webpack_require__(32);
-	var utf8 = __webpack_require__(33);
+	var keys = __webpack_require__(42);
+	var hasBinary = __webpack_require__(43);
+	var sliceBuffer = __webpack_require__(45);
+	var base64encoder = __webpack_require__(46);
+	var after = __webpack_require__(47);
+	var utf8 = __webpack_require__(48);
 
 	/**
 	 * Check if we are running an android browser. That requires us to use
@@ -33496,7 +33819,7 @@
 	 * Create a blob api even for blob builder when vendor prefixes exist
 	 */
 
-	var Blob = __webpack_require__(35);
+	var Blob = __webpack_require__(50);
 
 	/**
 	 * Encodes a packet.
@@ -34028,7 +34351,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 28 */
+/* 42 */
 /***/ function(module, exports) {
 
 	
@@ -34053,7 +34376,7 @@
 
 
 /***/ },
-/* 29 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -34061,7 +34384,7 @@
 	 * Module requirements.
 	 */
 
-	var isArray = __webpack_require__(12);
+	var isArray = __webpack_require__(44);
 
 	/**
 	 * Module exports.
@@ -34118,7 +34441,16 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 30 */
+/* 44 */
+/***/ function(module, exports) {
+
+	module.exports = Array.isArray || function (arr) {
+	  return Object.prototype.toString.call(arr) == '[object Array]';
+	};
+
+
+/***/ },
+/* 45 */
 /***/ function(module, exports) {
 
 	/**
@@ -34153,7 +34485,7 @@
 
 
 /***/ },
-/* 31 */
+/* 46 */
 /***/ function(module, exports) {
 
 	/*
@@ -34218,7 +34550,7 @@
 
 
 /***/ },
-/* 32 */
+/* 47 */
 /***/ function(module, exports) {
 
 	module.exports = after
@@ -34252,7 +34584,7 @@
 
 
 /***/ },
-/* 33 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/*! https://mths.be/utf8js v2.0.0 by @mathias */
@@ -34498,10 +34830,10 @@
 
 	}(this));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(34)(module), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(49)(module), (function() { return this; }())))
 
 /***/ },
-/* 34 */
+/* 49 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -34517,7 +34849,7 @@
 
 
 /***/ },
-/* 35 */
+/* 50 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
@@ -34620,7 +34952,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 36 */
+/* 51 */
 /***/ function(module, exports) {
 
 	/**
@@ -34663,7 +34995,7 @@
 
 
 /***/ },
-/* 37 */
+/* 52 */
 /***/ function(module, exports) {
 
 	
@@ -34675,7 +35007,7 @@
 	};
 
 /***/ },
-/* 38 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -34685,7 +35017,7 @@
 	 * Expose `debug()` as the module.
 	 */
 
-	exports = module.exports = __webpack_require__(39);
+	exports = module.exports = __webpack_require__(54);
 	exports.log = log;
 	exports.formatArgs = formatArgs;
 	exports.save = save;
@@ -34828,7 +35160,7 @@
 
 
 /***/ },
-/* 39 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -34844,7 +35176,7 @@
 	exports.disable = disable;
 	exports.enable = enable;
 	exports.enabled = enabled;
-	exports.humanize = __webpack_require__(40);
+	exports.humanize = __webpack_require__(55);
 
 	/**
 	 * The currently active debug mode names, and names to skip.
@@ -35031,7 +35363,7 @@
 
 
 /***/ },
-/* 40 */
+/* 55 */
 /***/ function(module, exports) {
 
 	/**
@@ -35148,7 +35480,7 @@
 
 
 /***/ },
-/* 41 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -35156,8 +35488,8 @@
 	 * Module requirements.
 	 */
 
-	var Polling = __webpack_require__(25);
-	var inherit = __webpack_require__(37);
+	var Polling = __webpack_require__(39);
+	var inherit = __webpack_require__(52);
 
 	/**
 	 * Module exports.
@@ -35388,18 +35720,18 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 42 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Module dependencies.
 	 */
 
-	var Transport = __webpack_require__(26);
-	var parser = __webpack_require__(27);
-	var parseqs = __webpack_require__(36);
-	var inherit = __webpack_require__(37);
-	var debug = __webpack_require__(38)('engine.io-client:websocket');
+	var Transport = __webpack_require__(40);
+	var parser = __webpack_require__(41);
+	var parseqs = __webpack_require__(51);
+	var inherit = __webpack_require__(52);
+	var debug = __webpack_require__(53)('engine.io-client:websocket');
 
 	/**
 	 * `ws` exposes a WebSocket-compatible interface in
@@ -35407,7 +35739,7 @@
 	 * in the browser.
 	 */
 
-	var WebSocket = __webpack_require__(43);
+	var WebSocket = __webpack_require__(58);
 
 	/**
 	 * Module exports.
@@ -35632,7 +35964,7 @@
 
 
 /***/ },
-/* 43 */
+/* 58 */
 /***/ function(module, exports) {
 
 	
@@ -35681,7 +36013,7 @@
 
 
 /***/ },
-/* 44 */
+/* 59 */
 /***/ function(module, exports) {
 
 	
@@ -35696,7 +36028,7 @@
 	};
 
 /***/ },
-/* 45 */
+/* 60 */
 /***/ function(module, exports) {
 
 	/**
@@ -35741,7 +36073,7 @@
 
 
 /***/ },
-/* 46 */
+/* 61 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
@@ -35779,7 +36111,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 47 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -35787,13 +36119,13 @@
 	 * Module dependencies.
 	 */
 
-	var parser = __webpack_require__(8);
-	var Emitter = __webpack_require__(13);
-	var toArray = __webpack_require__(48);
-	var on = __webpack_require__(49);
-	var bind = __webpack_require__(50);
-	var debug = __webpack_require__(7)('socket.io-client:socket');
-	var hasBin = __webpack_require__(29);
+	var parser = __webpack_require__(23);
+	var Emitter = __webpack_require__(27);
+	var toArray = __webpack_require__(63);
+	var on = __webpack_require__(64);
+	var bind = __webpack_require__(65);
+	var debug = __webpack_require__(22)('socket.io-client:socket');
+	var hasBin = __webpack_require__(43);
 
 	/**
 	 * Module exports.
@@ -36170,7 +36502,7 @@
 
 
 /***/ },
-/* 48 */
+/* 63 */
 /***/ function(module, exports) {
 
 	module.exports = toArray
@@ -36189,7 +36521,7 @@
 
 
 /***/ },
-/* 49 */
+/* 64 */
 /***/ function(module, exports) {
 
 	
@@ -36219,7 +36551,7 @@
 
 
 /***/ },
-/* 50 */
+/* 65 */
 /***/ function(module, exports) {
 
 	/**
@@ -36248,7 +36580,7 @@
 
 
 /***/ },
-/* 51 */
+/* 66 */
 /***/ function(module, exports) {
 
 	
@@ -36337,7 +36669,7 @@
 	};
 
 /***/ },
-/* 52 */
+/* 67 */
 /***/ function(module, exports) {
 
 	
@@ -36428,81 +36760,9335 @@
 
 
 /***/ },
-/* 53 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = angular.module('wizardApp.home', [
-	  __webpack_require__(54),
-	  __webpack_require__(56),
+	/* WEBPACK VAR INJECTION */(function($) {module.exports = angular.module('wizardApp.profile', [
+	  __webpack_require__(70),
+	  __webpack_require__(72),
+	  __webpack_require__(74)
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
 	      .when('/', {
-	        controller: 'HomeCtrl',
+	        controller: 'ProfileCtrl',
 	        controllerAs: 'home',
-	        templateUrl: './views/home/home.html'
+	        templateUrl: './views/user-profile/profile.html'
 	      });
 	  }])
 
-	  .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl])
+	  .controller('ProfileCtrl', ['$scope', '$location', '$timeout', '$interval', ProfileCtrl])
 
 	  .name;
 
-	function HomeCtrl($scope, $location, socketIO) {
-	  var socket = socketIO.socket;
-	  var E = socketIO.E
+	function ProfileCtrl($scope, $location, $timeout, $interval){
+	  $scope.wins = 5;    //Database Call Needed
+	  $scope.losses = 5;  //Database Call Needed
+	  $scope.winPercent = (100 * $scope.wins) / ($scope.wins + $scope.losses);
+	  $scope.book = [];
 
-	  $scope.enterBattle = function() {
-	    socket.emit(socketIO.E.DUEL);
+	  $scope.games = [
+	    { opponent: 'Bob', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'},
+	    { opponent: 'Bob', result: 'Victory', spellbook: 'Fire Spells', damageDealt: 124, favoriteSpell: 'fireball'},
+	    { opponent: 'Henry', result: 'Victory', spellbook: 'Water Spells', damageDealt: 100, favoriteSpell: 'fireball'},
+	    { opponent: 'Bob', result: 'Loss', spellbook: 'Earth/Fire Spells', damageDealt: 186, favoriteSpell: 'Lava Torrent'},
+	    { opponent: 'Maria', result: 'Victory', spellbook: 'Spirt/Wind', damageDealt: 101, favoriteSpell: 'Vortex'},
+	    { opponent: 'Norm', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'}
+	  ];
+
+	  //Database Call Needed
+	  $scope.spells = [
+	    { inSpellBook: false, name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
+	    { inSpellBook: false, name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
+	    { inSpellBook: false, name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
+	  ];
+
+	  $scope.range = function(n) {
+	    return new Array(n);
 	  };
 
-	  socket.on(socketIO.E.BEGIN, function(data) {
-	    $location.path('/duel');
-	    $scope.$apply();
-	    socketHelper.initialize(socket, data, E)
-	    console.log('The battle has begun!');
-	  });
-	}
+	  $scope.playNow = function() {
+	    $location.path('/waiting');
 
-	var socketHelper = {
-	  initialize: function(socket, BeginData, E) {
-	    socket.condition = BeginData.condition;
-	    socket.wizStats = BeginData.wizStats;
-	    socket.health = BeginData.wizStats[socket.id].health;
-	    socket.mana = BeginData.wizStats[socket.id].mana;
-	    this.registerFoeIdFn(socket);
-	    this.registerAttackFn(socket, E);
-	  },
-	  registerFoeIdFn: function(socket) {
-	    socket.getFoeId = function(){
-	      for (id in this.wizStats) {
-	        if (id !== this.id) {
-	          return id
-	        }
-	      }
-	    }
-	  },
-	  registerAttackFn: function(socket, E) {
-	    socket.attackWith = function(spell) {
-	      spell.attackId = new Date().getTime();
-	      socket.emit(E.ATTACK_PU, {attackId: spell.attackId, targetId: socket.getFoeId()});
-	      return spell
-	    }
+	    $scope.book = $scope.spells.filter(function(spell) {
+	      return spell.inSpellBook;
+	    });
+	  };
+
+	  $scope.speed = 1; //ms
+	  $scope.maxRange = 100;
+	  $scope.meterStarted = false;
+	  $scope.counter = $scope.maxRange / 2;
+
+	  var index = 0;
+	  var last;
+	  var decrement = false;
+	  var intervalPromise;
+
+
+	  function changeIndexClass() {
+	    $('#section-id-' + index).addClass('active-meter');
+	    $('#section-id-' + last).removeClass('active-meter');
+	    last = index;
+
+	    if(index === $scope.maxRange) decrement = true;
+	    if(index === 0) decrement = false;
+
+	    if(decrement) index--;
+	    else index++;
 	  }
 
+	  function stopMeter(){
+	    $interval.cancel(intervalPromise);
+	    $scope.power = index;
+	    $scope.meterStarted = false;
+	    $('.section').removeClass('active-meter');
+	    console.log($scope.power);
+	  }
+
+	  $scope.meterClick = function(){
+	    console.log('clicked');
+
+	    if(!$scope.meterStarted) {
+	      $scope.meterStarted = true;
+	      intervalPromise = $interval(changeIndexClass, $scope.speed);
+	    } else {
+	      stopMeter();
+	    }
+	  };
+
+	  $scope.$on('$destroy', function() {
+	    stopMeter();
+	  });
 	}
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(69)))
+
+/***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	 * jQuery JavaScript Library v2.1.4
+	 * http://jquery.com/
+	 *
+	 * Includes Sizzle.js
+	 * http://sizzlejs.com/
+	 *
+	 * Copyright 2005, 2014 jQuery Foundation, Inc. and other contributors
+	 * Released under the MIT license
+	 * http://jquery.org/license
+	 *
+	 * Date: 2015-04-28T16:01Z
+	 */
+
+	(function( global, factory ) {
+
+		if ( typeof module === "object" && typeof module.exports === "object" ) {
+			// For CommonJS and CommonJS-like environments where a proper `window`
+			// is present, execute the factory and get jQuery.
+			// For environments that do not have a `window` with a `document`
+			// (such as Node.js), expose a factory as module.exports.
+			// This accentuates the need for the creation of a real `window`.
+			// e.g. var jQuery = require("jquery")(window);
+			// See ticket #14549 for more info.
+			module.exports = global.document ?
+				factory( global, true ) :
+				function( w ) {
+					if ( !w.document ) {
+						throw new Error( "jQuery requires a window with a document" );
+					}
+					return factory( w );
+				};
+		} else {
+			factory( global );
+		}
+
+	// Pass this if window is not defined yet
+	}(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
+
+	// Support: Firefox 18+
+	// Can't be in strict mode, several libs including ASP.NET trace
+	// the stack via arguments.caller.callee and Firefox dies if
+	// you try to trace through "use strict" call chains. (#13335)
+	//
+
+	var arr = [];
+
+	var slice = arr.slice;
+
+	var concat = arr.concat;
+
+	var push = arr.push;
+
+	var indexOf = arr.indexOf;
+
+	var class2type = {};
+
+	var toString = class2type.toString;
+
+	var hasOwn = class2type.hasOwnProperty;
+
+	var support = {};
+
+
+
+	var
+		// Use the correct document accordingly with window argument (sandbox)
+		document = window.document,
+
+		version = "2.1.4",
+
+		// Define a local copy of jQuery
+		jQuery = function( selector, context ) {
+			// The jQuery object is actually just the init constructor 'enhanced'
+			// Need init if jQuery is called (just allow error to be thrown if not included)
+			return new jQuery.fn.init( selector, context );
+		},
+
+		// Support: Android<4.1
+		// Make sure we trim BOM and NBSP
+		rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
+
+		// Matches dashed string for camelizing
+		rmsPrefix = /^-ms-/,
+		rdashAlpha = /-([\da-z])/gi,
+
+		// Used by jQuery.camelCase as callback to replace()
+		fcamelCase = function( all, letter ) {
+			return letter.toUpperCase();
+		};
+
+	jQuery.fn = jQuery.prototype = {
+		// The current version of jQuery being used
+		jquery: version,
+
+		constructor: jQuery,
+
+		// Start with an empty selector
+		selector: "",
+
+		// The default length of a jQuery object is 0
+		length: 0,
+
+		toArray: function() {
+			return slice.call( this );
+		},
+
+		// Get the Nth element in the matched element set OR
+		// Get the whole matched element set as a clean array
+		get: function( num ) {
+			return num != null ?
+
+				// Return just the one element from the set
+				( num < 0 ? this[ num + this.length ] : this[ num ] ) :
+
+				// Return all the elements in a clean array
+				slice.call( this );
+		},
+
+		// Take an array of elements and push it onto the stack
+		// (returning the new matched element set)
+		pushStack: function( elems ) {
+
+			// Build a new jQuery matched element set
+			var ret = jQuery.merge( this.constructor(), elems );
+
+			// Add the old object onto the stack (as a reference)
+			ret.prevObject = this;
+			ret.context = this.context;
+
+			// Return the newly-formed element set
+			return ret;
+		},
+
+		// Execute a callback for every element in the matched set.
+		// (You can seed the arguments with an array of args, but this is
+		// only used internally.)
+		each: function( callback, args ) {
+			return jQuery.each( this, callback, args );
+		},
+
+		map: function( callback ) {
+			return this.pushStack( jQuery.map(this, function( elem, i ) {
+				return callback.call( elem, i, elem );
+			}));
+		},
+
+		slice: function() {
+			return this.pushStack( slice.apply( this, arguments ) );
+		},
+
+		first: function() {
+			return this.eq( 0 );
+		},
+
+		last: function() {
+			return this.eq( -1 );
+		},
+
+		eq: function( i ) {
+			var len = this.length,
+				j = +i + ( i < 0 ? len : 0 );
+			return this.pushStack( j >= 0 && j < len ? [ this[j] ] : [] );
+		},
+
+		end: function() {
+			return this.prevObject || this.constructor(null);
+		},
+
+		// For internal use only.
+		// Behaves like an Array's method, not like a jQuery method.
+		push: push,
+		sort: arr.sort,
+		splice: arr.splice
+	};
+
+	jQuery.extend = jQuery.fn.extend = function() {
+		var options, name, src, copy, copyIsArray, clone,
+			target = arguments[0] || {},
+			i = 1,
+			length = arguments.length,
+			deep = false;
+
+		// Handle a deep copy situation
+		if ( typeof target === "boolean" ) {
+			deep = target;
+
+			// Skip the boolean and the target
+			target = arguments[ i ] || {};
+			i++;
+		}
+
+		// Handle case when target is a string or something (possible in deep copy)
+		if ( typeof target !== "object" && !jQuery.isFunction(target) ) {
+			target = {};
+		}
+
+		// Extend jQuery itself if only one argument is passed
+		if ( i === length ) {
+			target = this;
+			i--;
+		}
+
+		for ( ; i < length; i++ ) {
+			// Only deal with non-null/undefined values
+			if ( (options = arguments[ i ]) != null ) {
+				// Extend the base object
+				for ( name in options ) {
+					src = target[ name ];
+					copy = options[ name ];
+
+					// Prevent never-ending loop
+					if ( target === copy ) {
+						continue;
+					}
+
+					// Recurse if we're merging plain objects or arrays
+					if ( deep && copy && ( jQuery.isPlainObject(copy) || (copyIsArray = jQuery.isArray(copy)) ) ) {
+						if ( copyIsArray ) {
+							copyIsArray = false;
+							clone = src && jQuery.isArray(src) ? src : [];
+
+						} else {
+							clone = src && jQuery.isPlainObject(src) ? src : {};
+						}
+
+						// Never move original objects, clone them
+						target[ name ] = jQuery.extend( deep, clone, copy );
+
+					// Don't bring in undefined values
+					} else if ( copy !== undefined ) {
+						target[ name ] = copy;
+					}
+				}
+			}
+		}
+
+		// Return the modified object
+		return target;
+	};
+
+	jQuery.extend({
+		// Unique for each copy of jQuery on the page
+		expando: "jQuery" + ( version + Math.random() ).replace( /\D/g, "" ),
+
+		// Assume jQuery is ready without the ready module
+		isReady: true,
+
+		error: function( msg ) {
+			throw new Error( msg );
+		},
+
+		noop: function() {},
+
+		isFunction: function( obj ) {
+			return jQuery.type(obj) === "function";
+		},
+
+		isArray: Array.isArray,
+
+		isWindow: function( obj ) {
+			return obj != null && obj === obj.window;
+		},
+
+		isNumeric: function( obj ) {
+			// parseFloat NaNs numeric-cast false positives (null|true|false|"")
+			// ...but misinterprets leading-number strings, particularly hex literals ("0x...")
+			// subtraction forces infinities to NaN
+			// adding 1 corrects loss of precision from parseFloat (#15100)
+			return !jQuery.isArray( obj ) && (obj - parseFloat( obj ) + 1) >= 0;
+		},
+
+		isPlainObject: function( obj ) {
+			// Not plain objects:
+			// - Any object or value whose internal [[Class]] property is not "[object Object]"
+			// - DOM nodes
+			// - window
+			if ( jQuery.type( obj ) !== "object" || obj.nodeType || jQuery.isWindow( obj ) ) {
+				return false;
+			}
+
+			if ( obj.constructor &&
+					!hasOwn.call( obj.constructor.prototype, "isPrototypeOf" ) ) {
+				return false;
+			}
+
+			// If the function hasn't returned already, we're confident that
+			// |obj| is a plain object, created by {} or constructed with new Object
+			return true;
+		},
+
+		isEmptyObject: function( obj ) {
+			var name;
+			for ( name in obj ) {
+				return false;
+			}
+			return true;
+		},
+
+		type: function( obj ) {
+			if ( obj == null ) {
+				return obj + "";
+			}
+			// Support: Android<4.0, iOS<6 (functionish RegExp)
+			return typeof obj === "object" || typeof obj === "function" ?
+				class2type[ toString.call(obj) ] || "object" :
+				typeof obj;
+		},
+
+		// Evaluates a script in a global context
+		globalEval: function( code ) {
+			var script,
+				indirect = eval;
+
+			code = jQuery.trim( code );
+
+			if ( code ) {
+				// If the code includes a valid, prologue position
+				// strict mode pragma, execute code by injecting a
+				// script tag into the document.
+				if ( code.indexOf("use strict") === 1 ) {
+					script = document.createElement("script");
+					script.text = code;
+					document.head.appendChild( script ).parentNode.removeChild( script );
+				} else {
+				// Otherwise, avoid the DOM node creation, insertion
+				// and removal by using an indirect global eval
+					indirect( code );
+				}
+			}
+		},
+
+		// Convert dashed to camelCase; used by the css and data modules
+		// Support: IE9-11+
+		// Microsoft forgot to hump their vendor prefix (#9572)
+		camelCase: function( string ) {
+			return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
+		},
+
+		nodeName: function( elem, name ) {
+			return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
+		},
+
+		// args is for internal usage only
+		each: function( obj, callback, args ) {
+			var value,
+				i = 0,
+				length = obj.length,
+				isArray = isArraylike( obj );
+
+			if ( args ) {
+				if ( isArray ) {
+					for ( ; i < length; i++ ) {
+						value = callback.apply( obj[ i ], args );
+
+						if ( value === false ) {
+							break;
+						}
+					}
+				} else {
+					for ( i in obj ) {
+						value = callback.apply( obj[ i ], args );
+
+						if ( value === false ) {
+							break;
+						}
+					}
+				}
+
+			// A special, fast, case for the most common use of each
+			} else {
+				if ( isArray ) {
+					for ( ; i < length; i++ ) {
+						value = callback.call( obj[ i ], i, obj[ i ] );
+
+						if ( value === false ) {
+							break;
+						}
+					}
+				} else {
+					for ( i in obj ) {
+						value = callback.call( obj[ i ], i, obj[ i ] );
+
+						if ( value === false ) {
+							break;
+						}
+					}
+				}
+			}
+
+			return obj;
+		},
+
+		// Support: Android<4.1
+		trim: function( text ) {
+			return text == null ?
+				"" :
+				( text + "" ).replace( rtrim, "" );
+		},
+
+		// results is for internal usage only
+		makeArray: function( arr, results ) {
+			var ret = results || [];
+
+			if ( arr != null ) {
+				if ( isArraylike( Object(arr) ) ) {
+					jQuery.merge( ret,
+						typeof arr === "string" ?
+						[ arr ] : arr
+					);
+				} else {
+					push.call( ret, arr );
+				}
+			}
+
+			return ret;
+		},
+
+		inArray: function( elem, arr, i ) {
+			return arr == null ? -1 : indexOf.call( arr, elem, i );
+		},
+
+		merge: function( first, second ) {
+			var len = +second.length,
+				j = 0,
+				i = first.length;
+
+			for ( ; j < len; j++ ) {
+				first[ i++ ] = second[ j ];
+			}
+
+			first.length = i;
+
+			return first;
+		},
+
+		grep: function( elems, callback, invert ) {
+			var callbackInverse,
+				matches = [],
+				i = 0,
+				length = elems.length,
+				callbackExpect = !invert;
+
+			// Go through the array, only saving the items
+			// that pass the validator function
+			for ( ; i < length; i++ ) {
+				callbackInverse = !callback( elems[ i ], i );
+				if ( callbackInverse !== callbackExpect ) {
+					matches.push( elems[ i ] );
+				}
+			}
+
+			return matches;
+		},
+
+		// arg is for internal usage only
+		map: function( elems, callback, arg ) {
+			var value,
+				i = 0,
+				length = elems.length,
+				isArray = isArraylike( elems ),
+				ret = [];
+
+			// Go through the array, translating each of the items to their new values
+			if ( isArray ) {
+				for ( ; i < length; i++ ) {
+					value = callback( elems[ i ], i, arg );
+
+					if ( value != null ) {
+						ret.push( value );
+					}
+				}
+
+			// Go through every key on the object,
+			} else {
+				for ( i in elems ) {
+					value = callback( elems[ i ], i, arg );
+
+					if ( value != null ) {
+						ret.push( value );
+					}
+				}
+			}
+
+			// Flatten any nested arrays
+			return concat.apply( [], ret );
+		},
+
+		// A global GUID counter for objects
+		guid: 1,
+
+		// Bind a function to a context, optionally partially applying any
+		// arguments.
+		proxy: function( fn, context ) {
+			var tmp, args, proxy;
+
+			if ( typeof context === "string" ) {
+				tmp = fn[ context ];
+				context = fn;
+				fn = tmp;
+			}
+
+			// Quick check to determine if target is callable, in the spec
+			// this throws a TypeError, but we will just return undefined.
+			if ( !jQuery.isFunction( fn ) ) {
+				return undefined;
+			}
+
+			// Simulated bind
+			args = slice.call( arguments, 2 );
+			proxy = function() {
+				return fn.apply( context || this, args.concat( slice.call( arguments ) ) );
+			};
+
+			// Set the guid of unique handler to the same of original handler, so it can be removed
+			proxy.guid = fn.guid = fn.guid || jQuery.guid++;
+
+			return proxy;
+		},
+
+		now: Date.now,
+
+		// jQuery.support is not used in Core but other projects attach their
+		// properties to it so it needs to exist.
+		support: support
+	});
+
+	// Populate the class2type map
+	jQuery.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function(i, name) {
+		class2type[ "[object " + name + "]" ] = name.toLowerCase();
+	});
+
+	function isArraylike( obj ) {
+
+		// Support: iOS 8.2 (not reproducible in simulator)
+		// `in` check used to prevent JIT error (gh-2145)
+		// hasOwn isn't used here due to false negatives
+		// regarding Nodelist length in IE
+		var length = "length" in obj && obj.length,
+			type = jQuery.type( obj );
+
+		if ( type === "function" || jQuery.isWindow( obj ) ) {
+			return false;
+		}
+
+		if ( obj.nodeType === 1 && length ) {
+			return true;
+		}
+
+		return type === "array" || length === 0 ||
+			typeof length === "number" && length > 0 && ( length - 1 ) in obj;
+	}
+	var Sizzle =
+	/*!
+	 * Sizzle CSS Selector Engine v2.2.0-pre
+	 * http://sizzlejs.com/
+	 *
+	 * Copyright 2008, 2014 jQuery Foundation, Inc. and other contributors
+	 * Released under the MIT license
+	 * http://jquery.org/license
+	 *
+	 * Date: 2014-12-16
+	 */
+	(function( window ) {
+
+	var i,
+		support,
+		Expr,
+		getText,
+		isXML,
+		tokenize,
+		compile,
+		select,
+		outermostContext,
+		sortInput,
+		hasDuplicate,
+
+		// Local document vars
+		setDocument,
+		document,
+		docElem,
+		documentIsHTML,
+		rbuggyQSA,
+		rbuggyMatches,
+		matches,
+		contains,
+
+		// Instance-specific data
+		expando = "sizzle" + 1 * new Date(),
+		preferredDoc = window.document,
+		dirruns = 0,
+		done = 0,
+		classCache = createCache(),
+		tokenCache = createCache(),
+		compilerCache = createCache(),
+		sortOrder = function( a, b ) {
+			if ( a === b ) {
+				hasDuplicate = true;
+			}
+			return 0;
+		},
+
+		// General-purpose constants
+		MAX_NEGATIVE = 1 << 31,
+
+		// Instance methods
+		hasOwn = ({}).hasOwnProperty,
+		arr = [],
+		pop = arr.pop,
+		push_native = arr.push,
+		push = arr.push,
+		slice = arr.slice,
+		// Use a stripped-down indexOf as it's faster than native
+		// http://jsperf.com/thor-indexof-vs-for/5
+		indexOf = function( list, elem ) {
+			var i = 0,
+				len = list.length;
+			for ( ; i < len; i++ ) {
+				if ( list[i] === elem ) {
+					return i;
+				}
+			}
+			return -1;
+		},
+
+		booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",
+
+		// Regular expressions
+
+		// Whitespace characters http://www.w3.org/TR/css3-selectors/#whitespace
+		whitespace = "[\\x20\\t\\r\\n\\f]",
+		// http://www.w3.org/TR/css3-syntax/#characters
+		characterEncoding = "(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+",
+
+		// Loosely modeled on CSS identifier characters
+		// An unquoted value should be a CSS identifier http://www.w3.org/TR/css3-selectors/#attribute-selectors
+		// Proper syntax: http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
+		identifier = characterEncoding.replace( "w", "w#" ),
+
+		// Attribute selectors: http://www.w3.org/TR/selectors/#attribute-selectors
+		attributes = "\\[" + whitespace + "*(" + characterEncoding + ")(?:" + whitespace +
+			// Operator (capture 2)
+			"*([*^$|!~]?=)" + whitespace +
+			// "Attribute values must be CSS identifiers [capture 5] or strings [capture 3 or capture 4]"
+			"*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + identifier + "))|)" + whitespace +
+			"*\\]",
+
+		pseudos = ":(" + characterEncoding + ")(?:\\((" +
+			// To reduce the number of selectors needing tokenize in the preFilter, prefer arguments:
+			// 1. quoted (capture 3; capture 4 or capture 5)
+			"('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|" +
+			// 2. simple (capture 6)
+			"((?:\\\\.|[^\\\\()[\\]]|" + attributes + ")*)|" +
+			// 3. anything else (capture 2)
+			".*" +
+			")\\)|)",
+
+		// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
+		rwhitespace = new RegExp( whitespace + "+", "g" ),
+		rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
+
+		rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
+		rcombinators = new RegExp( "^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*" ),
+
+		rattributeQuotes = new RegExp( "=" + whitespace + "*([^\\]'\"]*?)" + whitespace + "*\\]", "g" ),
+
+		rpseudo = new RegExp( pseudos ),
+		ridentifier = new RegExp( "^" + identifier + "$" ),
+
+		matchExpr = {
+			"ID": new RegExp( "^#(" + characterEncoding + ")" ),
+			"CLASS": new RegExp( "^\\.(" + characterEncoding + ")" ),
+			"TAG": new RegExp( "^(" + characterEncoding.replace( "w", "w*" ) + ")" ),
+			"ATTR": new RegExp( "^" + attributes ),
+			"PSEUDO": new RegExp( "^" + pseudos ),
+			"CHILD": new RegExp( "^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" + whitespace +
+				"*(even|odd|(([+-]|)(\\d*)n|)" + whitespace + "*(?:([+-]|)" + whitespace +
+				"*(\\d+)|))" + whitespace + "*\\)|)", "i" ),
+			"bool": new RegExp( "^(?:" + booleans + ")$", "i" ),
+			// For use in libraries implementing .is()
+			// We use this for POS matching in `select`
+			"needsContext": new RegExp( "^" + whitespace + "*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\(" +
+				whitespace + "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i" )
+		},
+
+		rinputs = /^(?:input|select|textarea|button)$/i,
+		rheader = /^h\d$/i,
+
+		rnative = /^[^{]+\{\s*\[native \w/,
+
+		// Easily-parseable/retrievable ID or TAG or CLASS selectors
+		rquickExpr = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,
+
+		rsibling = /[+~]/,
+		rescape = /'|\\/g,
+
+		// CSS escapes http://www.w3.org/TR/CSS21/syndata.html#escaped-characters
+		runescape = new RegExp( "\\\\([\\da-f]{1,6}" + whitespace + "?|(" + whitespace + ")|.)", "ig" ),
+		funescape = function( _, escaped, escapedWhitespace ) {
+			var high = "0x" + escaped - 0x10000;
+			// NaN means non-codepoint
+			// Support: Firefox<24
+			// Workaround erroneous numeric interpretation of +"0x"
+			return high !== high || escapedWhitespace ?
+				escaped :
+				high < 0 ?
+					// BMP codepoint
+					String.fromCharCode( high + 0x10000 ) :
+					// Supplemental Plane codepoint (surrogate pair)
+					String.fromCharCode( high >> 10 | 0xD800, high & 0x3FF | 0xDC00 );
+		},
+
+		// Used for iframes
+		// See setDocument()
+		// Removing the function wrapper causes a "Permission Denied"
+		// error in IE
+		unloadHandler = function() {
+			setDocument();
+		};
+
+	// Optimize for push.apply( _, NodeList )
+	try {
+		push.apply(
+			(arr = slice.call( preferredDoc.childNodes )),
+			preferredDoc.childNodes
+		);
+		// Support: Android<4.0
+		// Detect silently failing push.apply
+		arr[ preferredDoc.childNodes.length ].nodeType;
+	} catch ( e ) {
+		push = { apply: arr.length ?
+
+			// Leverage slice if possible
+			function( target, els ) {
+				push_native.apply( target, slice.call(els) );
+			} :
+
+			// Support: IE<9
+			// Otherwise append directly
+			function( target, els ) {
+				var j = target.length,
+					i = 0;
+				// Can't trust NodeList.length
+				while ( (target[j++] = els[i++]) ) {}
+				target.length = j - 1;
+			}
+		};
+	}
+
+	function Sizzle( selector, context, results, seed ) {
+		var match, elem, m, nodeType,
+			// QSA vars
+			i, groups, old, nid, newContext, newSelector;
+
+		if ( ( context ? context.ownerDocument || context : preferredDoc ) !== document ) {
+			setDocument( context );
+		}
+
+		context = context || document;
+		results = results || [];
+		nodeType = context.nodeType;
+
+		if ( typeof selector !== "string" || !selector ||
+			nodeType !== 1 && nodeType !== 9 && nodeType !== 11 ) {
+
+			return results;
+		}
+
+		if ( !seed && documentIsHTML ) {
+
+			// Try to shortcut find operations when possible (e.g., not under DocumentFragment)
+			if ( nodeType !== 11 && (match = rquickExpr.exec( selector )) ) {
+				// Speed-up: Sizzle("#ID")
+				if ( (m = match[1]) ) {
+					if ( nodeType === 9 ) {
+						elem = context.getElementById( m );
+						// Check parentNode to catch when Blackberry 4.6 returns
+						// nodes that are no longer in the document (jQuery #6963)
+						if ( elem && elem.parentNode ) {
+							// Handle the case where IE, Opera, and Webkit return items
+							// by name instead of ID
+							if ( elem.id === m ) {
+								results.push( elem );
+								return results;
+							}
+						} else {
+							return results;
+						}
+					} else {
+						// Context is not a document
+						if ( context.ownerDocument && (elem = context.ownerDocument.getElementById( m )) &&
+							contains( context, elem ) && elem.id === m ) {
+							results.push( elem );
+							return results;
+						}
+					}
+
+				// Speed-up: Sizzle("TAG")
+				} else if ( match[2] ) {
+					push.apply( results, context.getElementsByTagName( selector ) );
+					return results;
+
+				// Speed-up: Sizzle(".CLASS")
+				} else if ( (m = match[3]) && support.getElementsByClassName ) {
+					push.apply( results, context.getElementsByClassName( m ) );
+					return results;
+				}
+			}
+
+			// QSA path
+			if ( support.qsa && (!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
+				nid = old = expando;
+				newContext = context;
+				newSelector = nodeType !== 1 && selector;
+
+				// qSA works strangely on Element-rooted queries
+				// We can work around this by specifying an extra ID on the root
+				// and working up from there (Thanks to Andrew Dupont for the technique)
+				// IE 8 doesn't work on object elements
+				if ( nodeType === 1 && context.nodeName.toLowerCase() !== "object" ) {
+					groups = tokenize( selector );
+
+					if ( (old = context.getAttribute("id")) ) {
+						nid = old.replace( rescape, "\\$&" );
+					} else {
+						context.setAttribute( "id", nid );
+					}
+					nid = "[id='" + nid + "'] ";
+
+					i = groups.length;
+					while ( i-- ) {
+						groups[i] = nid + toSelector( groups[i] );
+					}
+					newContext = rsibling.test( selector ) && testContext( context.parentNode ) || context;
+					newSelector = groups.join(",");
+				}
+
+				if ( newSelector ) {
+					try {
+						push.apply( results,
+							newContext.querySelectorAll( newSelector )
+						);
+						return results;
+					} catch(qsaError) {
+					} finally {
+						if ( !old ) {
+							context.removeAttribute("id");
+						}
+					}
+				}
+			}
+		}
+
+		// All others
+		return select( selector.replace( rtrim, "$1" ), context, results, seed );
+	}
+
+	/**
+	 * Create key-value caches of limited size
+	 * @returns {Function(string, Object)} Returns the Object data after storing it on itself with
+	 *	property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
+	 *	deleting the oldest entry
+	 */
+	function createCache() {
+		var keys = [];
+
+		function cache( key, value ) {
+			// Use (key + " ") to avoid collision with native prototype properties (see Issue #157)
+			if ( keys.push( key + " " ) > Expr.cacheLength ) {
+				// Only keep the most recent entries
+				delete cache[ keys.shift() ];
+			}
+			return (cache[ key + " " ] = value);
+		}
+		return cache;
+	}
+
+	/**
+	 * Mark a function for special use by Sizzle
+	 * @param {Function} fn The function to mark
+	 */
+	function markFunction( fn ) {
+		fn[ expando ] = true;
+		return fn;
+	}
+
+	/**
+	 * Support testing using an element
+	 * @param {Function} fn Passed the created div and expects a boolean result
+	 */
+	function assert( fn ) {
+		var div = document.createElement("div");
+
+		try {
+			return !!fn( div );
+		} catch (e) {
+			return false;
+		} finally {
+			// Remove from its parent by default
+			if ( div.parentNode ) {
+				div.parentNode.removeChild( div );
+			}
+			// release memory in IE
+			div = null;
+		}
+	}
+
+	/**
+	 * Adds the same handler for all of the specified attrs
+	 * @param {String} attrs Pipe-separated list of attributes
+	 * @param {Function} handler The method that will be applied
+	 */
+	function addHandle( attrs, handler ) {
+		var arr = attrs.split("|"),
+			i = attrs.length;
+
+		while ( i-- ) {
+			Expr.attrHandle[ arr[i] ] = handler;
+		}
+	}
+
+	/**
+	 * Checks document order of two siblings
+	 * @param {Element} a
+	 * @param {Element} b
+	 * @returns {Number} Returns less than 0 if a precedes b, greater than 0 if a follows b
+	 */
+	function siblingCheck( a, b ) {
+		var cur = b && a,
+			diff = cur && a.nodeType === 1 && b.nodeType === 1 &&
+				( ~b.sourceIndex || MAX_NEGATIVE ) -
+				( ~a.sourceIndex || MAX_NEGATIVE );
+
+		// Use IE sourceIndex if available on both nodes
+		if ( diff ) {
+			return diff;
+		}
+
+		// Check if b follows a
+		if ( cur ) {
+			while ( (cur = cur.nextSibling) ) {
+				if ( cur === b ) {
+					return -1;
+				}
+			}
+		}
+
+		return a ? 1 : -1;
+	}
+
+	/**
+	 * Returns a function to use in pseudos for input types
+	 * @param {String} type
+	 */
+	function createInputPseudo( type ) {
+		return function( elem ) {
+			var name = elem.nodeName.toLowerCase();
+			return name === "input" && elem.type === type;
+		};
+	}
+
+	/**
+	 * Returns a function to use in pseudos for buttons
+	 * @param {String} type
+	 */
+	function createButtonPseudo( type ) {
+		return function( elem ) {
+			var name = elem.nodeName.toLowerCase();
+			return (name === "input" || name === "button") && elem.type === type;
+		};
+	}
+
+	/**
+	 * Returns a function to use in pseudos for positionals
+	 * @param {Function} fn
+	 */
+	function createPositionalPseudo( fn ) {
+		return markFunction(function( argument ) {
+			argument = +argument;
+			return markFunction(function( seed, matches ) {
+				var j,
+					matchIndexes = fn( [], seed.length, argument ),
+					i = matchIndexes.length;
+
+				// Match elements found at the specified indexes
+				while ( i-- ) {
+					if ( seed[ (j = matchIndexes[i]) ] ) {
+						seed[j] = !(matches[j] = seed[j]);
+					}
+				}
+			});
+		});
+	}
+
+	/**
+	 * Checks a node for validity as a Sizzle context
+	 * @param {Element|Object=} context
+	 * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
+	 */
+	function testContext( context ) {
+		return context && typeof context.getElementsByTagName !== "undefined" && context;
+	}
+
+	// Expose support vars for convenience
+	support = Sizzle.support = {};
+
+	/**
+	 * Detects XML nodes
+	 * @param {Element|Object} elem An element or a document
+	 * @returns {Boolean} True iff elem is a non-HTML XML node
+	 */
+	isXML = Sizzle.isXML = function( elem ) {
+		// documentElement is verified for cases where it doesn't yet exist
+		// (such as loading iframes in IE - #4833)
+		var documentElement = elem && (elem.ownerDocument || elem).documentElement;
+		return documentElement ? documentElement.nodeName !== "HTML" : false;
+	};
+
+	/**
+	 * Sets document-related variables once based on the current document
+	 * @param {Element|Object} [doc] An element or document object to use to set the document
+	 * @returns {Object} Returns the current document
+	 */
+	setDocument = Sizzle.setDocument = function( node ) {
+		var hasCompare, parent,
+			doc = node ? node.ownerDocument || node : preferredDoc;
+
+		// If no document and documentElement is available, return
+		if ( doc === document || doc.nodeType !== 9 || !doc.documentElement ) {
+			return document;
+		}
+
+		// Set our document
+		document = doc;
+		docElem = doc.documentElement;
+		parent = doc.defaultView;
+
+		// Support: IE>8
+		// If iframe document is assigned to "document" variable and if iframe has been reloaded,
+		// IE will throw "permission denied" error when accessing "document" variable, see jQuery #13936
+		// IE6-8 do not support the defaultView property so parent will be undefined
+		if ( parent && parent !== parent.top ) {
+			// IE11 does not have attachEvent, so all must suffer
+			if ( parent.addEventListener ) {
+				parent.addEventListener( "unload", unloadHandler, false );
+			} else if ( parent.attachEvent ) {
+				parent.attachEvent( "onunload", unloadHandler );
+			}
+		}
+
+		/* Support tests
+		---------------------------------------------------------------------- */
+		documentIsHTML = !isXML( doc );
+
+		/* Attributes
+		---------------------------------------------------------------------- */
+
+		// Support: IE<8
+		// Verify that getAttribute really returns attributes and not properties
+		// (excepting IE8 booleans)
+		support.attributes = assert(function( div ) {
+			div.className = "i";
+			return !div.getAttribute("className");
+		});
+
+		/* getElement(s)By*
+		---------------------------------------------------------------------- */
+
+		// Check if getElementsByTagName("*") returns only elements
+		support.getElementsByTagName = assert(function( div ) {
+			div.appendChild( doc.createComment("") );
+			return !div.getElementsByTagName("*").length;
+		});
+
+		// Support: IE<9
+		support.getElementsByClassName = rnative.test( doc.getElementsByClassName );
+
+		// Support: IE<10
+		// Check if getElementById returns elements by name
+		// The broken getElementById methods don't pick up programatically-set names,
+		// so use a roundabout getElementsByName test
+		support.getById = assert(function( div ) {
+			docElem.appendChild( div ).id = expando;
+			return !doc.getElementsByName || !doc.getElementsByName( expando ).length;
+		});
+
+		// ID find and filter
+		if ( support.getById ) {
+			Expr.find["ID"] = function( id, context ) {
+				if ( typeof context.getElementById !== "undefined" && documentIsHTML ) {
+					var m = context.getElementById( id );
+					// Check parentNode to catch when Blackberry 4.6 returns
+					// nodes that are no longer in the document #6963
+					return m && m.parentNode ? [ m ] : [];
+				}
+			};
+			Expr.filter["ID"] = function( id ) {
+				var attrId = id.replace( runescape, funescape );
+				return function( elem ) {
+					return elem.getAttribute("id") === attrId;
+				};
+			};
+		} else {
+			// Support: IE6/7
+			// getElementById is not reliable as a find shortcut
+			delete Expr.find["ID"];
+
+			Expr.filter["ID"] =  function( id ) {
+				var attrId = id.replace( runescape, funescape );
+				return function( elem ) {
+					var node = typeof elem.getAttributeNode !== "undefined" && elem.getAttributeNode("id");
+					return node && node.value === attrId;
+				};
+			};
+		}
+
+		// Tag
+		Expr.find["TAG"] = support.getElementsByTagName ?
+			function( tag, context ) {
+				if ( typeof context.getElementsByTagName !== "undefined" ) {
+					return context.getElementsByTagName( tag );
+
+				// DocumentFragment nodes don't have gEBTN
+				} else if ( support.qsa ) {
+					return context.querySelectorAll( tag );
+				}
+			} :
+
+			function( tag, context ) {
+				var elem,
+					tmp = [],
+					i = 0,
+					// By happy coincidence, a (broken) gEBTN appears on DocumentFragment nodes too
+					results = context.getElementsByTagName( tag );
+
+				// Filter out possible comments
+				if ( tag === "*" ) {
+					while ( (elem = results[i++]) ) {
+						if ( elem.nodeType === 1 ) {
+							tmp.push( elem );
+						}
+					}
+
+					return tmp;
+				}
+				return results;
+			};
+
+		// Class
+		Expr.find["CLASS"] = support.getElementsByClassName && function( className, context ) {
+			if ( documentIsHTML ) {
+				return context.getElementsByClassName( className );
+			}
+		};
+
+		/* QSA/matchesSelector
+		---------------------------------------------------------------------- */
+
+		// QSA and matchesSelector support
+
+		// matchesSelector(:active) reports false when true (IE9/Opera 11.5)
+		rbuggyMatches = [];
+
+		// qSa(:focus) reports false when true (Chrome 21)
+		// We allow this because of a bug in IE8/9 that throws an error
+		// whenever `document.activeElement` is accessed on an iframe
+		// So, we allow :focus to pass through QSA all the time to avoid the IE error
+		// See http://bugs.jquery.com/ticket/13378
+		rbuggyQSA = [];
+
+		if ( (support.qsa = rnative.test( doc.querySelectorAll )) ) {
+			// Build QSA regex
+			// Regex strategy adopted from Diego Perini
+			assert(function( div ) {
+				// Select is set to empty string on purpose
+				// This is to test IE's treatment of not explicitly
+				// setting a boolean content attribute,
+				// since its presence should be enough
+				// http://bugs.jquery.com/ticket/12359
+				docElem.appendChild( div ).innerHTML = "<a id='" + expando + "'></a>" +
+					"<select id='" + expando + "-\f]' msallowcapture=''>" +
+					"<option selected=''></option></select>";
+
+				// Support: IE8, Opera 11-12.16
+				// Nothing should be selected when empty strings follow ^= or $= or *=
+				// The test attribute must be unknown in Opera but "safe" for WinRT
+				// http://msdn.microsoft.com/en-us/library/ie/hh465388.aspx#attribute_section
+				if ( div.querySelectorAll("[msallowcapture^='']").length ) {
+					rbuggyQSA.push( "[*^$]=" + whitespace + "*(?:''|\"\")" );
+				}
+
+				// Support: IE8
+				// Boolean attributes and "value" are not treated correctly
+				if ( !div.querySelectorAll("[selected]").length ) {
+					rbuggyQSA.push( "\\[" + whitespace + "*(?:value|" + booleans + ")" );
+				}
+
+				// Support: Chrome<29, Android<4.2+, Safari<7.0+, iOS<7.0+, PhantomJS<1.9.7+
+				if ( !div.querySelectorAll( "[id~=" + expando + "-]" ).length ) {
+					rbuggyQSA.push("~=");
+				}
+
+				// Webkit/Opera - :checked should return selected option elements
+				// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
+				// IE8 throws error here and will not see later tests
+				if ( !div.querySelectorAll(":checked").length ) {
+					rbuggyQSA.push(":checked");
+				}
+
+				// Support: Safari 8+, iOS 8+
+				// https://bugs.webkit.org/show_bug.cgi?id=136851
+				// In-page `selector#id sibing-combinator selector` fails
+				if ( !div.querySelectorAll( "a#" + expando + "+*" ).length ) {
+					rbuggyQSA.push(".#.+[+~]");
+				}
+			});
+
+			assert(function( div ) {
+				// Support: Windows 8 Native Apps
+				// The type and name attributes are restricted during .innerHTML assignment
+				var input = doc.createElement("input");
+				input.setAttribute( "type", "hidden" );
+				div.appendChild( input ).setAttribute( "name", "D" );
+
+				// Support: IE8
+				// Enforce case-sensitivity of name attribute
+				if ( div.querySelectorAll("[name=d]").length ) {
+					rbuggyQSA.push( "name" + whitespace + "*[*^$|!~]?=" );
+				}
+
+				// FF 3.5 - :enabled/:disabled and hidden elements (hidden elements are still enabled)
+				// IE8 throws error here and will not see later tests
+				if ( !div.querySelectorAll(":enabled").length ) {
+					rbuggyQSA.push( ":enabled", ":disabled" );
+				}
+
+				// Opera 10-11 does not throw on post-comma invalid pseudos
+				div.querySelectorAll("*,:x");
+				rbuggyQSA.push(",.*:");
+			});
+		}
+
+		if ( (support.matchesSelector = rnative.test( (matches = docElem.matches ||
+			docElem.webkitMatchesSelector ||
+			docElem.mozMatchesSelector ||
+			docElem.oMatchesSelector ||
+			docElem.msMatchesSelector) )) ) {
+
+			assert(function( div ) {
+				// Check to see if it's possible to do matchesSelector
+				// on a disconnected node (IE 9)
+				support.disconnectedMatch = matches.call( div, "div" );
+
+				// This should fail with an exception
+				// Gecko does not error, returns false instead
+				matches.call( div, "[s!='']:x" );
+				rbuggyMatches.push( "!=", pseudos );
+			});
+		}
+
+		rbuggyQSA = rbuggyQSA.length && new RegExp( rbuggyQSA.join("|") );
+		rbuggyMatches = rbuggyMatches.length && new RegExp( rbuggyMatches.join("|") );
+
+		/* Contains
+		---------------------------------------------------------------------- */
+		hasCompare = rnative.test( docElem.compareDocumentPosition );
+
+		// Element contains another
+		// Purposefully does not implement inclusive descendent
+		// As in, an element does not contain itself
+		contains = hasCompare || rnative.test( docElem.contains ) ?
+			function( a, b ) {
+				var adown = a.nodeType === 9 ? a.documentElement : a,
+					bup = b && b.parentNode;
+				return a === bup || !!( bup && bup.nodeType === 1 && (
+					adown.contains ?
+						adown.contains( bup ) :
+						a.compareDocumentPosition && a.compareDocumentPosition( bup ) & 16
+				));
+			} :
+			function( a, b ) {
+				if ( b ) {
+					while ( (b = b.parentNode) ) {
+						if ( b === a ) {
+							return true;
+						}
+					}
+				}
+				return false;
+			};
+
+		/* Sorting
+		---------------------------------------------------------------------- */
+
+		// Document order sorting
+		sortOrder = hasCompare ?
+		function( a, b ) {
+
+			// Flag for duplicate removal
+			if ( a === b ) {
+				hasDuplicate = true;
+				return 0;
+			}
+
+			// Sort on method existence if only one input has compareDocumentPosition
+			var compare = !a.compareDocumentPosition - !b.compareDocumentPosition;
+			if ( compare ) {
+				return compare;
+			}
+
+			// Calculate position if both inputs belong to the same document
+			compare = ( a.ownerDocument || a ) === ( b.ownerDocument || b ) ?
+				a.compareDocumentPosition( b ) :
+
+				// Otherwise we know they are disconnected
+				1;
+
+			// Disconnected nodes
+			if ( compare & 1 ||
+				(!support.sortDetached && b.compareDocumentPosition( a ) === compare) ) {
+
+				// Choose the first element that is related to our preferred document
+				if ( a === doc || a.ownerDocument === preferredDoc && contains(preferredDoc, a) ) {
+					return -1;
+				}
+				if ( b === doc || b.ownerDocument === preferredDoc && contains(preferredDoc, b) ) {
+					return 1;
+				}
+
+				// Maintain original order
+				return sortInput ?
+					( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
+					0;
+			}
+
+			return compare & 4 ? -1 : 1;
+		} :
+		function( a, b ) {
+			// Exit early if the nodes are identical
+			if ( a === b ) {
+				hasDuplicate = true;
+				return 0;
+			}
+
+			var cur,
+				i = 0,
+				aup = a.parentNode,
+				bup = b.parentNode,
+				ap = [ a ],
+				bp = [ b ];
+
+			// Parentless nodes are either documents or disconnected
+			if ( !aup || !bup ) {
+				return a === doc ? -1 :
+					b === doc ? 1 :
+					aup ? -1 :
+					bup ? 1 :
+					sortInput ?
+					( indexOf( sortInput, a ) - indexOf( sortInput, b ) ) :
+					0;
+
+			// If the nodes are siblings, we can do a quick check
+			} else if ( aup === bup ) {
+				return siblingCheck( a, b );
+			}
+
+			// Otherwise we need full lists of their ancestors for comparison
+			cur = a;
+			while ( (cur = cur.parentNode) ) {
+				ap.unshift( cur );
+			}
+			cur = b;
+			while ( (cur = cur.parentNode) ) {
+				bp.unshift( cur );
+			}
+
+			// Walk down the tree looking for a discrepancy
+			while ( ap[i] === bp[i] ) {
+				i++;
+			}
+
+			return i ?
+				// Do a sibling check if the nodes have a common ancestor
+				siblingCheck( ap[i], bp[i] ) :
+
+				// Otherwise nodes in our document sort first
+				ap[i] === preferredDoc ? -1 :
+				bp[i] === preferredDoc ? 1 :
+				0;
+		};
+
+		return doc;
+	};
+
+	Sizzle.matches = function( expr, elements ) {
+		return Sizzle( expr, null, null, elements );
+	};
+
+	Sizzle.matchesSelector = function( elem, expr ) {
+		// Set document vars if needed
+		if ( ( elem.ownerDocument || elem ) !== document ) {
+			setDocument( elem );
+		}
+
+		// Make sure that attribute selectors are quoted
+		expr = expr.replace( rattributeQuotes, "='$1']" );
+
+		if ( support.matchesSelector && documentIsHTML &&
+			( !rbuggyMatches || !rbuggyMatches.test( expr ) ) &&
+			( !rbuggyQSA     || !rbuggyQSA.test( expr ) ) ) {
+
+			try {
+				var ret = matches.call( elem, expr );
+
+				// IE 9's matchesSelector returns false on disconnected nodes
+				if ( ret || support.disconnectedMatch ||
+						// As well, disconnected nodes are said to be in a document
+						// fragment in IE 9
+						elem.document && elem.document.nodeType !== 11 ) {
+					return ret;
+				}
+			} catch (e) {}
+		}
+
+		return Sizzle( expr, document, null, [ elem ] ).length > 0;
+	};
+
+	Sizzle.contains = function( context, elem ) {
+		// Set document vars if needed
+		if ( ( context.ownerDocument || context ) !== document ) {
+			setDocument( context );
+		}
+		return contains( context, elem );
+	};
+
+	Sizzle.attr = function( elem, name ) {
+		// Set document vars if needed
+		if ( ( elem.ownerDocument || elem ) !== document ) {
+			setDocument( elem );
+		}
+
+		var fn = Expr.attrHandle[ name.toLowerCase() ],
+			// Don't get fooled by Object.prototype properties (jQuery #13807)
+			val = fn && hasOwn.call( Expr.attrHandle, name.toLowerCase() ) ?
+				fn( elem, name, !documentIsHTML ) :
+				undefined;
+
+		return val !== undefined ?
+			val :
+			support.attributes || !documentIsHTML ?
+				elem.getAttribute( name ) :
+				(val = elem.getAttributeNode(name)) && val.specified ?
+					val.value :
+					null;
+	};
+
+	Sizzle.error = function( msg ) {
+		throw new Error( "Syntax error, unrecognized expression: " + msg );
+	};
+
+	/**
+	 * Document sorting and removing duplicates
+	 * @param {ArrayLike} results
+	 */
+	Sizzle.uniqueSort = function( results ) {
+		var elem,
+			duplicates = [],
+			j = 0,
+			i = 0;
+
+		// Unless we *know* we can detect duplicates, assume their presence
+		hasDuplicate = !support.detectDuplicates;
+		sortInput = !support.sortStable && results.slice( 0 );
+		results.sort( sortOrder );
+
+		if ( hasDuplicate ) {
+			while ( (elem = results[i++]) ) {
+				if ( elem === results[ i ] ) {
+					j = duplicates.push( i );
+				}
+			}
+			while ( j-- ) {
+				results.splice( duplicates[ j ], 1 );
+			}
+		}
+
+		// Clear input after sorting to release objects
+		// See https://github.com/jquery/sizzle/pull/225
+		sortInput = null;
+
+		return results;
+	};
+
+	/**
+	 * Utility function for retrieving the text value of an array of DOM nodes
+	 * @param {Array|Element} elem
+	 */
+	getText = Sizzle.getText = function( elem ) {
+		var node,
+			ret = "",
+			i = 0,
+			nodeType = elem.nodeType;
+
+		if ( !nodeType ) {
+			// If no nodeType, this is expected to be an array
+			while ( (node = elem[i++]) ) {
+				// Do not traverse comment nodes
+				ret += getText( node );
+			}
+		} else if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
+			// Use textContent for elements
+			// innerText usage removed for consistency of new lines (jQuery #11153)
+			if ( typeof elem.textContent === "string" ) {
+				return elem.textContent;
+			} else {
+				// Traverse its children
+				for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
+					ret += getText( elem );
+				}
+			}
+		} else if ( nodeType === 3 || nodeType === 4 ) {
+			return elem.nodeValue;
+		}
+		// Do not include comment or processing instruction nodes
+
+		return ret;
+	};
+
+	Expr = Sizzle.selectors = {
+
+		// Can be adjusted by the user
+		cacheLength: 50,
+
+		createPseudo: markFunction,
+
+		match: matchExpr,
+
+		attrHandle: {},
+
+		find: {},
+
+		relative: {
+			">": { dir: "parentNode", first: true },
+			" ": { dir: "parentNode" },
+			"+": { dir: "previousSibling", first: true },
+			"~": { dir: "previousSibling" }
+		},
+
+		preFilter: {
+			"ATTR": function( match ) {
+				match[1] = match[1].replace( runescape, funescape );
+
+				// Move the given value to match[3] whether quoted or unquoted
+				match[3] = ( match[3] || match[4] || match[5] || "" ).replace( runescape, funescape );
+
+				if ( match[2] === "~=" ) {
+					match[3] = " " + match[3] + " ";
+				}
+
+				return match.slice( 0, 4 );
+			},
+
+			"CHILD": function( match ) {
+				/* matches from matchExpr["CHILD"]
+					1 type (only|nth|...)
+					2 what (child|of-type)
+					3 argument (even|odd|\d*|\d*n([+-]\d+)?|...)
+					4 xn-component of xn+y argument ([+-]?\d*n|)
+					5 sign of xn-component
+					6 x of xn-component
+					7 sign of y-component
+					8 y of y-component
+				*/
+				match[1] = match[1].toLowerCase();
+
+				if ( match[1].slice( 0, 3 ) === "nth" ) {
+					// nth-* requires argument
+					if ( !match[3] ) {
+						Sizzle.error( match[0] );
+					}
+
+					// numeric x and y parameters for Expr.filter.CHILD
+					// remember that false/true cast respectively to 0/1
+					match[4] = +( match[4] ? match[5] + (match[6] || 1) : 2 * ( match[3] === "even" || match[3] === "odd" ) );
+					match[5] = +( ( match[7] + match[8] ) || match[3] === "odd" );
+
+				// other types prohibit arguments
+				} else if ( match[3] ) {
+					Sizzle.error( match[0] );
+				}
+
+				return match;
+			},
+
+			"PSEUDO": function( match ) {
+				var excess,
+					unquoted = !match[6] && match[2];
+
+				if ( matchExpr["CHILD"].test( match[0] ) ) {
+					return null;
+				}
+
+				// Accept quoted arguments as-is
+				if ( match[3] ) {
+					match[2] = match[4] || match[5] || "";
+
+				// Strip excess characters from unquoted arguments
+				} else if ( unquoted && rpseudo.test( unquoted ) &&
+					// Get excess from tokenize (recursively)
+					(excess = tokenize( unquoted, true )) &&
+					// advance to the next closing parenthesis
+					(excess = unquoted.indexOf( ")", unquoted.length - excess ) - unquoted.length) ) {
+
+					// excess is a negative index
+					match[0] = match[0].slice( 0, excess );
+					match[2] = unquoted.slice( 0, excess );
+				}
+
+				// Return only captures needed by the pseudo filter method (type and argument)
+				return match.slice( 0, 3 );
+			}
+		},
+
+		filter: {
+
+			"TAG": function( nodeNameSelector ) {
+				var nodeName = nodeNameSelector.replace( runescape, funescape ).toLowerCase();
+				return nodeNameSelector === "*" ?
+					function() { return true; } :
+					function( elem ) {
+						return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
+					};
+			},
+
+			"CLASS": function( className ) {
+				var pattern = classCache[ className + " " ];
+
+				return pattern ||
+					(pattern = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" )) &&
+					classCache( className, function( elem ) {
+						return pattern.test( typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== "undefined" && elem.getAttribute("class") || "" );
+					});
+			},
+
+			"ATTR": function( name, operator, check ) {
+				return function( elem ) {
+					var result = Sizzle.attr( elem, name );
+
+					if ( result == null ) {
+						return operator === "!=";
+					}
+					if ( !operator ) {
+						return true;
+					}
+
+					result += "";
+
+					return operator === "=" ? result === check :
+						operator === "!=" ? result !== check :
+						operator === "^=" ? check && result.indexOf( check ) === 0 :
+						operator === "*=" ? check && result.indexOf( check ) > -1 :
+						operator === "$=" ? check && result.slice( -check.length ) === check :
+						operator === "~=" ? ( " " + result.replace( rwhitespace, " " ) + " " ).indexOf( check ) > -1 :
+						operator === "|=" ? result === check || result.slice( 0, check.length + 1 ) === check + "-" :
+						false;
+				};
+			},
+
+			"CHILD": function( type, what, argument, first, last ) {
+				var simple = type.slice( 0, 3 ) !== "nth",
+					forward = type.slice( -4 ) !== "last",
+					ofType = what === "of-type";
+
+				return first === 1 && last === 0 ?
+
+					// Shortcut for :nth-*(n)
+					function( elem ) {
+						return !!elem.parentNode;
+					} :
+
+					function( elem, context, xml ) {
+						var cache, outerCache, node, diff, nodeIndex, start,
+							dir = simple !== forward ? "nextSibling" : "previousSibling",
+							parent = elem.parentNode,
+							name = ofType && elem.nodeName.toLowerCase(),
+							useCache = !xml && !ofType;
+
+						if ( parent ) {
+
+							// :(first|last|only)-(child|of-type)
+							if ( simple ) {
+								while ( dir ) {
+									node = elem;
+									while ( (node = node[ dir ]) ) {
+										if ( ofType ? node.nodeName.toLowerCase() === name : node.nodeType === 1 ) {
+											return false;
+										}
+									}
+									// Reverse direction for :only-* (if we haven't yet done so)
+									start = dir = type === "only" && !start && "nextSibling";
+								}
+								return true;
+							}
+
+							start = [ forward ? parent.firstChild : parent.lastChild ];
+
+							// non-xml :nth-child(...) stores cache data on `parent`
+							if ( forward && useCache ) {
+								// Seek `elem` from a previously-cached index
+								outerCache = parent[ expando ] || (parent[ expando ] = {});
+								cache = outerCache[ type ] || [];
+								nodeIndex = cache[0] === dirruns && cache[1];
+								diff = cache[0] === dirruns && cache[2];
+								node = nodeIndex && parent.childNodes[ nodeIndex ];
+
+								while ( (node = ++nodeIndex && node && node[ dir ] ||
+
+									// Fallback to seeking `elem` from the start
+									(diff = nodeIndex = 0) || start.pop()) ) {
+
+									// When found, cache indexes on `parent` and break
+									if ( node.nodeType === 1 && ++diff && node === elem ) {
+										outerCache[ type ] = [ dirruns, nodeIndex, diff ];
+										break;
+									}
+								}
+
+							// Use previously-cached element index if available
+							} else if ( useCache && (cache = (elem[ expando ] || (elem[ expando ] = {}))[ type ]) && cache[0] === dirruns ) {
+								diff = cache[1];
+
+							// xml :nth-child(...) or :nth-last-child(...) or :nth(-last)?-of-type(...)
+							} else {
+								// Use the same loop as above to seek `elem` from the start
+								while ( (node = ++nodeIndex && node && node[ dir ] ||
+									(diff = nodeIndex = 0) || start.pop()) ) {
+
+									if ( ( ofType ? node.nodeName.toLowerCase() === name : node.nodeType === 1 ) && ++diff ) {
+										// Cache the index of each encountered element
+										if ( useCache ) {
+											(node[ expando ] || (node[ expando ] = {}))[ type ] = [ dirruns, diff ];
+										}
+
+										if ( node === elem ) {
+											break;
+										}
+									}
+								}
+							}
+
+							// Incorporate the offset, then check against cycle size
+							diff -= last;
+							return diff === first || ( diff % first === 0 && diff / first >= 0 );
+						}
+					};
+			},
+
+			"PSEUDO": function( pseudo, argument ) {
+				// pseudo-class names are case-insensitive
+				// http://www.w3.org/TR/selectors/#pseudo-classes
+				// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
+				// Remember that setFilters inherits from pseudos
+				var args,
+					fn = Expr.pseudos[ pseudo ] || Expr.setFilters[ pseudo.toLowerCase() ] ||
+						Sizzle.error( "unsupported pseudo: " + pseudo );
+
+				// The user may use createPseudo to indicate that
+				// arguments are needed to create the filter function
+				// just as Sizzle does
+				if ( fn[ expando ] ) {
+					return fn( argument );
+				}
+
+				// But maintain support for old signatures
+				if ( fn.length > 1 ) {
+					args = [ pseudo, pseudo, "", argument ];
+					return Expr.setFilters.hasOwnProperty( pseudo.toLowerCase() ) ?
+						markFunction(function( seed, matches ) {
+							var idx,
+								matched = fn( seed, argument ),
+								i = matched.length;
+							while ( i-- ) {
+								idx = indexOf( seed, matched[i] );
+								seed[ idx ] = !( matches[ idx ] = matched[i] );
+							}
+						}) :
+						function( elem ) {
+							return fn( elem, 0, args );
+						};
+				}
+
+				return fn;
+			}
+		},
+
+		pseudos: {
+			// Potentially complex pseudos
+			"not": markFunction(function( selector ) {
+				// Trim the selector passed to compile
+				// to avoid treating leading and trailing
+				// spaces as combinators
+				var input = [],
+					results = [],
+					matcher = compile( selector.replace( rtrim, "$1" ) );
+
+				return matcher[ expando ] ?
+					markFunction(function( seed, matches, context, xml ) {
+						var elem,
+							unmatched = matcher( seed, null, xml, [] ),
+							i = seed.length;
+
+						// Match elements unmatched by `matcher`
+						while ( i-- ) {
+							if ( (elem = unmatched[i]) ) {
+								seed[i] = !(matches[i] = elem);
+							}
+						}
+					}) :
+					function( elem, context, xml ) {
+						input[0] = elem;
+						matcher( input, null, xml, results );
+						// Don't keep the element (issue #299)
+						input[0] = null;
+						return !results.pop();
+					};
+			}),
+
+			"has": markFunction(function( selector ) {
+				return function( elem ) {
+					return Sizzle( selector, elem ).length > 0;
+				};
+			}),
+
+			"contains": markFunction(function( text ) {
+				text = text.replace( runescape, funescape );
+				return function( elem ) {
+					return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
+				};
+			}),
+
+			// "Whether an element is represented by a :lang() selector
+			// is based solely on the element's language value
+			// being equal to the identifier C,
+			// or beginning with the identifier C immediately followed by "-".
+			// The matching of C against the element's language value is performed case-insensitively.
+			// The identifier C does not have to be a valid language name."
+			// http://www.w3.org/TR/selectors/#lang-pseudo
+			"lang": markFunction( function( lang ) {
+				// lang value must be a valid identifier
+				if ( !ridentifier.test(lang || "") ) {
+					Sizzle.error( "unsupported lang: " + lang );
+				}
+				lang = lang.replace( runescape, funescape ).toLowerCase();
+				return function( elem ) {
+					var elemLang;
+					do {
+						if ( (elemLang = documentIsHTML ?
+							elem.lang :
+							elem.getAttribute("xml:lang") || elem.getAttribute("lang")) ) {
+
+							elemLang = elemLang.toLowerCase();
+							return elemLang === lang || elemLang.indexOf( lang + "-" ) === 0;
+						}
+					} while ( (elem = elem.parentNode) && elem.nodeType === 1 );
+					return false;
+				};
+			}),
+
+			// Miscellaneous
+			"target": function( elem ) {
+				var hash = window.location && window.location.hash;
+				return hash && hash.slice( 1 ) === elem.id;
+			},
+
+			"root": function( elem ) {
+				return elem === docElem;
+			},
+
+			"focus": function( elem ) {
+				return elem === document.activeElement && (!document.hasFocus || document.hasFocus()) && !!(elem.type || elem.href || ~elem.tabIndex);
+			},
+
+			// Boolean properties
+			"enabled": function( elem ) {
+				return elem.disabled === false;
+			},
+
+			"disabled": function( elem ) {
+				return elem.disabled === true;
+			},
+
+			"checked": function( elem ) {
+				// In CSS3, :checked should return both checked and selected elements
+				// http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
+				var nodeName = elem.nodeName.toLowerCase();
+				return (nodeName === "input" && !!elem.checked) || (nodeName === "option" && !!elem.selected);
+			},
+
+			"selected": function( elem ) {
+				// Accessing this property makes selected-by-default
+				// options in Safari work properly
+				if ( elem.parentNode ) {
+					elem.parentNode.selectedIndex;
+				}
+
+				return elem.selected === true;
+			},
+
+			// Contents
+			"empty": function( elem ) {
+				// http://www.w3.org/TR/selectors/#empty-pseudo
+				// :empty is negated by element (1) or content nodes (text: 3; cdata: 4; entity ref: 5),
+				//   but not by others (comment: 8; processing instruction: 7; etc.)
+				// nodeType < 6 works because attributes (2) do not appear as children
+				for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
+					if ( elem.nodeType < 6 ) {
+						return false;
+					}
+				}
+				return true;
+			},
+
+			"parent": function( elem ) {
+				return !Expr.pseudos["empty"]( elem );
+			},
+
+			// Element/input types
+			"header": function( elem ) {
+				return rheader.test( elem.nodeName );
+			},
+
+			"input": function( elem ) {
+				return rinputs.test( elem.nodeName );
+			},
+
+			"button": function( elem ) {
+				var name = elem.nodeName.toLowerCase();
+				return name === "input" && elem.type === "button" || name === "button";
+			},
+
+			"text": function( elem ) {
+				var attr;
+				return elem.nodeName.toLowerCase() === "input" &&
+					elem.type === "text" &&
+
+					// Support: IE<8
+					// New HTML5 attribute values (e.g., "search") appear with elem.type === "text"
+					( (attr = elem.getAttribute("type")) == null || attr.toLowerCase() === "text" );
+			},
+
+			// Position-in-collection
+			"first": createPositionalPseudo(function() {
+				return [ 0 ];
+			}),
+
+			"last": createPositionalPseudo(function( matchIndexes, length ) {
+				return [ length - 1 ];
+			}),
+
+			"eq": createPositionalPseudo(function( matchIndexes, length, argument ) {
+				return [ argument < 0 ? argument + length : argument ];
+			}),
+
+			"even": createPositionalPseudo(function( matchIndexes, length ) {
+				var i = 0;
+				for ( ; i < length; i += 2 ) {
+					matchIndexes.push( i );
+				}
+				return matchIndexes;
+			}),
+
+			"odd": createPositionalPseudo(function( matchIndexes, length ) {
+				var i = 1;
+				for ( ; i < length; i += 2 ) {
+					matchIndexes.push( i );
+				}
+				return matchIndexes;
+			}),
+
+			"lt": createPositionalPseudo(function( matchIndexes, length, argument ) {
+				var i = argument < 0 ? argument + length : argument;
+				for ( ; --i >= 0; ) {
+					matchIndexes.push( i );
+				}
+				return matchIndexes;
+			}),
+
+			"gt": createPositionalPseudo(function( matchIndexes, length, argument ) {
+				var i = argument < 0 ? argument + length : argument;
+				for ( ; ++i < length; ) {
+					matchIndexes.push( i );
+				}
+				return matchIndexes;
+			})
+		}
+	};
+
+	Expr.pseudos["nth"] = Expr.pseudos["eq"];
+
+	// Add button/input type pseudos
+	for ( i in { radio: true, checkbox: true, file: true, password: true, image: true } ) {
+		Expr.pseudos[ i ] = createInputPseudo( i );
+	}
+	for ( i in { submit: true, reset: true } ) {
+		Expr.pseudos[ i ] = createButtonPseudo( i );
+	}
+
+	// Easy API for creating new setFilters
+	function setFilters() {}
+	setFilters.prototype = Expr.filters = Expr.pseudos;
+	Expr.setFilters = new setFilters();
+
+	tokenize = Sizzle.tokenize = function( selector, parseOnly ) {
+		var matched, match, tokens, type,
+			soFar, groups, preFilters,
+			cached = tokenCache[ selector + " " ];
+
+		if ( cached ) {
+			return parseOnly ? 0 : cached.slice( 0 );
+		}
+
+		soFar = selector;
+		groups = [];
+		preFilters = Expr.preFilter;
+
+		while ( soFar ) {
+
+			// Comma and first run
+			if ( !matched || (match = rcomma.exec( soFar )) ) {
+				if ( match ) {
+					// Don't consume trailing commas as valid
+					soFar = soFar.slice( match[0].length ) || soFar;
+				}
+				groups.push( (tokens = []) );
+			}
+
+			matched = false;
+
+			// Combinators
+			if ( (match = rcombinators.exec( soFar )) ) {
+				matched = match.shift();
+				tokens.push({
+					value: matched,
+					// Cast descendant combinators to space
+					type: match[0].replace( rtrim, " " )
+				});
+				soFar = soFar.slice( matched.length );
+			}
+
+			// Filters
+			for ( type in Expr.filter ) {
+				if ( (match = matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
+					(match = preFilters[ type ]( match ))) ) {
+					matched = match.shift();
+					tokens.push({
+						value: matched,
+						type: type,
+						matches: match
+					});
+					soFar = soFar.slice( matched.length );
+				}
+			}
+
+			if ( !matched ) {
+				break;
+			}
+		}
+
+		// Return the length of the invalid excess
+		// if we're just parsing
+		// Otherwise, throw an error or return tokens
+		return parseOnly ?
+			soFar.length :
+			soFar ?
+				Sizzle.error( selector ) :
+				// Cache the tokens
+				tokenCache( selector, groups ).slice( 0 );
+	};
+
+	function toSelector( tokens ) {
+		var i = 0,
+			len = tokens.length,
+			selector = "";
+		for ( ; i < len; i++ ) {
+			selector += tokens[i].value;
+		}
+		return selector;
+	}
+
+	function addCombinator( matcher, combinator, base ) {
+		var dir = combinator.dir,
+			checkNonElements = base && dir === "parentNode",
+			doneName = done++;
+
+		return combinator.first ?
+			// Check against closest ancestor/preceding element
+			function( elem, context, xml ) {
+				while ( (elem = elem[ dir ]) ) {
+					if ( elem.nodeType === 1 || checkNonElements ) {
+						return matcher( elem, context, xml );
+					}
+				}
+			} :
+
+			// Check against all ancestor/preceding elements
+			function( elem, context, xml ) {
+				var oldCache, outerCache,
+					newCache = [ dirruns, doneName ];
+
+				// We can't set arbitrary data on XML nodes, so they don't benefit from dir caching
+				if ( xml ) {
+					while ( (elem = elem[ dir ]) ) {
+						if ( elem.nodeType === 1 || checkNonElements ) {
+							if ( matcher( elem, context, xml ) ) {
+								return true;
+							}
+						}
+					}
+				} else {
+					while ( (elem = elem[ dir ]) ) {
+						if ( elem.nodeType === 1 || checkNonElements ) {
+							outerCache = elem[ expando ] || (elem[ expando ] = {});
+							if ( (oldCache = outerCache[ dir ]) &&
+								oldCache[ 0 ] === dirruns && oldCache[ 1 ] === doneName ) {
+
+								// Assign to newCache so results back-propagate to previous elements
+								return (newCache[ 2 ] = oldCache[ 2 ]);
+							} else {
+								// Reuse newcache so results back-propagate to previous elements
+								outerCache[ dir ] = newCache;
+
+								// A match means we're done; a fail means we have to keep checking
+								if ( (newCache[ 2 ] = matcher( elem, context, xml )) ) {
+									return true;
+								}
+							}
+						}
+					}
+				}
+			};
+	}
+
+	function elementMatcher( matchers ) {
+		return matchers.length > 1 ?
+			function( elem, context, xml ) {
+				var i = matchers.length;
+				while ( i-- ) {
+					if ( !matchers[i]( elem, context, xml ) ) {
+						return false;
+					}
+				}
+				return true;
+			} :
+			matchers[0];
+	}
+
+	function multipleContexts( selector, contexts, results ) {
+		var i = 0,
+			len = contexts.length;
+		for ( ; i < len; i++ ) {
+			Sizzle( selector, contexts[i], results );
+		}
+		return results;
+	}
+
+	function condense( unmatched, map, filter, context, xml ) {
+		var elem,
+			newUnmatched = [],
+			i = 0,
+			len = unmatched.length,
+			mapped = map != null;
+
+		for ( ; i < len; i++ ) {
+			if ( (elem = unmatched[i]) ) {
+				if ( !filter || filter( elem, context, xml ) ) {
+					newUnmatched.push( elem );
+					if ( mapped ) {
+						map.push( i );
+					}
+				}
+			}
+		}
+
+		return newUnmatched;
+	}
+
+	function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postSelector ) {
+		if ( postFilter && !postFilter[ expando ] ) {
+			postFilter = setMatcher( postFilter );
+		}
+		if ( postFinder && !postFinder[ expando ] ) {
+			postFinder = setMatcher( postFinder, postSelector );
+		}
+		return markFunction(function( seed, results, context, xml ) {
+			var temp, i, elem,
+				preMap = [],
+				postMap = [],
+				preexisting = results.length,
+
+				// Get initial elements from seed or context
+				elems = seed || multipleContexts( selector || "*", context.nodeType ? [ context ] : context, [] ),
+
+				// Prefilter to get matcher input, preserving a map for seed-results synchronization
+				matcherIn = preFilter && ( seed || !selector ) ?
+					condense( elems, preMap, preFilter, context, xml ) :
+					elems,
+
+				matcherOut = matcher ?
+					// If we have a postFinder, or filtered seed, or non-seed postFilter or preexisting results,
+					postFinder || ( seed ? preFilter : preexisting || postFilter ) ?
+
+						// ...intermediate processing is necessary
+						[] :
+
+						// ...otherwise use results directly
+						results :
+					matcherIn;
+
+			// Find primary matches
+			if ( matcher ) {
+				matcher( matcherIn, matcherOut, context, xml );
+			}
+
+			// Apply postFilter
+			if ( postFilter ) {
+				temp = condense( matcherOut, postMap );
+				postFilter( temp, [], context, xml );
+
+				// Un-match failing elements by moving them back to matcherIn
+				i = temp.length;
+				while ( i-- ) {
+					if ( (elem = temp[i]) ) {
+						matcherOut[ postMap[i] ] = !(matcherIn[ postMap[i] ] = elem);
+					}
+				}
+			}
+
+			if ( seed ) {
+				if ( postFinder || preFilter ) {
+					if ( postFinder ) {
+						// Get the final matcherOut by condensing this intermediate into postFinder contexts
+						temp = [];
+						i = matcherOut.length;
+						while ( i-- ) {
+							if ( (elem = matcherOut[i]) ) {
+								// Restore matcherIn since elem is not yet a final match
+								temp.push( (matcherIn[i] = elem) );
+							}
+						}
+						postFinder( null, (matcherOut = []), temp, xml );
+					}
+
+					// Move matched elements from seed to results to keep them synchronized
+					i = matcherOut.length;
+					while ( i-- ) {
+						if ( (elem = matcherOut[i]) &&
+							(temp = postFinder ? indexOf( seed, elem ) : preMap[i]) > -1 ) {
+
+							seed[temp] = !(results[temp] = elem);
+						}
+					}
+				}
+
+			// Add elements to results, through postFinder if defined
+			} else {
+				matcherOut = condense(
+					matcherOut === results ?
+						matcherOut.splice( preexisting, matcherOut.length ) :
+						matcherOut
+				);
+				if ( postFinder ) {
+					postFinder( null, results, matcherOut, xml );
+				} else {
+					push.apply( results, matcherOut );
+				}
+			}
+		});
+	}
+
+	function matcherFromTokens( tokens ) {
+		var checkContext, matcher, j,
+			len = tokens.length,
+			leadingRelative = Expr.relative[ tokens[0].type ],
+			implicitRelative = leadingRelative || Expr.relative[" "],
+			i = leadingRelative ? 1 : 0,
+
+			// The foundational matcher ensures that elements are reachable from top-level context(s)
+			matchContext = addCombinator( function( elem ) {
+				return elem === checkContext;
+			}, implicitRelative, true ),
+			matchAnyContext = addCombinator( function( elem ) {
+				return indexOf( checkContext, elem ) > -1;
+			}, implicitRelative, true ),
+			matchers = [ function( elem, context, xml ) {
+				var ret = ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
+					(checkContext = context).nodeType ?
+						matchContext( elem, context, xml ) :
+						matchAnyContext( elem, context, xml ) );
+				// Avoid hanging onto element (issue #299)
+				checkContext = null;
+				return ret;
+			} ];
+
+		for ( ; i < len; i++ ) {
+			if ( (matcher = Expr.relative[ tokens[i].type ]) ) {
+				matchers = [ addCombinator(elementMatcher( matchers ), matcher) ];
+			} else {
+				matcher = Expr.filter[ tokens[i].type ].apply( null, tokens[i].matches );
+
+				// Return special upon seeing a positional matcher
+				if ( matcher[ expando ] ) {
+					// Find the next relative operator (if any) for proper handling
+					j = ++i;
+					for ( ; j < len; j++ ) {
+						if ( Expr.relative[ tokens[j].type ] ) {
+							break;
+						}
+					}
+					return setMatcher(
+						i > 1 && elementMatcher( matchers ),
+						i > 1 && toSelector(
+							// If the preceding token was a descendant combinator, insert an implicit any-element `*`
+							tokens.slice( 0, i - 1 ).concat({ value: tokens[ i - 2 ].type === " " ? "*" : "" })
+						).replace( rtrim, "$1" ),
+						matcher,
+						i < j && matcherFromTokens( tokens.slice( i, j ) ),
+						j < len && matcherFromTokens( (tokens = tokens.slice( j )) ),
+						j < len && toSelector( tokens )
+					);
+				}
+				matchers.push( matcher );
+			}
+		}
+
+		return elementMatcher( matchers );
+	}
+
+	function matcherFromGroupMatchers( elementMatchers, setMatchers ) {
+		var bySet = setMatchers.length > 0,
+			byElement = elementMatchers.length > 0,
+			superMatcher = function( seed, context, xml, results, outermost ) {
+				var elem, j, matcher,
+					matchedCount = 0,
+					i = "0",
+					unmatched = seed && [],
+					setMatched = [],
+					contextBackup = outermostContext,
+					// We must always have either seed elements or outermost context
+					elems = seed || byElement && Expr.find["TAG"]( "*", outermost ),
+					// Use integer dirruns iff this is the outermost matcher
+					dirrunsUnique = (dirruns += contextBackup == null ? 1 : Math.random() || 0.1),
+					len = elems.length;
+
+				if ( outermost ) {
+					outermostContext = context !== document && context;
+				}
+
+				// Add elements passing elementMatchers directly to results
+				// Keep `i` a string if there are no elements so `matchedCount` will be "00" below
+				// Support: IE<9, Safari
+				// Tolerate NodeList properties (IE: "length"; Safari: <number>) matching elements by id
+				for ( ; i !== len && (elem = elems[i]) != null; i++ ) {
+					if ( byElement && elem ) {
+						j = 0;
+						while ( (matcher = elementMatchers[j++]) ) {
+							if ( matcher( elem, context, xml ) ) {
+								results.push( elem );
+								break;
+							}
+						}
+						if ( outermost ) {
+							dirruns = dirrunsUnique;
+						}
+					}
+
+					// Track unmatched elements for set filters
+					if ( bySet ) {
+						// They will have gone through all possible matchers
+						if ( (elem = !matcher && elem) ) {
+							matchedCount--;
+						}
+
+						// Lengthen the array for every element, matched or not
+						if ( seed ) {
+							unmatched.push( elem );
+						}
+					}
+				}
+
+				// Apply set filters to unmatched elements
+				matchedCount += i;
+				if ( bySet && i !== matchedCount ) {
+					j = 0;
+					while ( (matcher = setMatchers[j++]) ) {
+						matcher( unmatched, setMatched, context, xml );
+					}
+
+					if ( seed ) {
+						// Reintegrate element matches to eliminate the need for sorting
+						if ( matchedCount > 0 ) {
+							while ( i-- ) {
+								if ( !(unmatched[i] || setMatched[i]) ) {
+									setMatched[i] = pop.call( results );
+								}
+							}
+						}
+
+						// Discard index placeholder values to get only actual matches
+						setMatched = condense( setMatched );
+					}
+
+					// Add matches to results
+					push.apply( results, setMatched );
+
+					// Seedless set matches succeeding multiple successful matchers stipulate sorting
+					if ( outermost && !seed && setMatched.length > 0 &&
+						( matchedCount + setMatchers.length ) > 1 ) {
+
+						Sizzle.uniqueSort( results );
+					}
+				}
+
+				// Override manipulation of globals by nested matchers
+				if ( outermost ) {
+					dirruns = dirrunsUnique;
+					outermostContext = contextBackup;
+				}
+
+				return unmatched;
+			};
+
+		return bySet ?
+			markFunction( superMatcher ) :
+			superMatcher;
+	}
+
+	compile = Sizzle.compile = function( selector, match /* Internal Use Only */ ) {
+		var i,
+			setMatchers = [],
+			elementMatchers = [],
+			cached = compilerCache[ selector + " " ];
+
+		if ( !cached ) {
+			// Generate a function of recursive functions that can be used to check each element
+			if ( !match ) {
+				match = tokenize( selector );
+			}
+			i = match.length;
+			while ( i-- ) {
+				cached = matcherFromTokens( match[i] );
+				if ( cached[ expando ] ) {
+					setMatchers.push( cached );
+				} else {
+					elementMatchers.push( cached );
+				}
+			}
+
+			// Cache the compiled function
+			cached = compilerCache( selector, matcherFromGroupMatchers( elementMatchers, setMatchers ) );
+
+			// Save selector and tokenization
+			cached.selector = selector;
+		}
+		return cached;
+	};
+
+	/**
+	 * A low-level selection function that works with Sizzle's compiled
+	 *  selector functions
+	 * @param {String|Function} selector A selector or a pre-compiled
+	 *  selector function built with Sizzle.compile
+	 * @param {Element} context
+	 * @param {Array} [results]
+	 * @param {Array} [seed] A set of elements to match against
+	 */
+	select = Sizzle.select = function( selector, context, results, seed ) {
+		var i, tokens, token, type, find,
+			compiled = typeof selector === "function" && selector,
+			match = !seed && tokenize( (selector = compiled.selector || selector) );
+
+		results = results || [];
+
+		// Try to minimize operations if there is no seed and only one group
+		if ( match.length === 1 ) {
+
+			// Take a shortcut and set the context if the root selector is an ID
+			tokens = match[0] = match[0].slice( 0 );
+			if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
+					support.getById && context.nodeType === 9 && documentIsHTML &&
+					Expr.relative[ tokens[1].type ] ) {
+
+				context = ( Expr.find["ID"]( token.matches[0].replace(runescape, funescape), context ) || [] )[0];
+				if ( !context ) {
+					return results;
+
+				// Precompiled matchers will still verify ancestry, so step up a level
+				} else if ( compiled ) {
+					context = context.parentNode;
+				}
+
+				selector = selector.slice( tokens.shift().value.length );
+			}
+
+			// Fetch a seed set for right-to-left matching
+			i = matchExpr["needsContext"].test( selector ) ? 0 : tokens.length;
+			while ( i-- ) {
+				token = tokens[i];
+
+				// Abort if we hit a combinator
+				if ( Expr.relative[ (type = token.type) ] ) {
+					break;
+				}
+				if ( (find = Expr.find[ type ]) ) {
+					// Search, expanding context for leading sibling combinators
+					if ( (seed = find(
+						token.matches[0].replace( runescape, funescape ),
+						rsibling.test( tokens[0].type ) && testContext( context.parentNode ) || context
+					)) ) {
+
+						// If seed is empty or no tokens remain, we can return early
+						tokens.splice( i, 1 );
+						selector = seed.length && toSelector( tokens );
+						if ( !selector ) {
+							push.apply( results, seed );
+							return results;
+						}
+
+						break;
+					}
+				}
+			}
+		}
+
+		// Compile and execute a filtering function if one is not provided
+		// Provide `match` to avoid retokenization if we modified the selector above
+		( compiled || compile( selector, match ) )(
+			seed,
+			context,
+			!documentIsHTML,
+			results,
+			rsibling.test( selector ) && testContext( context.parentNode ) || context
+		);
+		return results;
+	};
+
+	// One-time assignments
+
+	// Sort stability
+	support.sortStable = expando.split("").sort( sortOrder ).join("") === expando;
+
+	// Support: Chrome 14-35+
+	// Always assume duplicates if they aren't passed to the comparison function
+	support.detectDuplicates = !!hasDuplicate;
+
+	// Initialize against the default document
+	setDocument();
+
+	// Support: Webkit<537.32 - Safari 6.0.3/Chrome 25 (fixed in Chrome 27)
+	// Detached nodes confoundingly follow *each other*
+	support.sortDetached = assert(function( div1 ) {
+		// Should return 1, but returns 4 (following)
+		return div1.compareDocumentPosition( document.createElement("div") ) & 1;
+	});
+
+	// Support: IE<8
+	// Prevent attribute/property "interpolation"
+	// http://msdn.microsoft.com/en-us/library/ms536429%28VS.85%29.aspx
+	if ( !assert(function( div ) {
+		div.innerHTML = "<a href='#'></a>";
+		return div.firstChild.getAttribute("href") === "#" ;
+	}) ) {
+		addHandle( "type|href|height|width", function( elem, name, isXML ) {
+			if ( !isXML ) {
+				return elem.getAttribute( name, name.toLowerCase() === "type" ? 1 : 2 );
+			}
+		});
+	}
+
+	// Support: IE<9
+	// Use defaultValue in place of getAttribute("value")
+	if ( !support.attributes || !assert(function( div ) {
+		div.innerHTML = "<input/>";
+		div.firstChild.setAttribute( "value", "" );
+		return div.firstChild.getAttribute( "value" ) === "";
+	}) ) {
+		addHandle( "value", function( elem, name, isXML ) {
+			if ( !isXML && elem.nodeName.toLowerCase() === "input" ) {
+				return elem.defaultValue;
+			}
+		});
+	}
+
+	// Support: IE<9
+	// Use getAttributeNode to fetch booleans when getAttribute lies
+	if ( !assert(function( div ) {
+		return div.getAttribute("disabled") == null;
+	}) ) {
+		addHandle( booleans, function( elem, name, isXML ) {
+			var val;
+			if ( !isXML ) {
+				return elem[ name ] === true ? name.toLowerCase() :
+						(val = elem.getAttributeNode( name )) && val.specified ?
+						val.value :
+					null;
+			}
+		});
+	}
+
+	return Sizzle;
+
+	})( window );
+
+
+
+	jQuery.find = Sizzle;
+	jQuery.expr = Sizzle.selectors;
+	jQuery.expr[":"] = jQuery.expr.pseudos;
+	jQuery.unique = Sizzle.uniqueSort;
+	jQuery.text = Sizzle.getText;
+	jQuery.isXMLDoc = Sizzle.isXML;
+	jQuery.contains = Sizzle.contains;
+
+
+
+	var rneedsContext = jQuery.expr.match.needsContext;
+
+	var rsingleTag = (/^<(\w+)\s*\/?>(?:<\/\1>|)$/);
+
+
+
+	var risSimple = /^.[^:#\[\.,]*$/;
+
+	// Implement the identical functionality for filter and not
+	function winnow( elements, qualifier, not ) {
+		if ( jQuery.isFunction( qualifier ) ) {
+			return jQuery.grep( elements, function( elem, i ) {
+				/* jshint -W018 */
+				return !!qualifier.call( elem, i, elem ) !== not;
+			});
+
+		}
+
+		if ( qualifier.nodeType ) {
+			return jQuery.grep( elements, function( elem ) {
+				return ( elem === qualifier ) !== not;
+			});
+
+		}
+
+		if ( typeof qualifier === "string" ) {
+			if ( risSimple.test( qualifier ) ) {
+				return jQuery.filter( qualifier, elements, not );
+			}
+
+			qualifier = jQuery.filter( qualifier, elements );
+		}
+
+		return jQuery.grep( elements, function( elem ) {
+			return ( indexOf.call( qualifier, elem ) >= 0 ) !== not;
+		});
+	}
+
+	jQuery.filter = function( expr, elems, not ) {
+		var elem = elems[ 0 ];
+
+		if ( not ) {
+			expr = ":not(" + expr + ")";
+		}
+
+		return elems.length === 1 && elem.nodeType === 1 ?
+			jQuery.find.matchesSelector( elem, expr ) ? [ elem ] : [] :
+			jQuery.find.matches( expr, jQuery.grep( elems, function( elem ) {
+				return elem.nodeType === 1;
+			}));
+	};
+
+	jQuery.fn.extend({
+		find: function( selector ) {
+			var i,
+				len = this.length,
+				ret = [],
+				self = this;
+
+			if ( typeof selector !== "string" ) {
+				return this.pushStack( jQuery( selector ).filter(function() {
+					for ( i = 0; i < len; i++ ) {
+						if ( jQuery.contains( self[ i ], this ) ) {
+							return true;
+						}
+					}
+				}) );
+			}
+
+			for ( i = 0; i < len; i++ ) {
+				jQuery.find( selector, self[ i ], ret );
+			}
+
+			// Needed because $( selector, context ) becomes $( context ).find( selector )
+			ret = this.pushStack( len > 1 ? jQuery.unique( ret ) : ret );
+			ret.selector = this.selector ? this.selector + " " + selector : selector;
+			return ret;
+		},
+		filter: function( selector ) {
+			return this.pushStack( winnow(this, selector || [], false) );
+		},
+		not: function( selector ) {
+			return this.pushStack( winnow(this, selector || [], true) );
+		},
+		is: function( selector ) {
+			return !!winnow(
+				this,
+
+				// If this is a positional/relative selector, check membership in the returned set
+				// so $("p:first").is("p:last") won't return true for a doc with two "p".
+				typeof selector === "string" && rneedsContext.test( selector ) ?
+					jQuery( selector ) :
+					selector || [],
+				false
+			).length;
+		}
+	});
+
+
+	// Initialize a jQuery object
+
+
+	// A central reference to the root jQuery(document)
+	var rootjQuery,
+
+		// A simple way to check for HTML strings
+		// Prioritize #id over <tag> to avoid XSS via location.hash (#9521)
+		// Strict HTML recognition (#11290: must start with <)
+		rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,
+
+		init = jQuery.fn.init = function( selector, context ) {
+			var match, elem;
+
+			// HANDLE: $(""), $(null), $(undefined), $(false)
+			if ( !selector ) {
+				return this;
+			}
+
+			// Handle HTML strings
+			if ( typeof selector === "string" ) {
+				if ( selector[0] === "<" && selector[ selector.length - 1 ] === ">" && selector.length >= 3 ) {
+					// Assume that strings that start and end with <> are HTML and skip the regex check
+					match = [ null, selector, null ];
+
+				} else {
+					match = rquickExpr.exec( selector );
+				}
+
+				// Match html or make sure no context is specified for #id
+				if ( match && (match[1] || !context) ) {
+
+					// HANDLE: $(html) -> $(array)
+					if ( match[1] ) {
+						context = context instanceof jQuery ? context[0] : context;
+
+						// Option to run scripts is true for back-compat
+						// Intentionally let the error be thrown if parseHTML is not present
+						jQuery.merge( this, jQuery.parseHTML(
+							match[1],
+							context && context.nodeType ? context.ownerDocument || context : document,
+							true
+						) );
+
+						// HANDLE: $(html, props)
+						if ( rsingleTag.test( match[1] ) && jQuery.isPlainObject( context ) ) {
+							for ( match in context ) {
+								// Properties of context are called as methods if possible
+								if ( jQuery.isFunction( this[ match ] ) ) {
+									this[ match ]( context[ match ] );
+
+								// ...and otherwise set as attributes
+								} else {
+									this.attr( match, context[ match ] );
+								}
+							}
+						}
+
+						return this;
+
+					// HANDLE: $(#id)
+					} else {
+						elem = document.getElementById( match[2] );
+
+						// Support: Blackberry 4.6
+						// gEBID returns nodes no longer in the document (#6963)
+						if ( elem && elem.parentNode ) {
+							// Inject the element directly into the jQuery object
+							this.length = 1;
+							this[0] = elem;
+						}
+
+						this.context = document;
+						this.selector = selector;
+						return this;
+					}
+
+				// HANDLE: $(expr, $(...))
+				} else if ( !context || context.jquery ) {
+					return ( context || rootjQuery ).find( selector );
+
+				// HANDLE: $(expr, context)
+				// (which is just equivalent to: $(context).find(expr)
+				} else {
+					return this.constructor( context ).find( selector );
+				}
+
+			// HANDLE: $(DOMElement)
+			} else if ( selector.nodeType ) {
+				this.context = this[0] = selector;
+				this.length = 1;
+				return this;
+
+			// HANDLE: $(function)
+			// Shortcut for document ready
+			} else if ( jQuery.isFunction( selector ) ) {
+				return typeof rootjQuery.ready !== "undefined" ?
+					rootjQuery.ready( selector ) :
+					// Execute immediately if ready is not present
+					selector( jQuery );
+			}
+
+			if ( selector.selector !== undefined ) {
+				this.selector = selector.selector;
+				this.context = selector.context;
+			}
+
+			return jQuery.makeArray( selector, this );
+		};
+
+	// Give the init function the jQuery prototype for later instantiation
+	init.prototype = jQuery.fn;
+
+	// Initialize central reference
+	rootjQuery = jQuery( document );
+
+
+	var rparentsprev = /^(?:parents|prev(?:Until|All))/,
+		// Methods guaranteed to produce a unique set when starting from a unique set
+		guaranteedUnique = {
+			children: true,
+			contents: true,
+			next: true,
+			prev: true
+		};
+
+	jQuery.extend({
+		dir: function( elem, dir, until ) {
+			var matched = [],
+				truncate = until !== undefined;
+
+			while ( (elem = elem[ dir ]) && elem.nodeType !== 9 ) {
+				if ( elem.nodeType === 1 ) {
+					if ( truncate && jQuery( elem ).is( until ) ) {
+						break;
+					}
+					matched.push( elem );
+				}
+			}
+			return matched;
+		},
+
+		sibling: function( n, elem ) {
+			var matched = [];
+
+			for ( ; n; n = n.nextSibling ) {
+				if ( n.nodeType === 1 && n !== elem ) {
+					matched.push( n );
+				}
+			}
+
+			return matched;
+		}
+	});
+
+	jQuery.fn.extend({
+		has: function( target ) {
+			var targets = jQuery( target, this ),
+				l = targets.length;
+
+			return this.filter(function() {
+				var i = 0;
+				for ( ; i < l; i++ ) {
+					if ( jQuery.contains( this, targets[i] ) ) {
+						return true;
+					}
+				}
+			});
+		},
+
+		closest: function( selectors, context ) {
+			var cur,
+				i = 0,
+				l = this.length,
+				matched = [],
+				pos = rneedsContext.test( selectors ) || typeof selectors !== "string" ?
+					jQuery( selectors, context || this.context ) :
+					0;
+
+			for ( ; i < l; i++ ) {
+				for ( cur = this[i]; cur && cur !== context; cur = cur.parentNode ) {
+					// Always skip document fragments
+					if ( cur.nodeType < 11 && (pos ?
+						pos.index(cur) > -1 :
+
+						// Don't pass non-elements to Sizzle
+						cur.nodeType === 1 &&
+							jQuery.find.matchesSelector(cur, selectors)) ) {
+
+						matched.push( cur );
+						break;
+					}
+				}
+			}
+
+			return this.pushStack( matched.length > 1 ? jQuery.unique( matched ) : matched );
+		},
+
+		// Determine the position of an element within the set
+		index: function( elem ) {
+
+			// No argument, return index in parent
+			if ( !elem ) {
+				return ( this[ 0 ] && this[ 0 ].parentNode ) ? this.first().prevAll().length : -1;
+			}
+
+			// Index in selector
+			if ( typeof elem === "string" ) {
+				return indexOf.call( jQuery( elem ), this[ 0 ] );
+			}
+
+			// Locate the position of the desired element
+			return indexOf.call( this,
+
+				// If it receives a jQuery object, the first element is used
+				elem.jquery ? elem[ 0 ] : elem
+			);
+		},
+
+		add: function( selector, context ) {
+			return this.pushStack(
+				jQuery.unique(
+					jQuery.merge( this.get(), jQuery( selector, context ) )
+				)
+			);
+		},
+
+		addBack: function( selector ) {
+			return this.add( selector == null ?
+				this.prevObject : this.prevObject.filter(selector)
+			);
+		}
+	});
+
+	function sibling( cur, dir ) {
+		while ( (cur = cur[dir]) && cur.nodeType !== 1 ) {}
+		return cur;
+	}
+
+	jQuery.each({
+		parent: function( elem ) {
+			var parent = elem.parentNode;
+			return parent && parent.nodeType !== 11 ? parent : null;
+		},
+		parents: function( elem ) {
+			return jQuery.dir( elem, "parentNode" );
+		},
+		parentsUntil: function( elem, i, until ) {
+			return jQuery.dir( elem, "parentNode", until );
+		},
+		next: function( elem ) {
+			return sibling( elem, "nextSibling" );
+		},
+		prev: function( elem ) {
+			return sibling( elem, "previousSibling" );
+		},
+		nextAll: function( elem ) {
+			return jQuery.dir( elem, "nextSibling" );
+		},
+		prevAll: function( elem ) {
+			return jQuery.dir( elem, "previousSibling" );
+		},
+		nextUntil: function( elem, i, until ) {
+			return jQuery.dir( elem, "nextSibling", until );
+		},
+		prevUntil: function( elem, i, until ) {
+			return jQuery.dir( elem, "previousSibling", until );
+		},
+		siblings: function( elem ) {
+			return jQuery.sibling( ( elem.parentNode || {} ).firstChild, elem );
+		},
+		children: function( elem ) {
+			return jQuery.sibling( elem.firstChild );
+		},
+		contents: function( elem ) {
+			return elem.contentDocument || jQuery.merge( [], elem.childNodes );
+		}
+	}, function( name, fn ) {
+		jQuery.fn[ name ] = function( until, selector ) {
+			var matched = jQuery.map( this, fn, until );
+
+			if ( name.slice( -5 ) !== "Until" ) {
+				selector = until;
+			}
+
+			if ( selector && typeof selector === "string" ) {
+				matched = jQuery.filter( selector, matched );
+			}
+
+			if ( this.length > 1 ) {
+				// Remove duplicates
+				if ( !guaranteedUnique[ name ] ) {
+					jQuery.unique( matched );
+				}
+
+				// Reverse order for parents* and prev-derivatives
+				if ( rparentsprev.test( name ) ) {
+					matched.reverse();
+				}
+			}
+
+			return this.pushStack( matched );
+		};
+	});
+	var rnotwhite = (/\S+/g);
+
+
+
+	// String to Object options format cache
+	var optionsCache = {};
+
+	// Convert String-formatted options into Object-formatted ones and store in cache
+	function createOptions( options ) {
+		var object = optionsCache[ options ] = {};
+		jQuery.each( options.match( rnotwhite ) || [], function( _, flag ) {
+			object[ flag ] = true;
+		});
+		return object;
+	}
+
+	/*
+	 * Create a callback list using the following parameters:
+	 *
+	 *	options: an optional list of space-separated options that will change how
+	 *			the callback list behaves or a more traditional option object
+	 *
+	 * By default a callback list will act like an event callback list and can be
+	 * "fired" multiple times.
+	 *
+	 * Possible options:
+	 *
+	 *	once:			will ensure the callback list can only be fired once (like a Deferred)
+	 *
+	 *	memory:			will keep track of previous values and will call any callback added
+	 *					after the list has been fired right away with the latest "memorized"
+	 *					values (like a Deferred)
+	 *
+	 *	unique:			will ensure a callback can only be added once (no duplicate in the list)
+	 *
+	 *	stopOnFalse:	interrupt callings when a callback returns false
+	 *
+	 */
+	jQuery.Callbacks = function( options ) {
+
+		// Convert options from String-formatted to Object-formatted if needed
+		// (we check in cache first)
+		options = typeof options === "string" ?
+			( optionsCache[ options ] || createOptions( options ) ) :
+			jQuery.extend( {}, options );
+
+		var // Last fire value (for non-forgettable lists)
+			memory,
+			// Flag to know if list was already fired
+			fired,
+			// Flag to know if list is currently firing
+			firing,
+			// First callback to fire (used internally by add and fireWith)
+			firingStart,
+			// End of the loop when firing
+			firingLength,
+			// Index of currently firing callback (modified by remove if needed)
+			firingIndex,
+			// Actual callback list
+			list = [],
+			// Stack of fire calls for repeatable lists
+			stack = !options.once && [],
+			// Fire callbacks
+			fire = function( data ) {
+				memory = options.memory && data;
+				fired = true;
+				firingIndex = firingStart || 0;
+				firingStart = 0;
+				firingLength = list.length;
+				firing = true;
+				for ( ; list && firingIndex < firingLength; firingIndex++ ) {
+					if ( list[ firingIndex ].apply( data[ 0 ], data[ 1 ] ) === false && options.stopOnFalse ) {
+						memory = false; // To prevent further calls using add
+						break;
+					}
+				}
+				firing = false;
+				if ( list ) {
+					if ( stack ) {
+						if ( stack.length ) {
+							fire( stack.shift() );
+						}
+					} else if ( memory ) {
+						list = [];
+					} else {
+						self.disable();
+					}
+				}
+			},
+			// Actual Callbacks object
+			self = {
+				// Add a callback or a collection of callbacks to the list
+				add: function() {
+					if ( list ) {
+						// First, we save the current length
+						var start = list.length;
+						(function add( args ) {
+							jQuery.each( args, function( _, arg ) {
+								var type = jQuery.type( arg );
+								if ( type === "function" ) {
+									if ( !options.unique || !self.has( arg ) ) {
+										list.push( arg );
+									}
+								} else if ( arg && arg.length && type !== "string" ) {
+									// Inspect recursively
+									add( arg );
+								}
+							});
+						})( arguments );
+						// Do we need to add the callbacks to the
+						// current firing batch?
+						if ( firing ) {
+							firingLength = list.length;
+						// With memory, if we're not firing then
+						// we should call right away
+						} else if ( memory ) {
+							firingStart = start;
+							fire( memory );
+						}
+					}
+					return this;
+				},
+				// Remove a callback from the list
+				remove: function() {
+					if ( list ) {
+						jQuery.each( arguments, function( _, arg ) {
+							var index;
+							while ( ( index = jQuery.inArray( arg, list, index ) ) > -1 ) {
+								list.splice( index, 1 );
+								// Handle firing indexes
+								if ( firing ) {
+									if ( index <= firingLength ) {
+										firingLength--;
+									}
+									if ( index <= firingIndex ) {
+										firingIndex--;
+									}
+								}
+							}
+						});
+					}
+					return this;
+				},
+				// Check if a given callback is in the list.
+				// If no argument is given, return whether or not list has callbacks attached.
+				has: function( fn ) {
+					return fn ? jQuery.inArray( fn, list ) > -1 : !!( list && list.length );
+				},
+				// Remove all callbacks from the list
+				empty: function() {
+					list = [];
+					firingLength = 0;
+					return this;
+				},
+				// Have the list do nothing anymore
+				disable: function() {
+					list = stack = memory = undefined;
+					return this;
+				},
+				// Is it disabled?
+				disabled: function() {
+					return !list;
+				},
+				// Lock the list in its current state
+				lock: function() {
+					stack = undefined;
+					if ( !memory ) {
+						self.disable();
+					}
+					return this;
+				},
+				// Is it locked?
+				locked: function() {
+					return !stack;
+				},
+				// Call all callbacks with the given context and arguments
+				fireWith: function( context, args ) {
+					if ( list && ( !fired || stack ) ) {
+						args = args || [];
+						args = [ context, args.slice ? args.slice() : args ];
+						if ( firing ) {
+							stack.push( args );
+						} else {
+							fire( args );
+						}
+					}
+					return this;
+				},
+				// Call all the callbacks with the given arguments
+				fire: function() {
+					self.fireWith( this, arguments );
+					return this;
+				},
+				// To know if the callbacks have already been called at least once
+				fired: function() {
+					return !!fired;
+				}
+			};
+
+		return self;
+	};
+
+
+	jQuery.extend({
+
+		Deferred: function( func ) {
+			var tuples = [
+					// action, add listener, listener list, final state
+					[ "resolve", "done", jQuery.Callbacks("once memory"), "resolved" ],
+					[ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
+					[ "notify", "progress", jQuery.Callbacks("memory") ]
+				],
+				state = "pending",
+				promise = {
+					state: function() {
+						return state;
+					},
+					always: function() {
+						deferred.done( arguments ).fail( arguments );
+						return this;
+					},
+					then: function( /* fnDone, fnFail, fnProgress */ ) {
+						var fns = arguments;
+						return jQuery.Deferred(function( newDefer ) {
+							jQuery.each( tuples, function( i, tuple ) {
+								var fn = jQuery.isFunction( fns[ i ] ) && fns[ i ];
+								// deferred[ done | fail | progress ] for forwarding actions to newDefer
+								deferred[ tuple[1] ](function() {
+									var returned = fn && fn.apply( this, arguments );
+									if ( returned && jQuery.isFunction( returned.promise ) ) {
+										returned.promise()
+											.done( newDefer.resolve )
+											.fail( newDefer.reject )
+											.progress( newDefer.notify );
+									} else {
+										newDefer[ tuple[ 0 ] + "With" ]( this === promise ? newDefer.promise() : this, fn ? [ returned ] : arguments );
+									}
+								});
+							});
+							fns = null;
+						}).promise();
+					},
+					// Get a promise for this deferred
+					// If obj is provided, the promise aspect is added to the object
+					promise: function( obj ) {
+						return obj != null ? jQuery.extend( obj, promise ) : promise;
+					}
+				},
+				deferred = {};
+
+			// Keep pipe for back-compat
+			promise.pipe = promise.then;
+
+			// Add list-specific methods
+			jQuery.each( tuples, function( i, tuple ) {
+				var list = tuple[ 2 ],
+					stateString = tuple[ 3 ];
+
+				// promise[ done | fail | progress ] = list.add
+				promise[ tuple[1] ] = list.add;
+
+				// Handle state
+				if ( stateString ) {
+					list.add(function() {
+						// state = [ resolved | rejected ]
+						state = stateString;
+
+					// [ reject_list | resolve_list ].disable; progress_list.lock
+					}, tuples[ i ^ 1 ][ 2 ].disable, tuples[ 2 ][ 2 ].lock );
+				}
+
+				// deferred[ resolve | reject | notify ]
+				deferred[ tuple[0] ] = function() {
+					deferred[ tuple[0] + "With" ]( this === deferred ? promise : this, arguments );
+					return this;
+				};
+				deferred[ tuple[0] + "With" ] = list.fireWith;
+			});
+
+			// Make the deferred a promise
+			promise.promise( deferred );
+
+			// Call given func if any
+			if ( func ) {
+				func.call( deferred, deferred );
+			}
+
+			// All done!
+			return deferred;
+		},
+
+		// Deferred helper
+		when: function( subordinate /* , ..., subordinateN */ ) {
+			var i = 0,
+				resolveValues = slice.call( arguments ),
+				length = resolveValues.length,
+
+				// the count of uncompleted subordinates
+				remaining = length !== 1 || ( subordinate && jQuery.isFunction( subordinate.promise ) ) ? length : 0,
+
+				// the master Deferred. If resolveValues consist of only a single Deferred, just use that.
+				deferred = remaining === 1 ? subordinate : jQuery.Deferred(),
+
+				// Update function for both resolve and progress values
+				updateFunc = function( i, contexts, values ) {
+					return function( value ) {
+						contexts[ i ] = this;
+						values[ i ] = arguments.length > 1 ? slice.call( arguments ) : value;
+						if ( values === progressValues ) {
+							deferred.notifyWith( contexts, values );
+						} else if ( !( --remaining ) ) {
+							deferred.resolveWith( contexts, values );
+						}
+					};
+				},
+
+				progressValues, progressContexts, resolveContexts;
+
+			// Add listeners to Deferred subordinates; treat others as resolved
+			if ( length > 1 ) {
+				progressValues = new Array( length );
+				progressContexts = new Array( length );
+				resolveContexts = new Array( length );
+				for ( ; i < length; i++ ) {
+					if ( resolveValues[ i ] && jQuery.isFunction( resolveValues[ i ].promise ) ) {
+						resolveValues[ i ].promise()
+							.done( updateFunc( i, resolveContexts, resolveValues ) )
+							.fail( deferred.reject )
+							.progress( updateFunc( i, progressContexts, progressValues ) );
+					} else {
+						--remaining;
+					}
+				}
+			}
+
+			// If we're not waiting on anything, resolve the master
+			if ( !remaining ) {
+				deferred.resolveWith( resolveContexts, resolveValues );
+			}
+
+			return deferred.promise();
+		}
+	});
+
+
+	// The deferred used on DOM ready
+	var readyList;
+
+	jQuery.fn.ready = function( fn ) {
+		// Add the callback
+		jQuery.ready.promise().done( fn );
+
+		return this;
+	};
+
+	jQuery.extend({
+		// Is the DOM ready to be used? Set to true once it occurs.
+		isReady: false,
+
+		// A counter to track how many items to wait for before
+		// the ready event fires. See #6781
+		readyWait: 1,
+
+		// Hold (or release) the ready event
+		holdReady: function( hold ) {
+			if ( hold ) {
+				jQuery.readyWait++;
+			} else {
+				jQuery.ready( true );
+			}
+		},
+
+		// Handle when the DOM is ready
+		ready: function( wait ) {
+
+			// Abort if there are pending holds or we're already ready
+			if ( wait === true ? --jQuery.readyWait : jQuery.isReady ) {
+				return;
+			}
+
+			// Remember that the DOM is ready
+			jQuery.isReady = true;
+
+			// If a normal DOM Ready event fired, decrement, and wait if need be
+			if ( wait !== true && --jQuery.readyWait > 0 ) {
+				return;
+			}
+
+			// If there are functions bound, to execute
+			readyList.resolveWith( document, [ jQuery ] );
+
+			// Trigger any bound ready events
+			if ( jQuery.fn.triggerHandler ) {
+				jQuery( document ).triggerHandler( "ready" );
+				jQuery( document ).off( "ready" );
+			}
+		}
+	});
+
+	/**
+	 * The ready event handler and self cleanup method
+	 */
+	function completed() {
+		document.removeEventListener( "DOMContentLoaded", completed, false );
+		window.removeEventListener( "load", completed, false );
+		jQuery.ready();
+	}
+
+	jQuery.ready.promise = function( obj ) {
+		if ( !readyList ) {
+
+			readyList = jQuery.Deferred();
+
+			// Catch cases where $(document).ready() is called after the browser event has already occurred.
+			// We once tried to use readyState "interactive" here, but it caused issues like the one
+			// discovered by ChrisS here: http://bugs.jquery.com/ticket/12282#comment:15
+			if ( document.readyState === "complete" ) {
+				// Handle it asynchronously to allow scripts the opportunity to delay ready
+				setTimeout( jQuery.ready );
+
+			} else {
+
+				// Use the handy event callback
+				document.addEventListener( "DOMContentLoaded", completed, false );
+
+				// A fallback to window.onload, that will always work
+				window.addEventListener( "load", completed, false );
+			}
+		}
+		return readyList.promise( obj );
+	};
+
+	// Kick off the DOM ready check even if the user does not
+	jQuery.ready.promise();
+
+
+
+
+	// Multifunctional method to get and set values of a collection
+	// The value/s can optionally be executed if it's a function
+	var access = jQuery.access = function( elems, fn, key, value, chainable, emptyGet, raw ) {
+		var i = 0,
+			len = elems.length,
+			bulk = key == null;
+
+		// Sets many values
+		if ( jQuery.type( key ) === "object" ) {
+			chainable = true;
+			for ( i in key ) {
+				jQuery.access( elems, fn, i, key[i], true, emptyGet, raw );
+			}
+
+		// Sets one value
+		} else if ( value !== undefined ) {
+			chainable = true;
+
+			if ( !jQuery.isFunction( value ) ) {
+				raw = true;
+			}
+
+			if ( bulk ) {
+				// Bulk operations run against the entire set
+				if ( raw ) {
+					fn.call( elems, value );
+					fn = null;
+
+				// ...except when executing function values
+				} else {
+					bulk = fn;
+					fn = function( elem, key, value ) {
+						return bulk.call( jQuery( elem ), value );
+					};
+				}
+			}
+
+			if ( fn ) {
+				for ( ; i < len; i++ ) {
+					fn( elems[i], key, raw ? value : value.call( elems[i], i, fn( elems[i], key ) ) );
+				}
+			}
+		}
+
+		return chainable ?
+			elems :
+
+			// Gets
+			bulk ?
+				fn.call( elems ) :
+				len ? fn( elems[0], key ) : emptyGet;
+	};
+
+
+	/**
+	 * Determines whether an object can have data
+	 */
+	jQuery.acceptData = function( owner ) {
+		// Accepts only:
+		//  - Node
+		//    - Node.ELEMENT_NODE
+		//    - Node.DOCUMENT_NODE
+		//  - Object
+		//    - Any
+		/* jshint -W018 */
+		return owner.nodeType === 1 || owner.nodeType === 9 || !( +owner.nodeType );
+	};
+
+
+	function Data() {
+		// Support: Android<4,
+		// Old WebKit does not have Object.preventExtensions/freeze method,
+		// return new empty object instead with no [[set]] accessor
+		Object.defineProperty( this.cache = {}, 0, {
+			get: function() {
+				return {};
+			}
+		});
+
+		this.expando = jQuery.expando + Data.uid++;
+	}
+
+	Data.uid = 1;
+	Data.accepts = jQuery.acceptData;
+
+	Data.prototype = {
+		key: function( owner ) {
+			// We can accept data for non-element nodes in modern browsers,
+			// but we should not, see #8335.
+			// Always return the key for a frozen object.
+			if ( !Data.accepts( owner ) ) {
+				return 0;
+			}
+
+			var descriptor = {},
+				// Check if the owner object already has a cache key
+				unlock = owner[ this.expando ];
+
+			// If not, create one
+			if ( !unlock ) {
+				unlock = Data.uid++;
+
+				// Secure it in a non-enumerable, non-writable property
+				try {
+					descriptor[ this.expando ] = { value: unlock };
+					Object.defineProperties( owner, descriptor );
+
+				// Support: Android<4
+				// Fallback to a less secure definition
+				} catch ( e ) {
+					descriptor[ this.expando ] = unlock;
+					jQuery.extend( owner, descriptor );
+				}
+			}
+
+			// Ensure the cache object
+			if ( !this.cache[ unlock ] ) {
+				this.cache[ unlock ] = {};
+			}
+
+			return unlock;
+		},
+		set: function( owner, data, value ) {
+			var prop,
+				// There may be an unlock assigned to this node,
+				// if there is no entry for this "owner", create one inline
+				// and set the unlock as though an owner entry had always existed
+				unlock = this.key( owner ),
+				cache = this.cache[ unlock ];
+
+			// Handle: [ owner, key, value ] args
+			if ( typeof data === "string" ) {
+				cache[ data ] = value;
+
+			// Handle: [ owner, { properties } ] args
+			} else {
+				// Fresh assignments by object are shallow copied
+				if ( jQuery.isEmptyObject( cache ) ) {
+					jQuery.extend( this.cache[ unlock ], data );
+				// Otherwise, copy the properties one-by-one to the cache object
+				} else {
+					for ( prop in data ) {
+						cache[ prop ] = data[ prop ];
+					}
+				}
+			}
+			return cache;
+		},
+		get: function( owner, key ) {
+			// Either a valid cache is found, or will be created.
+			// New caches will be created and the unlock returned,
+			// allowing direct access to the newly created
+			// empty data object. A valid owner object must be provided.
+			var cache = this.cache[ this.key( owner ) ];
+
+			return key === undefined ?
+				cache : cache[ key ];
+		},
+		access: function( owner, key, value ) {
+			var stored;
+			// In cases where either:
+			//
+			//   1. No key was specified
+			//   2. A string key was specified, but no value provided
+			//
+			// Take the "read" path and allow the get method to determine
+			// which value to return, respectively either:
+			//
+			//   1. The entire cache object
+			//   2. The data stored at the key
+			//
+			if ( key === undefined ||
+					((key && typeof key === "string") && value === undefined) ) {
+
+				stored = this.get( owner, key );
+
+				return stored !== undefined ?
+					stored : this.get( owner, jQuery.camelCase(key) );
+			}
+
+			// [*]When the key is not a string, or both a key and value
+			// are specified, set or extend (existing objects) with either:
+			//
+			//   1. An object of properties
+			//   2. A key and value
+			//
+			this.set( owner, key, value );
+
+			// Since the "set" path can have two possible entry points
+			// return the expected data based on which path was taken[*]
+			return value !== undefined ? value : key;
+		},
+		remove: function( owner, key ) {
+			var i, name, camel,
+				unlock = this.key( owner ),
+				cache = this.cache[ unlock ];
+
+			if ( key === undefined ) {
+				this.cache[ unlock ] = {};
+
+			} else {
+				// Support array or space separated string of keys
+				if ( jQuery.isArray( key ) ) {
+					// If "name" is an array of keys...
+					// When data is initially created, via ("key", "val") signature,
+					// keys will be converted to camelCase.
+					// Since there is no way to tell _how_ a key was added, remove
+					// both plain key and camelCase key. #12786
+					// This will only penalize the array argument path.
+					name = key.concat( key.map( jQuery.camelCase ) );
+				} else {
+					camel = jQuery.camelCase( key );
+					// Try the string as a key before any manipulation
+					if ( key in cache ) {
+						name = [ key, camel ];
+					} else {
+						// If a key with the spaces exists, use it.
+						// Otherwise, create an array by matching non-whitespace
+						name = camel;
+						name = name in cache ?
+							[ name ] : ( name.match( rnotwhite ) || [] );
+					}
+				}
+
+				i = name.length;
+				while ( i-- ) {
+					delete cache[ name[ i ] ];
+				}
+			}
+		},
+		hasData: function( owner ) {
+			return !jQuery.isEmptyObject(
+				this.cache[ owner[ this.expando ] ] || {}
+			);
+		},
+		discard: function( owner ) {
+			if ( owner[ this.expando ] ) {
+				delete this.cache[ owner[ this.expando ] ];
+			}
+		}
+	};
+	var data_priv = new Data();
+
+	var data_user = new Data();
+
+
+
+	//	Implementation Summary
+	//
+	//	1. Enforce API surface and semantic compatibility with 1.9.x branch
+	//	2. Improve the module's maintainability by reducing the storage
+	//		paths to a single mechanism.
+	//	3. Use the same single mechanism to support "private" and "user" data.
+	//	4. _Never_ expose "private" data to user code (TODO: Drop _data, _removeData)
+	//	5. Avoid exposing implementation details on user objects (eg. expando properties)
+	//	6. Provide a clear path for implementation upgrade to WeakMap in 2014
+
+	var rbrace = /^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,
+		rmultiDash = /([A-Z])/g;
+
+	function dataAttr( elem, key, data ) {
+		var name;
+
+		// If nothing was found internally, try to fetch any
+		// data from the HTML5 data-* attribute
+		if ( data === undefined && elem.nodeType === 1 ) {
+			name = "data-" + key.replace( rmultiDash, "-$1" ).toLowerCase();
+			data = elem.getAttribute( name );
+
+			if ( typeof data === "string" ) {
+				try {
+					data = data === "true" ? true :
+						data === "false" ? false :
+						data === "null" ? null :
+						// Only convert to a number if it doesn't change the string
+						+data + "" === data ? +data :
+						rbrace.test( data ) ? jQuery.parseJSON( data ) :
+						data;
+				} catch( e ) {}
+
+				// Make sure we set the data so it isn't changed later
+				data_user.set( elem, key, data );
+			} else {
+				data = undefined;
+			}
+		}
+		return data;
+	}
+
+	jQuery.extend({
+		hasData: function( elem ) {
+			return data_user.hasData( elem ) || data_priv.hasData( elem );
+		},
+
+		data: function( elem, name, data ) {
+			return data_user.access( elem, name, data );
+		},
+
+		removeData: function( elem, name ) {
+			data_user.remove( elem, name );
+		},
+
+		// TODO: Now that all calls to _data and _removeData have been replaced
+		// with direct calls to data_priv methods, these can be deprecated.
+		_data: function( elem, name, data ) {
+			return data_priv.access( elem, name, data );
+		},
+
+		_removeData: function( elem, name ) {
+			data_priv.remove( elem, name );
+		}
+	});
+
+	jQuery.fn.extend({
+		data: function( key, value ) {
+			var i, name, data,
+				elem = this[ 0 ],
+				attrs = elem && elem.attributes;
+
+			// Gets all values
+			if ( key === undefined ) {
+				if ( this.length ) {
+					data = data_user.get( elem );
+
+					if ( elem.nodeType === 1 && !data_priv.get( elem, "hasDataAttrs" ) ) {
+						i = attrs.length;
+						while ( i-- ) {
+
+							// Support: IE11+
+							// The attrs elements can be null (#14894)
+							if ( attrs[ i ] ) {
+								name = attrs[ i ].name;
+								if ( name.indexOf( "data-" ) === 0 ) {
+									name = jQuery.camelCase( name.slice(5) );
+									dataAttr( elem, name, data[ name ] );
+								}
+							}
+						}
+						data_priv.set( elem, "hasDataAttrs", true );
+					}
+				}
+
+				return data;
+			}
+
+			// Sets multiple values
+			if ( typeof key === "object" ) {
+				return this.each(function() {
+					data_user.set( this, key );
+				});
+			}
+
+			return access( this, function( value ) {
+				var data,
+					camelKey = jQuery.camelCase( key );
+
+				// The calling jQuery object (element matches) is not empty
+				// (and therefore has an element appears at this[ 0 ]) and the
+				// `value` parameter was not undefined. An empty jQuery object
+				// will result in `undefined` for elem = this[ 0 ] which will
+				// throw an exception if an attempt to read a data cache is made.
+				if ( elem && value === undefined ) {
+					// Attempt to get data from the cache
+					// with the key as-is
+					data = data_user.get( elem, key );
+					if ( data !== undefined ) {
+						return data;
+					}
+
+					// Attempt to get data from the cache
+					// with the key camelized
+					data = data_user.get( elem, camelKey );
+					if ( data !== undefined ) {
+						return data;
+					}
+
+					// Attempt to "discover" the data in
+					// HTML5 custom data-* attrs
+					data = dataAttr( elem, camelKey, undefined );
+					if ( data !== undefined ) {
+						return data;
+					}
+
+					// We tried really hard, but the data doesn't exist.
+					return;
+				}
+
+				// Set the data...
+				this.each(function() {
+					// First, attempt to store a copy or reference of any
+					// data that might've been store with a camelCased key.
+					var data = data_user.get( this, camelKey );
+
+					// For HTML5 data-* attribute interop, we have to
+					// store property names with dashes in a camelCase form.
+					// This might not apply to all properties...*
+					data_user.set( this, camelKey, value );
+
+					// *... In the case of properties that might _actually_
+					// have dashes, we need to also store a copy of that
+					// unchanged property.
+					if ( key.indexOf("-") !== -1 && data !== undefined ) {
+						data_user.set( this, key, value );
+					}
+				});
+			}, null, value, arguments.length > 1, null, true );
+		},
+
+		removeData: function( key ) {
+			return this.each(function() {
+				data_user.remove( this, key );
+			});
+		}
+	});
+
+
+	jQuery.extend({
+		queue: function( elem, type, data ) {
+			var queue;
+
+			if ( elem ) {
+				type = ( type || "fx" ) + "queue";
+				queue = data_priv.get( elem, type );
+
+				// Speed up dequeue by getting out quickly if this is just a lookup
+				if ( data ) {
+					if ( !queue || jQuery.isArray( data ) ) {
+						queue = data_priv.access( elem, type, jQuery.makeArray(data) );
+					} else {
+						queue.push( data );
+					}
+				}
+				return queue || [];
+			}
+		},
+
+		dequeue: function( elem, type ) {
+			type = type || "fx";
+
+			var queue = jQuery.queue( elem, type ),
+				startLength = queue.length,
+				fn = queue.shift(),
+				hooks = jQuery._queueHooks( elem, type ),
+				next = function() {
+					jQuery.dequeue( elem, type );
+				};
+
+			// If the fx queue is dequeued, always remove the progress sentinel
+			if ( fn === "inprogress" ) {
+				fn = queue.shift();
+				startLength--;
+			}
+
+			if ( fn ) {
+
+				// Add a progress sentinel to prevent the fx queue from being
+				// automatically dequeued
+				if ( type === "fx" ) {
+					queue.unshift( "inprogress" );
+				}
+
+				// Clear up the last queue stop function
+				delete hooks.stop;
+				fn.call( elem, next, hooks );
+			}
+
+			if ( !startLength && hooks ) {
+				hooks.empty.fire();
+			}
+		},
+
+		// Not public - generate a queueHooks object, or return the current one
+		_queueHooks: function( elem, type ) {
+			var key = type + "queueHooks";
+			return data_priv.get( elem, key ) || data_priv.access( elem, key, {
+				empty: jQuery.Callbacks("once memory").add(function() {
+					data_priv.remove( elem, [ type + "queue", key ] );
+				})
+			});
+		}
+	});
+
+	jQuery.fn.extend({
+		queue: function( type, data ) {
+			var setter = 2;
+
+			if ( typeof type !== "string" ) {
+				data = type;
+				type = "fx";
+				setter--;
+			}
+
+			if ( arguments.length < setter ) {
+				return jQuery.queue( this[0], type );
+			}
+
+			return data === undefined ?
+				this :
+				this.each(function() {
+					var queue = jQuery.queue( this, type, data );
+
+					// Ensure a hooks for this queue
+					jQuery._queueHooks( this, type );
+
+					if ( type === "fx" && queue[0] !== "inprogress" ) {
+						jQuery.dequeue( this, type );
+					}
+				});
+		},
+		dequeue: function( type ) {
+			return this.each(function() {
+				jQuery.dequeue( this, type );
+			});
+		},
+		clearQueue: function( type ) {
+			return this.queue( type || "fx", [] );
+		},
+		// Get a promise resolved when queues of a certain type
+		// are emptied (fx is the type by default)
+		promise: function( type, obj ) {
+			var tmp,
+				count = 1,
+				defer = jQuery.Deferred(),
+				elements = this,
+				i = this.length,
+				resolve = function() {
+					if ( !( --count ) ) {
+						defer.resolveWith( elements, [ elements ] );
+					}
+				};
+
+			if ( typeof type !== "string" ) {
+				obj = type;
+				type = undefined;
+			}
+			type = type || "fx";
+
+			while ( i-- ) {
+				tmp = data_priv.get( elements[ i ], type + "queueHooks" );
+				if ( tmp && tmp.empty ) {
+					count++;
+					tmp.empty.add( resolve );
+				}
+			}
+			resolve();
+			return defer.promise( obj );
+		}
+	});
+	var pnum = (/[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/).source;
+
+	var cssExpand = [ "Top", "Right", "Bottom", "Left" ];
+
+	var isHidden = function( elem, el ) {
+			// isHidden might be called from jQuery#filter function;
+			// in that case, element will be second argument
+			elem = el || elem;
+			return jQuery.css( elem, "display" ) === "none" || !jQuery.contains( elem.ownerDocument, elem );
+		};
+
+	var rcheckableType = (/^(?:checkbox|radio)$/i);
+
+
+
+	(function() {
+		var fragment = document.createDocumentFragment(),
+			div = fragment.appendChild( document.createElement( "div" ) ),
+			input = document.createElement( "input" );
+
+		// Support: Safari<=5.1
+		// Check state lost if the name is set (#11217)
+		// Support: Windows Web Apps (WWA)
+		// `name` and `type` must use .setAttribute for WWA (#14901)
+		input.setAttribute( "type", "radio" );
+		input.setAttribute( "checked", "checked" );
+		input.setAttribute( "name", "t" );
+
+		div.appendChild( input );
+
+		// Support: Safari<=5.1, Android<4.2
+		// Older WebKit doesn't clone checked state correctly in fragments
+		support.checkClone = div.cloneNode( true ).cloneNode( true ).lastChild.checked;
+
+		// Support: IE<=11+
+		// Make sure textarea (and checkbox) defaultValue is properly cloned
+		div.innerHTML = "<textarea>x</textarea>";
+		support.noCloneChecked = !!div.cloneNode( true ).lastChild.defaultValue;
+	})();
+	var strundefined = typeof undefined;
+
+
+
+	support.focusinBubbles = "onfocusin" in window;
+
+
+	var
+		rkeyEvent = /^key/,
+		rmouseEvent = /^(?:mouse|pointer|contextmenu)|click/,
+		rfocusMorph = /^(?:focusinfocus|focusoutblur)$/,
+		rtypenamespace = /^([^.]*)(?:\.(.+)|)$/;
+
+	function returnTrue() {
+		return true;
+	}
+
+	function returnFalse() {
+		return false;
+	}
+
+	function safeActiveElement() {
+		try {
+			return document.activeElement;
+		} catch ( err ) { }
+	}
+
+	/*
+	 * Helper functions for managing events -- not part of the public interface.
+	 * Props to Dean Edwards' addEvent library for many of the ideas.
+	 */
+	jQuery.event = {
+
+		global: {},
+
+		add: function( elem, types, handler, data, selector ) {
+
+			var handleObjIn, eventHandle, tmp,
+				events, t, handleObj,
+				special, handlers, type, namespaces, origType,
+				elemData = data_priv.get( elem );
+
+			// Don't attach events to noData or text/comment nodes (but allow plain objects)
+			if ( !elemData ) {
+				return;
+			}
+
+			// Caller can pass in an object of custom data in lieu of the handler
+			if ( handler.handler ) {
+				handleObjIn = handler;
+				handler = handleObjIn.handler;
+				selector = handleObjIn.selector;
+			}
+
+			// Make sure that the handler has a unique ID, used to find/remove it later
+			if ( !handler.guid ) {
+				handler.guid = jQuery.guid++;
+			}
+
+			// Init the element's event structure and main handler, if this is the first
+			if ( !(events = elemData.events) ) {
+				events = elemData.events = {};
+			}
+			if ( !(eventHandle = elemData.handle) ) {
+				eventHandle = elemData.handle = function( e ) {
+					// Discard the second event of a jQuery.event.trigger() and
+					// when an event is called after a page has unloaded
+					return typeof jQuery !== strundefined && jQuery.event.triggered !== e.type ?
+						jQuery.event.dispatch.apply( elem, arguments ) : undefined;
+				};
+			}
+
+			// Handle multiple events separated by a space
+			types = ( types || "" ).match( rnotwhite ) || [ "" ];
+			t = types.length;
+			while ( t-- ) {
+				tmp = rtypenamespace.exec( types[t] ) || [];
+				type = origType = tmp[1];
+				namespaces = ( tmp[2] || "" ).split( "." ).sort();
+
+				// There *must* be a type, no attaching namespace-only handlers
+				if ( !type ) {
+					continue;
+				}
+
+				// If event changes its type, use the special event handlers for the changed type
+				special = jQuery.event.special[ type ] || {};
+
+				// If selector defined, determine special event api type, otherwise given type
+				type = ( selector ? special.delegateType : special.bindType ) || type;
+
+				// Update special based on newly reset type
+				special = jQuery.event.special[ type ] || {};
+
+				// handleObj is passed to all event handlers
+				handleObj = jQuery.extend({
+					type: type,
+					origType: origType,
+					data: data,
+					handler: handler,
+					guid: handler.guid,
+					selector: selector,
+					needsContext: selector && jQuery.expr.match.needsContext.test( selector ),
+					namespace: namespaces.join(".")
+				}, handleObjIn );
+
+				// Init the event handler queue if we're the first
+				if ( !(handlers = events[ type ]) ) {
+					handlers = events[ type ] = [];
+					handlers.delegateCount = 0;
+
+					// Only use addEventListener if the special events handler returns false
+					if ( !special.setup || special.setup.call( elem, data, namespaces, eventHandle ) === false ) {
+						if ( elem.addEventListener ) {
+							elem.addEventListener( type, eventHandle, false );
+						}
+					}
+				}
+
+				if ( special.add ) {
+					special.add.call( elem, handleObj );
+
+					if ( !handleObj.handler.guid ) {
+						handleObj.handler.guid = handler.guid;
+					}
+				}
+
+				// Add to the element's handler list, delegates in front
+				if ( selector ) {
+					handlers.splice( handlers.delegateCount++, 0, handleObj );
+				} else {
+					handlers.push( handleObj );
+				}
+
+				// Keep track of which events have ever been used, for event optimization
+				jQuery.event.global[ type ] = true;
+			}
+
+		},
+
+		// Detach an event or set of events from an element
+		remove: function( elem, types, handler, selector, mappedTypes ) {
+
+			var j, origCount, tmp,
+				events, t, handleObj,
+				special, handlers, type, namespaces, origType,
+				elemData = data_priv.hasData( elem ) && data_priv.get( elem );
+
+			if ( !elemData || !(events = elemData.events) ) {
+				return;
+			}
+
+			// Once for each type.namespace in types; type may be omitted
+			types = ( types || "" ).match( rnotwhite ) || [ "" ];
+			t = types.length;
+			while ( t-- ) {
+				tmp = rtypenamespace.exec( types[t] ) || [];
+				type = origType = tmp[1];
+				namespaces = ( tmp[2] || "" ).split( "." ).sort();
+
+				// Unbind all events (on this namespace, if provided) for the element
+				if ( !type ) {
+					for ( type in events ) {
+						jQuery.event.remove( elem, type + types[ t ], handler, selector, true );
+					}
+					continue;
+				}
+
+				special = jQuery.event.special[ type ] || {};
+				type = ( selector ? special.delegateType : special.bindType ) || type;
+				handlers = events[ type ] || [];
+				tmp = tmp[2] && new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" );
+
+				// Remove matching events
+				origCount = j = handlers.length;
+				while ( j-- ) {
+					handleObj = handlers[ j ];
+
+					if ( ( mappedTypes || origType === handleObj.origType ) &&
+						( !handler || handler.guid === handleObj.guid ) &&
+						( !tmp || tmp.test( handleObj.namespace ) ) &&
+						( !selector || selector === handleObj.selector || selector === "**" && handleObj.selector ) ) {
+						handlers.splice( j, 1 );
+
+						if ( handleObj.selector ) {
+							handlers.delegateCount--;
+						}
+						if ( special.remove ) {
+							special.remove.call( elem, handleObj );
+						}
+					}
+				}
+
+				// Remove generic event handler if we removed something and no more handlers exist
+				// (avoids potential for endless recursion during removal of special event handlers)
+				if ( origCount && !handlers.length ) {
+					if ( !special.teardown || special.teardown.call( elem, namespaces, elemData.handle ) === false ) {
+						jQuery.removeEvent( elem, type, elemData.handle );
+					}
+
+					delete events[ type ];
+				}
+			}
+
+			// Remove the expando if it's no longer used
+			if ( jQuery.isEmptyObject( events ) ) {
+				delete elemData.handle;
+				data_priv.remove( elem, "events" );
+			}
+		},
+
+		trigger: function( event, data, elem, onlyHandlers ) {
+
+			var i, cur, tmp, bubbleType, ontype, handle, special,
+				eventPath = [ elem || document ],
+				type = hasOwn.call( event, "type" ) ? event.type : event,
+				namespaces = hasOwn.call( event, "namespace" ) ? event.namespace.split(".") : [];
+
+			cur = tmp = elem = elem || document;
+
+			// Don't do events on text and comment nodes
+			if ( elem.nodeType === 3 || elem.nodeType === 8 ) {
+				return;
+			}
+
+			// focus/blur morphs to focusin/out; ensure we're not firing them right now
+			if ( rfocusMorph.test( type + jQuery.event.triggered ) ) {
+				return;
+			}
+
+			if ( type.indexOf(".") >= 0 ) {
+				// Namespaced trigger; create a regexp to match event type in handle()
+				namespaces = type.split(".");
+				type = namespaces.shift();
+				namespaces.sort();
+			}
+			ontype = type.indexOf(":") < 0 && "on" + type;
+
+			// Caller can pass in a jQuery.Event object, Object, or just an event type string
+			event = event[ jQuery.expando ] ?
+				event :
+				new jQuery.Event( type, typeof event === "object" && event );
+
+			// Trigger bitmask: & 1 for native handlers; & 2 for jQuery (always true)
+			event.isTrigger = onlyHandlers ? 2 : 3;
+			event.namespace = namespaces.join(".");
+			event.namespace_re = event.namespace ?
+				new RegExp( "(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)" ) :
+				null;
+
+			// Clean up the event in case it is being reused
+			event.result = undefined;
+			if ( !event.target ) {
+				event.target = elem;
+			}
+
+			// Clone any incoming data and prepend the event, creating the handler arg list
+			data = data == null ?
+				[ event ] :
+				jQuery.makeArray( data, [ event ] );
+
+			// Allow special events to draw outside the lines
+			special = jQuery.event.special[ type ] || {};
+			if ( !onlyHandlers && special.trigger && special.trigger.apply( elem, data ) === false ) {
+				return;
+			}
+
+			// Determine event propagation path in advance, per W3C events spec (#9951)
+			// Bubble up to document, then to window; watch for a global ownerDocument var (#9724)
+			if ( !onlyHandlers && !special.noBubble && !jQuery.isWindow( elem ) ) {
+
+				bubbleType = special.delegateType || type;
+				if ( !rfocusMorph.test( bubbleType + type ) ) {
+					cur = cur.parentNode;
+				}
+				for ( ; cur; cur = cur.parentNode ) {
+					eventPath.push( cur );
+					tmp = cur;
+				}
+
+				// Only add window if we got to document (e.g., not plain obj or detached DOM)
+				if ( tmp === (elem.ownerDocument || document) ) {
+					eventPath.push( tmp.defaultView || tmp.parentWindow || window );
+				}
+			}
+
+			// Fire handlers on the event path
+			i = 0;
+			while ( (cur = eventPath[i++]) && !event.isPropagationStopped() ) {
+
+				event.type = i > 1 ?
+					bubbleType :
+					special.bindType || type;
+
+				// jQuery handler
+				handle = ( data_priv.get( cur, "events" ) || {} )[ event.type ] && data_priv.get( cur, "handle" );
+				if ( handle ) {
+					handle.apply( cur, data );
+				}
+
+				// Native handler
+				handle = ontype && cur[ ontype ];
+				if ( handle && handle.apply && jQuery.acceptData( cur ) ) {
+					event.result = handle.apply( cur, data );
+					if ( event.result === false ) {
+						event.preventDefault();
+					}
+				}
+			}
+			event.type = type;
+
+			// If nobody prevented the default action, do it now
+			if ( !onlyHandlers && !event.isDefaultPrevented() ) {
+
+				if ( (!special._default || special._default.apply( eventPath.pop(), data ) === false) &&
+					jQuery.acceptData( elem ) ) {
+
+					// Call a native DOM method on the target with the same name name as the event.
+					// Don't do default actions on window, that's where global variables be (#6170)
+					if ( ontype && jQuery.isFunction( elem[ type ] ) && !jQuery.isWindow( elem ) ) {
+
+						// Don't re-trigger an onFOO event when we call its FOO() method
+						tmp = elem[ ontype ];
+
+						if ( tmp ) {
+							elem[ ontype ] = null;
+						}
+
+						// Prevent re-triggering of the same event, since we already bubbled it above
+						jQuery.event.triggered = type;
+						elem[ type ]();
+						jQuery.event.triggered = undefined;
+
+						if ( tmp ) {
+							elem[ ontype ] = tmp;
+						}
+					}
+				}
+			}
+
+			return event.result;
+		},
+
+		dispatch: function( event ) {
+
+			// Make a writable jQuery.Event from the native event object
+			event = jQuery.event.fix( event );
+
+			var i, j, ret, matched, handleObj,
+				handlerQueue = [],
+				args = slice.call( arguments ),
+				handlers = ( data_priv.get( this, "events" ) || {} )[ event.type ] || [],
+				special = jQuery.event.special[ event.type ] || {};
+
+			// Use the fix-ed jQuery.Event rather than the (read-only) native event
+			args[0] = event;
+			event.delegateTarget = this;
+
+			// Call the preDispatch hook for the mapped type, and let it bail if desired
+			if ( special.preDispatch && special.preDispatch.call( this, event ) === false ) {
+				return;
+			}
+
+			// Determine handlers
+			handlerQueue = jQuery.event.handlers.call( this, event, handlers );
+
+			// Run delegates first; they may want to stop propagation beneath us
+			i = 0;
+			while ( (matched = handlerQueue[ i++ ]) && !event.isPropagationStopped() ) {
+				event.currentTarget = matched.elem;
+
+				j = 0;
+				while ( (handleObj = matched.handlers[ j++ ]) && !event.isImmediatePropagationStopped() ) {
+
+					// Triggered event must either 1) have no namespace, or 2) have namespace(s)
+					// a subset or equal to those in the bound event (both can have no namespace).
+					if ( !event.namespace_re || event.namespace_re.test( handleObj.namespace ) ) {
+
+						event.handleObj = handleObj;
+						event.data = handleObj.data;
+
+						ret = ( (jQuery.event.special[ handleObj.origType ] || {}).handle || handleObj.handler )
+								.apply( matched.elem, args );
+
+						if ( ret !== undefined ) {
+							if ( (event.result = ret) === false ) {
+								event.preventDefault();
+								event.stopPropagation();
+							}
+						}
+					}
+				}
+			}
+
+			// Call the postDispatch hook for the mapped type
+			if ( special.postDispatch ) {
+				special.postDispatch.call( this, event );
+			}
+
+			return event.result;
+		},
+
+		handlers: function( event, handlers ) {
+			var i, matches, sel, handleObj,
+				handlerQueue = [],
+				delegateCount = handlers.delegateCount,
+				cur = event.target;
+
+			// Find delegate handlers
+			// Black-hole SVG <use> instance trees (#13180)
+			// Avoid non-left-click bubbling in Firefox (#3861)
+			if ( delegateCount && cur.nodeType && (!event.button || event.type !== "click") ) {
+
+				for ( ; cur !== this; cur = cur.parentNode || this ) {
+
+					// Don't process clicks on disabled elements (#6911, #8165, #11382, #11764)
+					if ( cur.disabled !== true || event.type !== "click" ) {
+						matches = [];
+						for ( i = 0; i < delegateCount; i++ ) {
+							handleObj = handlers[ i ];
+
+							// Don't conflict with Object.prototype properties (#13203)
+							sel = handleObj.selector + " ";
+
+							if ( matches[ sel ] === undefined ) {
+								matches[ sel ] = handleObj.needsContext ?
+									jQuery( sel, this ).index( cur ) >= 0 :
+									jQuery.find( sel, this, null, [ cur ] ).length;
+							}
+							if ( matches[ sel ] ) {
+								matches.push( handleObj );
+							}
+						}
+						if ( matches.length ) {
+							handlerQueue.push({ elem: cur, handlers: matches });
+						}
+					}
+				}
+			}
+
+			// Add the remaining (directly-bound) handlers
+			if ( delegateCount < handlers.length ) {
+				handlerQueue.push({ elem: this, handlers: handlers.slice( delegateCount ) });
+			}
+
+			return handlerQueue;
+		},
+
+		// Includes some event props shared by KeyEvent and MouseEvent
+		props: "altKey bubbles cancelable ctrlKey currentTarget eventPhase metaKey relatedTarget shiftKey target timeStamp view which".split(" "),
+
+		fixHooks: {},
+
+		keyHooks: {
+			props: "char charCode key keyCode".split(" "),
+			filter: function( event, original ) {
+
+				// Add which for key events
+				if ( event.which == null ) {
+					event.which = original.charCode != null ? original.charCode : original.keyCode;
+				}
+
+				return event;
+			}
+		},
+
+		mouseHooks: {
+			props: "button buttons clientX clientY offsetX offsetY pageX pageY screenX screenY toElement".split(" "),
+			filter: function( event, original ) {
+				var eventDoc, doc, body,
+					button = original.button;
+
+				// Calculate pageX/Y if missing and clientX/Y available
+				if ( event.pageX == null && original.clientX != null ) {
+					eventDoc = event.target.ownerDocument || document;
+					doc = eventDoc.documentElement;
+					body = eventDoc.body;
+
+					event.pageX = original.clientX + ( doc && doc.scrollLeft || body && body.scrollLeft || 0 ) - ( doc && doc.clientLeft || body && body.clientLeft || 0 );
+					event.pageY = original.clientY + ( doc && doc.scrollTop  || body && body.scrollTop  || 0 ) - ( doc && doc.clientTop  || body && body.clientTop  || 0 );
+				}
+
+				// Add which for click: 1 === left; 2 === middle; 3 === right
+				// Note: button is not normalized, so don't use it
+				if ( !event.which && button !== undefined ) {
+					event.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+				}
+
+				return event;
+			}
+		},
+
+		fix: function( event ) {
+			if ( event[ jQuery.expando ] ) {
+				return event;
+			}
+
+			// Create a writable copy of the event object and normalize some properties
+			var i, prop, copy,
+				type = event.type,
+				originalEvent = event,
+				fixHook = this.fixHooks[ type ];
+
+			if ( !fixHook ) {
+				this.fixHooks[ type ] = fixHook =
+					rmouseEvent.test( type ) ? this.mouseHooks :
+					rkeyEvent.test( type ) ? this.keyHooks :
+					{};
+			}
+			copy = fixHook.props ? this.props.concat( fixHook.props ) : this.props;
+
+			event = new jQuery.Event( originalEvent );
+
+			i = copy.length;
+			while ( i-- ) {
+				prop = copy[ i ];
+				event[ prop ] = originalEvent[ prop ];
+			}
+
+			// Support: Cordova 2.5 (WebKit) (#13255)
+			// All events should have a target; Cordova deviceready doesn't
+			if ( !event.target ) {
+				event.target = document;
+			}
+
+			// Support: Safari 6.0+, Chrome<28
+			// Target should not be a text node (#504, #13143)
+			if ( event.target.nodeType === 3 ) {
+				event.target = event.target.parentNode;
+			}
+
+			return fixHook.filter ? fixHook.filter( event, originalEvent ) : event;
+		},
+
+		special: {
+			load: {
+				// Prevent triggered image.load events from bubbling to window.load
+				noBubble: true
+			},
+			focus: {
+				// Fire native event if possible so blur/focus sequence is correct
+				trigger: function() {
+					if ( this !== safeActiveElement() && this.focus ) {
+						this.focus();
+						return false;
+					}
+				},
+				delegateType: "focusin"
+			},
+			blur: {
+				trigger: function() {
+					if ( this === safeActiveElement() && this.blur ) {
+						this.blur();
+						return false;
+					}
+				},
+				delegateType: "focusout"
+			},
+			click: {
+				// For checkbox, fire native event so checked state will be right
+				trigger: function() {
+					if ( this.type === "checkbox" && this.click && jQuery.nodeName( this, "input" ) ) {
+						this.click();
+						return false;
+					}
+				},
+
+				// For cross-browser consistency, don't fire native .click() on links
+				_default: function( event ) {
+					return jQuery.nodeName( event.target, "a" );
+				}
+			},
+
+			beforeunload: {
+				postDispatch: function( event ) {
+
+					// Support: Firefox 20+
+					// Firefox doesn't alert if the returnValue field is not set.
+					if ( event.result !== undefined && event.originalEvent ) {
+						event.originalEvent.returnValue = event.result;
+					}
+				}
+			}
+		},
+
+		simulate: function( type, elem, event, bubble ) {
+			// Piggyback on a donor event to simulate a different one.
+			// Fake originalEvent to avoid donor's stopPropagation, but if the
+			// simulated event prevents default then we do the same on the donor.
+			var e = jQuery.extend(
+				new jQuery.Event(),
+				event,
+				{
+					type: type,
+					isSimulated: true,
+					originalEvent: {}
+				}
+			);
+			if ( bubble ) {
+				jQuery.event.trigger( e, null, elem );
+			} else {
+				jQuery.event.dispatch.call( elem, e );
+			}
+			if ( e.isDefaultPrevented() ) {
+				event.preventDefault();
+			}
+		}
+	};
+
+	jQuery.removeEvent = function( elem, type, handle ) {
+		if ( elem.removeEventListener ) {
+			elem.removeEventListener( type, handle, false );
+		}
+	};
+
+	jQuery.Event = function( src, props ) {
+		// Allow instantiation without the 'new' keyword
+		if ( !(this instanceof jQuery.Event) ) {
+			return new jQuery.Event( src, props );
+		}
+
+		// Event object
+		if ( src && src.type ) {
+			this.originalEvent = src;
+			this.type = src.type;
+
+			// Events bubbling up the document may have been marked as prevented
+			// by a handler lower down the tree; reflect the correct value.
+			this.isDefaultPrevented = src.defaultPrevented ||
+					src.defaultPrevented === undefined &&
+					// Support: Android<4.0
+					src.returnValue === false ?
+				returnTrue :
+				returnFalse;
+
+		// Event type
+		} else {
+			this.type = src;
+		}
+
+		// Put explicitly provided properties onto the event object
+		if ( props ) {
+			jQuery.extend( this, props );
+		}
+
+		// Create a timestamp if incoming event doesn't have one
+		this.timeStamp = src && src.timeStamp || jQuery.now();
+
+		// Mark it as fixed
+		this[ jQuery.expando ] = true;
+	};
+
+	// jQuery.Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+	// http://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+	jQuery.Event.prototype = {
+		isDefaultPrevented: returnFalse,
+		isPropagationStopped: returnFalse,
+		isImmediatePropagationStopped: returnFalse,
+
+		preventDefault: function() {
+			var e = this.originalEvent;
+
+			this.isDefaultPrevented = returnTrue;
+
+			if ( e && e.preventDefault ) {
+				e.preventDefault();
+			}
+		},
+		stopPropagation: function() {
+			var e = this.originalEvent;
+
+			this.isPropagationStopped = returnTrue;
+
+			if ( e && e.stopPropagation ) {
+				e.stopPropagation();
+			}
+		},
+		stopImmediatePropagation: function() {
+			var e = this.originalEvent;
+
+			this.isImmediatePropagationStopped = returnTrue;
+
+			if ( e && e.stopImmediatePropagation ) {
+				e.stopImmediatePropagation();
+			}
+
+			this.stopPropagation();
+		}
+	};
+
+	// Create mouseenter/leave events using mouseover/out and event-time checks
+	// Support: Chrome 15+
+	jQuery.each({
+		mouseenter: "mouseover",
+		mouseleave: "mouseout",
+		pointerenter: "pointerover",
+		pointerleave: "pointerout"
+	}, function( orig, fix ) {
+		jQuery.event.special[ orig ] = {
+			delegateType: fix,
+			bindType: fix,
+
+			handle: function( event ) {
+				var ret,
+					target = this,
+					related = event.relatedTarget,
+					handleObj = event.handleObj;
+
+				// For mousenter/leave call the handler if related is outside the target.
+				// NB: No relatedTarget if the mouse left/entered the browser window
+				if ( !related || (related !== target && !jQuery.contains( target, related )) ) {
+					event.type = handleObj.origType;
+					ret = handleObj.handler.apply( this, arguments );
+					event.type = fix;
+				}
+				return ret;
+			}
+		};
+	});
+
+	// Support: Firefox, Chrome, Safari
+	// Create "bubbling" focus and blur events
+	if ( !support.focusinBubbles ) {
+		jQuery.each({ focus: "focusin", blur: "focusout" }, function( orig, fix ) {
+
+			// Attach a single capturing handler on the document while someone wants focusin/focusout
+			var handler = function( event ) {
+					jQuery.event.simulate( fix, event.target, jQuery.event.fix( event ), true );
+				};
+
+			jQuery.event.special[ fix ] = {
+				setup: function() {
+					var doc = this.ownerDocument || this,
+						attaches = data_priv.access( doc, fix );
+
+					if ( !attaches ) {
+						doc.addEventListener( orig, handler, true );
+					}
+					data_priv.access( doc, fix, ( attaches || 0 ) + 1 );
+				},
+				teardown: function() {
+					var doc = this.ownerDocument || this,
+						attaches = data_priv.access( doc, fix ) - 1;
+
+					if ( !attaches ) {
+						doc.removeEventListener( orig, handler, true );
+						data_priv.remove( doc, fix );
+
+					} else {
+						data_priv.access( doc, fix, attaches );
+					}
+				}
+			};
+		});
+	}
+
+	jQuery.fn.extend({
+
+		on: function( types, selector, data, fn, /*INTERNAL*/ one ) {
+			var origFn, type;
+
+			// Types can be a map of types/handlers
+			if ( typeof types === "object" ) {
+				// ( types-Object, selector, data )
+				if ( typeof selector !== "string" ) {
+					// ( types-Object, data )
+					data = data || selector;
+					selector = undefined;
+				}
+				for ( type in types ) {
+					this.on( type, selector, data, types[ type ], one );
+				}
+				return this;
+			}
+
+			if ( data == null && fn == null ) {
+				// ( types, fn )
+				fn = selector;
+				data = selector = undefined;
+			} else if ( fn == null ) {
+				if ( typeof selector === "string" ) {
+					// ( types, selector, fn )
+					fn = data;
+					data = undefined;
+				} else {
+					// ( types, data, fn )
+					fn = data;
+					data = selector;
+					selector = undefined;
+				}
+			}
+			if ( fn === false ) {
+				fn = returnFalse;
+			} else if ( !fn ) {
+				return this;
+			}
+
+			if ( one === 1 ) {
+				origFn = fn;
+				fn = function( event ) {
+					// Can use an empty set, since event contains the info
+					jQuery().off( event );
+					return origFn.apply( this, arguments );
+				};
+				// Use same guid so caller can remove using origFn
+				fn.guid = origFn.guid || ( origFn.guid = jQuery.guid++ );
+			}
+			return this.each( function() {
+				jQuery.event.add( this, types, fn, data, selector );
+			});
+		},
+		one: function( types, selector, data, fn ) {
+			return this.on( types, selector, data, fn, 1 );
+		},
+		off: function( types, selector, fn ) {
+			var handleObj, type;
+			if ( types && types.preventDefault && types.handleObj ) {
+				// ( event )  dispatched jQuery.Event
+				handleObj = types.handleObj;
+				jQuery( types.delegateTarget ).off(
+					handleObj.namespace ? handleObj.origType + "." + handleObj.namespace : handleObj.origType,
+					handleObj.selector,
+					handleObj.handler
+				);
+				return this;
+			}
+			if ( typeof types === "object" ) {
+				// ( types-object [, selector] )
+				for ( type in types ) {
+					this.off( type, selector, types[ type ] );
+				}
+				return this;
+			}
+			if ( selector === false || typeof selector === "function" ) {
+				// ( types [, fn] )
+				fn = selector;
+				selector = undefined;
+			}
+			if ( fn === false ) {
+				fn = returnFalse;
+			}
+			return this.each(function() {
+				jQuery.event.remove( this, types, fn, selector );
+			});
+		},
+
+		trigger: function( type, data ) {
+			return this.each(function() {
+				jQuery.event.trigger( type, data, this );
+			});
+		},
+		triggerHandler: function( type, data ) {
+			var elem = this[0];
+			if ( elem ) {
+				return jQuery.event.trigger( type, data, elem, true );
+			}
+		}
+	});
+
+
+	var
+		rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:]+)[^>]*)\/>/gi,
+		rtagName = /<([\w:]+)/,
+		rhtml = /<|&#?\w+;/,
+		rnoInnerhtml = /<(?:script|style|link)/i,
+		// checked="checked" or checked
+		rchecked = /checked\s*(?:[^=]|=\s*.checked.)/i,
+		rscriptType = /^$|\/(?:java|ecma)script/i,
+		rscriptTypeMasked = /^true\/(.*)/,
+		rcleanScript = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g,
+
+		// We have to close these tags to support XHTML (#13200)
+		wrapMap = {
+
+			// Support: IE9
+			option: [ 1, "<select multiple='multiple'>", "</select>" ],
+
+			thead: [ 1, "<table>", "</table>" ],
+			col: [ 2, "<table><colgroup>", "</colgroup></table>" ],
+			tr: [ 2, "<table><tbody>", "</tbody></table>" ],
+			td: [ 3, "<table><tbody><tr>", "</tr></tbody></table>" ],
+
+			_default: [ 0, "", "" ]
+		};
+
+	// Support: IE9
+	wrapMap.optgroup = wrapMap.option;
+
+	wrapMap.tbody = wrapMap.tfoot = wrapMap.colgroup = wrapMap.caption = wrapMap.thead;
+	wrapMap.th = wrapMap.td;
+
+	// Support: 1.x compatibility
+	// Manipulating tables requires a tbody
+	function manipulationTarget( elem, content ) {
+		return jQuery.nodeName( elem, "table" ) &&
+			jQuery.nodeName( content.nodeType !== 11 ? content : content.firstChild, "tr" ) ?
+
+			elem.getElementsByTagName("tbody")[0] ||
+				elem.appendChild( elem.ownerDocument.createElement("tbody") ) :
+			elem;
+	}
+
+	// Replace/restore the type attribute of script elements for safe DOM manipulation
+	function disableScript( elem ) {
+		elem.type = (elem.getAttribute("type") !== null) + "/" + elem.type;
+		return elem;
+	}
+	function restoreScript( elem ) {
+		var match = rscriptTypeMasked.exec( elem.type );
+
+		if ( match ) {
+			elem.type = match[ 1 ];
+		} else {
+			elem.removeAttribute("type");
+		}
+
+		return elem;
+	}
+
+	// Mark scripts as having already been evaluated
+	function setGlobalEval( elems, refElements ) {
+		var i = 0,
+			l = elems.length;
+
+		for ( ; i < l; i++ ) {
+			data_priv.set(
+				elems[ i ], "globalEval", !refElements || data_priv.get( refElements[ i ], "globalEval" )
+			);
+		}
+	}
+
+	function cloneCopyEvent( src, dest ) {
+		var i, l, type, pdataOld, pdataCur, udataOld, udataCur, events;
+
+		if ( dest.nodeType !== 1 ) {
+			return;
+		}
+
+		// 1. Copy private data: events, handlers, etc.
+		if ( data_priv.hasData( src ) ) {
+			pdataOld = data_priv.access( src );
+			pdataCur = data_priv.set( dest, pdataOld );
+			events = pdataOld.events;
+
+			if ( events ) {
+				delete pdataCur.handle;
+				pdataCur.events = {};
+
+				for ( type in events ) {
+					for ( i = 0, l = events[ type ].length; i < l; i++ ) {
+						jQuery.event.add( dest, type, events[ type ][ i ] );
+					}
+				}
+			}
+		}
+
+		// 2. Copy user data
+		if ( data_user.hasData( src ) ) {
+			udataOld = data_user.access( src );
+			udataCur = jQuery.extend( {}, udataOld );
+
+			data_user.set( dest, udataCur );
+		}
+	}
+
+	function getAll( context, tag ) {
+		var ret = context.getElementsByTagName ? context.getElementsByTagName( tag || "*" ) :
+				context.querySelectorAll ? context.querySelectorAll( tag || "*" ) :
+				[];
+
+		return tag === undefined || tag && jQuery.nodeName( context, tag ) ?
+			jQuery.merge( [ context ], ret ) :
+			ret;
+	}
+
+	// Fix IE bugs, see support tests
+	function fixInput( src, dest ) {
+		var nodeName = dest.nodeName.toLowerCase();
+
+		// Fails to persist the checked state of a cloned checkbox or radio button.
+		if ( nodeName === "input" && rcheckableType.test( src.type ) ) {
+			dest.checked = src.checked;
+
+		// Fails to return the selected option to the default selected state when cloning options
+		} else if ( nodeName === "input" || nodeName === "textarea" ) {
+			dest.defaultValue = src.defaultValue;
+		}
+	}
+
+	jQuery.extend({
+		clone: function( elem, dataAndEvents, deepDataAndEvents ) {
+			var i, l, srcElements, destElements,
+				clone = elem.cloneNode( true ),
+				inPage = jQuery.contains( elem.ownerDocument, elem );
+
+			// Fix IE cloning issues
+			if ( !support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) &&
+					!jQuery.isXMLDoc( elem ) ) {
+
+				// We eschew Sizzle here for performance reasons: http://jsperf.com/getall-vs-sizzle/2
+				destElements = getAll( clone );
+				srcElements = getAll( elem );
+
+				for ( i = 0, l = srcElements.length; i < l; i++ ) {
+					fixInput( srcElements[ i ], destElements[ i ] );
+				}
+			}
+
+			// Copy the events from the original to the clone
+			if ( dataAndEvents ) {
+				if ( deepDataAndEvents ) {
+					srcElements = srcElements || getAll( elem );
+					destElements = destElements || getAll( clone );
+
+					for ( i = 0, l = srcElements.length; i < l; i++ ) {
+						cloneCopyEvent( srcElements[ i ], destElements[ i ] );
+					}
+				} else {
+					cloneCopyEvent( elem, clone );
+				}
+			}
+
+			// Preserve script evaluation history
+			destElements = getAll( clone, "script" );
+			if ( destElements.length > 0 ) {
+				setGlobalEval( destElements, !inPage && getAll( elem, "script" ) );
+			}
+
+			// Return the cloned set
+			return clone;
+		},
+
+		buildFragment: function( elems, context, scripts, selection ) {
+			var elem, tmp, tag, wrap, contains, j,
+				fragment = context.createDocumentFragment(),
+				nodes = [],
+				i = 0,
+				l = elems.length;
+
+			for ( ; i < l; i++ ) {
+				elem = elems[ i ];
+
+				if ( elem || elem === 0 ) {
+
+					// Add nodes directly
+					if ( jQuery.type( elem ) === "object" ) {
+						// Support: QtWebKit, PhantomJS
+						// push.apply(_, arraylike) throws on ancient WebKit
+						jQuery.merge( nodes, elem.nodeType ? [ elem ] : elem );
+
+					// Convert non-html into a text node
+					} else if ( !rhtml.test( elem ) ) {
+						nodes.push( context.createTextNode( elem ) );
+
+					// Convert html into DOM nodes
+					} else {
+						tmp = tmp || fragment.appendChild( context.createElement("div") );
+
+						// Deserialize a standard representation
+						tag = ( rtagName.exec( elem ) || [ "", "" ] )[ 1 ].toLowerCase();
+						wrap = wrapMap[ tag ] || wrapMap._default;
+						tmp.innerHTML = wrap[ 1 ] + elem.replace( rxhtmlTag, "<$1></$2>" ) + wrap[ 2 ];
+
+						// Descend through wrappers to the right content
+						j = wrap[ 0 ];
+						while ( j-- ) {
+							tmp = tmp.lastChild;
+						}
+
+						// Support: QtWebKit, PhantomJS
+						// push.apply(_, arraylike) throws on ancient WebKit
+						jQuery.merge( nodes, tmp.childNodes );
+
+						// Remember the top-level container
+						tmp = fragment.firstChild;
+
+						// Ensure the created nodes are orphaned (#12392)
+						tmp.textContent = "";
+					}
+				}
+			}
+
+			// Remove wrapper from fragment
+			fragment.textContent = "";
+
+			i = 0;
+			while ( (elem = nodes[ i++ ]) ) {
+
+				// #4087 - If origin and destination elements are the same, and this is
+				// that element, do not do anything
+				if ( selection && jQuery.inArray( elem, selection ) !== -1 ) {
+					continue;
+				}
+
+				contains = jQuery.contains( elem.ownerDocument, elem );
+
+				// Append to fragment
+				tmp = getAll( fragment.appendChild( elem ), "script" );
+
+				// Preserve script evaluation history
+				if ( contains ) {
+					setGlobalEval( tmp );
+				}
+
+				// Capture executables
+				if ( scripts ) {
+					j = 0;
+					while ( (elem = tmp[ j++ ]) ) {
+						if ( rscriptType.test( elem.type || "" ) ) {
+							scripts.push( elem );
+						}
+					}
+				}
+			}
+
+			return fragment;
+		},
+
+		cleanData: function( elems ) {
+			var data, elem, type, key,
+				special = jQuery.event.special,
+				i = 0;
+
+			for ( ; (elem = elems[ i ]) !== undefined; i++ ) {
+				if ( jQuery.acceptData( elem ) ) {
+					key = elem[ data_priv.expando ];
+
+					if ( key && (data = data_priv.cache[ key ]) ) {
+						if ( data.events ) {
+							for ( type in data.events ) {
+								if ( special[ type ] ) {
+									jQuery.event.remove( elem, type );
+
+								// This is a shortcut to avoid jQuery.event.remove's overhead
+								} else {
+									jQuery.removeEvent( elem, type, data.handle );
+								}
+							}
+						}
+						if ( data_priv.cache[ key ] ) {
+							// Discard any remaining `private` data
+							delete data_priv.cache[ key ];
+						}
+					}
+				}
+				// Discard any remaining `user` data
+				delete data_user.cache[ elem[ data_user.expando ] ];
+			}
+		}
+	});
+
+	jQuery.fn.extend({
+		text: function( value ) {
+			return access( this, function( value ) {
+				return value === undefined ?
+					jQuery.text( this ) :
+					this.empty().each(function() {
+						if ( this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9 ) {
+							this.textContent = value;
+						}
+					});
+			}, null, value, arguments.length );
+		},
+
+		append: function() {
+			return this.domManip( arguments, function( elem ) {
+				if ( this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9 ) {
+					var target = manipulationTarget( this, elem );
+					target.appendChild( elem );
+				}
+			});
+		},
+
+		prepend: function() {
+			return this.domManip( arguments, function( elem ) {
+				if ( this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9 ) {
+					var target = manipulationTarget( this, elem );
+					target.insertBefore( elem, target.firstChild );
+				}
+			});
+		},
+
+		before: function() {
+			return this.domManip( arguments, function( elem ) {
+				if ( this.parentNode ) {
+					this.parentNode.insertBefore( elem, this );
+				}
+			});
+		},
+
+		after: function() {
+			return this.domManip( arguments, function( elem ) {
+				if ( this.parentNode ) {
+					this.parentNode.insertBefore( elem, this.nextSibling );
+				}
+			});
+		},
+
+		remove: function( selector, keepData /* Internal Use Only */ ) {
+			var elem,
+				elems = selector ? jQuery.filter( selector, this ) : this,
+				i = 0;
+
+			for ( ; (elem = elems[i]) != null; i++ ) {
+				if ( !keepData && elem.nodeType === 1 ) {
+					jQuery.cleanData( getAll( elem ) );
+				}
+
+				if ( elem.parentNode ) {
+					if ( keepData && jQuery.contains( elem.ownerDocument, elem ) ) {
+						setGlobalEval( getAll( elem, "script" ) );
+					}
+					elem.parentNode.removeChild( elem );
+				}
+			}
+
+			return this;
+		},
+
+		empty: function() {
+			var elem,
+				i = 0;
+
+			for ( ; (elem = this[i]) != null; i++ ) {
+				if ( elem.nodeType === 1 ) {
+
+					// Prevent memory leaks
+					jQuery.cleanData( getAll( elem, false ) );
+
+					// Remove any remaining nodes
+					elem.textContent = "";
+				}
+			}
+
+			return this;
+		},
+
+		clone: function( dataAndEvents, deepDataAndEvents ) {
+			dataAndEvents = dataAndEvents == null ? false : dataAndEvents;
+			deepDataAndEvents = deepDataAndEvents == null ? dataAndEvents : deepDataAndEvents;
+
+			return this.map(function() {
+				return jQuery.clone( this, dataAndEvents, deepDataAndEvents );
+			});
+		},
+
+		html: function( value ) {
+			return access( this, function( value ) {
+				var elem = this[ 0 ] || {},
+					i = 0,
+					l = this.length;
+
+				if ( value === undefined && elem.nodeType === 1 ) {
+					return elem.innerHTML;
+				}
+
+				// See if we can take a shortcut and just use innerHTML
+				if ( typeof value === "string" && !rnoInnerhtml.test( value ) &&
+					!wrapMap[ ( rtagName.exec( value ) || [ "", "" ] )[ 1 ].toLowerCase() ] ) {
+
+					value = value.replace( rxhtmlTag, "<$1></$2>" );
+
+					try {
+						for ( ; i < l; i++ ) {
+							elem = this[ i ] || {};
+
+							// Remove element nodes and prevent memory leaks
+							if ( elem.nodeType === 1 ) {
+								jQuery.cleanData( getAll( elem, false ) );
+								elem.innerHTML = value;
+							}
+						}
+
+						elem = 0;
+
+					// If using innerHTML throws an exception, use the fallback method
+					} catch( e ) {}
+				}
+
+				if ( elem ) {
+					this.empty().append( value );
+				}
+			}, null, value, arguments.length );
+		},
+
+		replaceWith: function() {
+			var arg = arguments[ 0 ];
+
+			// Make the changes, replacing each context element with the new content
+			this.domManip( arguments, function( elem ) {
+				arg = this.parentNode;
+
+				jQuery.cleanData( getAll( this ) );
+
+				if ( arg ) {
+					arg.replaceChild( elem, this );
+				}
+			});
+
+			// Force removal if there was no new content (e.g., from empty arguments)
+			return arg && (arg.length || arg.nodeType) ? this : this.remove();
+		},
+
+		detach: function( selector ) {
+			return this.remove( selector, true );
+		},
+
+		domManip: function( args, callback ) {
+
+			// Flatten any nested arrays
+			args = concat.apply( [], args );
+
+			var fragment, first, scripts, hasScripts, node, doc,
+				i = 0,
+				l = this.length,
+				set = this,
+				iNoClone = l - 1,
+				value = args[ 0 ],
+				isFunction = jQuery.isFunction( value );
+
+			// We can't cloneNode fragments that contain checked, in WebKit
+			if ( isFunction ||
+					( l > 1 && typeof value === "string" &&
+						!support.checkClone && rchecked.test( value ) ) ) {
+				return this.each(function( index ) {
+					var self = set.eq( index );
+					if ( isFunction ) {
+						args[ 0 ] = value.call( this, index, self.html() );
+					}
+					self.domManip( args, callback );
+				});
+			}
+
+			if ( l ) {
+				fragment = jQuery.buildFragment( args, this[ 0 ].ownerDocument, false, this );
+				first = fragment.firstChild;
+
+				if ( fragment.childNodes.length === 1 ) {
+					fragment = first;
+				}
+
+				if ( first ) {
+					scripts = jQuery.map( getAll( fragment, "script" ), disableScript );
+					hasScripts = scripts.length;
+
+					// Use the original fragment for the last item instead of the first because it can end up
+					// being emptied incorrectly in certain situations (#8070).
+					for ( ; i < l; i++ ) {
+						node = fragment;
+
+						if ( i !== iNoClone ) {
+							node = jQuery.clone( node, true, true );
+
+							// Keep references to cloned scripts for later restoration
+							if ( hasScripts ) {
+								// Support: QtWebKit
+								// jQuery.merge because push.apply(_, arraylike) throws
+								jQuery.merge( scripts, getAll( node, "script" ) );
+							}
+						}
+
+						callback.call( this[ i ], node, i );
+					}
+
+					if ( hasScripts ) {
+						doc = scripts[ scripts.length - 1 ].ownerDocument;
+
+						// Reenable scripts
+						jQuery.map( scripts, restoreScript );
+
+						// Evaluate executable scripts on first document insertion
+						for ( i = 0; i < hasScripts; i++ ) {
+							node = scripts[ i ];
+							if ( rscriptType.test( node.type || "" ) &&
+								!data_priv.access( node, "globalEval" ) && jQuery.contains( doc, node ) ) {
+
+								if ( node.src ) {
+									// Optional AJAX dependency, but won't run scripts if not present
+									if ( jQuery._evalUrl ) {
+										jQuery._evalUrl( node.src );
+									}
+								} else {
+									jQuery.globalEval( node.textContent.replace( rcleanScript, "" ) );
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return this;
+		}
+	});
+
+	jQuery.each({
+		appendTo: "append",
+		prependTo: "prepend",
+		insertBefore: "before",
+		insertAfter: "after",
+		replaceAll: "replaceWith"
+	}, function( name, original ) {
+		jQuery.fn[ name ] = function( selector ) {
+			var elems,
+				ret = [],
+				insert = jQuery( selector ),
+				last = insert.length - 1,
+				i = 0;
+
+			for ( ; i <= last; i++ ) {
+				elems = i === last ? this : this.clone( true );
+				jQuery( insert[ i ] )[ original ]( elems );
+
+				// Support: QtWebKit
+				// .get() because push.apply(_, arraylike) throws
+				push.apply( ret, elems.get() );
+			}
+
+			return this.pushStack( ret );
+		};
+	});
+
+
+	var iframe,
+		elemdisplay = {};
+
+	/**
+	 * Retrieve the actual display of a element
+	 * @param {String} name nodeName of the element
+	 * @param {Object} doc Document object
+	 */
+	// Called only from within defaultDisplay
+	function actualDisplay( name, doc ) {
+		var style,
+			elem = jQuery( doc.createElement( name ) ).appendTo( doc.body ),
+
+			// getDefaultComputedStyle might be reliably used only on attached element
+			display = window.getDefaultComputedStyle && ( style = window.getDefaultComputedStyle( elem[ 0 ] ) ) ?
+
+				// Use of this method is a temporary fix (more like optimization) until something better comes along,
+				// since it was removed from specification and supported only in FF
+				style.display : jQuery.css( elem[ 0 ], "display" );
+
+		// We don't have any data stored on the element,
+		// so use "detach" method as fast way to get rid of the element
+		elem.detach();
+
+		return display;
+	}
+
+	/**
+	 * Try to determine the default display value of an element
+	 * @param {String} nodeName
+	 */
+	function defaultDisplay( nodeName ) {
+		var doc = document,
+			display = elemdisplay[ nodeName ];
+
+		if ( !display ) {
+			display = actualDisplay( nodeName, doc );
+
+			// If the simple way fails, read from inside an iframe
+			if ( display === "none" || !display ) {
+
+				// Use the already-created iframe if possible
+				iframe = (iframe || jQuery( "<iframe frameborder='0' width='0' height='0'/>" )).appendTo( doc.documentElement );
+
+				// Always write a new HTML skeleton so Webkit and Firefox don't choke on reuse
+				doc = iframe[ 0 ].contentDocument;
+
+				// Support: IE
+				doc.write();
+				doc.close();
+
+				display = actualDisplay( nodeName, doc );
+				iframe.detach();
+			}
+
+			// Store the correct default display
+			elemdisplay[ nodeName ] = display;
+		}
+
+		return display;
+	}
+	var rmargin = (/^margin/);
+
+	var rnumnonpx = new RegExp( "^(" + pnum + ")(?!px)[a-z%]+$", "i" );
+
+	var getStyles = function( elem ) {
+			// Support: IE<=11+, Firefox<=30+ (#15098, #14150)
+			// IE throws on elements created in popups
+			// FF meanwhile throws on frame elements through "defaultView.getComputedStyle"
+			if ( elem.ownerDocument.defaultView.opener ) {
+				return elem.ownerDocument.defaultView.getComputedStyle( elem, null );
+			}
+
+			return window.getComputedStyle( elem, null );
+		};
+
+
+
+	function curCSS( elem, name, computed ) {
+		var width, minWidth, maxWidth, ret,
+			style = elem.style;
+
+		computed = computed || getStyles( elem );
+
+		// Support: IE9
+		// getPropertyValue is only needed for .css('filter') (#12537)
+		if ( computed ) {
+			ret = computed.getPropertyValue( name ) || computed[ name ];
+		}
+
+		if ( computed ) {
+
+			if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
+				ret = jQuery.style( elem, name );
+			}
+
+			// Support: iOS < 6
+			// A tribute to the "awesome hack by Dean Edwards"
+			// iOS < 6 (at least) returns percentage for a larger set of values, but width seems to be reliably pixels
+			// this is against the CSSOM draft spec: http://dev.w3.org/csswg/cssom/#resolved-values
+			if ( rnumnonpx.test( ret ) && rmargin.test( name ) ) {
+
+				// Remember the original values
+				width = style.width;
+				minWidth = style.minWidth;
+				maxWidth = style.maxWidth;
+
+				// Put in the new values to get a computed value out
+				style.minWidth = style.maxWidth = style.width = ret;
+				ret = computed.width;
+
+				// Revert the changed values
+				style.width = width;
+				style.minWidth = minWidth;
+				style.maxWidth = maxWidth;
+			}
+		}
+
+		return ret !== undefined ?
+			// Support: IE
+			// IE returns zIndex value as an integer.
+			ret + "" :
+			ret;
+	}
+
+
+	function addGetHookIf( conditionFn, hookFn ) {
+		// Define the hook, we'll check on the first run if it's really needed.
+		return {
+			get: function() {
+				if ( conditionFn() ) {
+					// Hook not needed (or it's not possible to use it due
+					// to missing dependency), remove it.
+					delete this.get;
+					return;
+				}
+
+				// Hook needed; redefine it so that the support test is not executed again.
+				return (this.get = hookFn).apply( this, arguments );
+			}
+		};
+	}
+
+
+	(function() {
+		var pixelPositionVal, boxSizingReliableVal,
+			docElem = document.documentElement,
+			container = document.createElement( "div" ),
+			div = document.createElement( "div" );
+
+		if ( !div.style ) {
+			return;
+		}
+
+		// Support: IE9-11+
+		// Style of cloned element affects source element cloned (#8908)
+		div.style.backgroundClip = "content-box";
+		div.cloneNode( true ).style.backgroundClip = "";
+		support.clearCloneStyle = div.style.backgroundClip === "content-box";
+
+		container.style.cssText = "border:0;width:0;height:0;top:0;left:-9999px;margin-top:1px;" +
+			"position:absolute";
+		container.appendChild( div );
+
+		// Executing both pixelPosition & boxSizingReliable tests require only one layout
+		// so they're executed at the same time to save the second computation.
+		function computePixelPositionAndBoxSizingReliable() {
+			div.style.cssText =
+				// Support: Firefox<29, Android 2.3
+				// Vendor-prefix box-sizing
+				"-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
+				"box-sizing:border-box;display:block;margin-top:1%;top:1%;" +
+				"border:1px;padding:1px;width:4px;position:absolute";
+			div.innerHTML = "";
+			docElem.appendChild( container );
+
+			var divStyle = window.getComputedStyle( div, null );
+			pixelPositionVal = divStyle.top !== "1%";
+			boxSizingReliableVal = divStyle.width === "4px";
+
+			docElem.removeChild( container );
+		}
+
+		// Support: node.js jsdom
+		// Don't assume that getComputedStyle is a property of the global object
+		if ( window.getComputedStyle ) {
+			jQuery.extend( support, {
+				pixelPosition: function() {
+
+					// This test is executed only once but we still do memoizing
+					// since we can use the boxSizingReliable pre-computing.
+					// No need to check if the test was already performed, though.
+					computePixelPositionAndBoxSizingReliable();
+					return pixelPositionVal;
+				},
+				boxSizingReliable: function() {
+					if ( boxSizingReliableVal == null ) {
+						computePixelPositionAndBoxSizingReliable();
+					}
+					return boxSizingReliableVal;
+				},
+				reliableMarginRight: function() {
+
+					// Support: Android 2.3
+					// Check if div with explicit width and no margin-right incorrectly
+					// gets computed margin-right based on width of container. (#3333)
+					// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
+					// This support function is only executed once so no memoizing is needed.
+					var ret,
+						marginDiv = div.appendChild( document.createElement( "div" ) );
+
+					// Reset CSS: box-sizing; display; margin; border; padding
+					marginDiv.style.cssText = div.style.cssText =
+						// Support: Firefox<29, Android 2.3
+						// Vendor-prefix box-sizing
+						"-webkit-box-sizing:content-box;-moz-box-sizing:content-box;" +
+						"box-sizing:content-box;display:block;margin:0;border:0;padding:0";
+					marginDiv.style.marginRight = marginDiv.style.width = "0";
+					div.style.width = "1px";
+					docElem.appendChild( container );
+
+					ret = !parseFloat( window.getComputedStyle( marginDiv, null ).marginRight );
+
+					docElem.removeChild( container );
+					div.removeChild( marginDiv );
+
+					return ret;
+				}
+			});
+		}
+	})();
+
+
+	// A method for quickly swapping in/out CSS properties to get correct calculations.
+	jQuery.swap = function( elem, options, callback, args ) {
+		var ret, name,
+			old = {};
+
+		// Remember the old values, and insert the new ones
+		for ( name in options ) {
+			old[ name ] = elem.style[ name ];
+			elem.style[ name ] = options[ name ];
+		}
+
+		ret = callback.apply( elem, args || [] );
+
+		// Revert the old values
+		for ( name in options ) {
+			elem.style[ name ] = old[ name ];
+		}
+
+		return ret;
+	};
+
+
+	var
+		// Swappable if display is none or starts with table except "table", "table-cell", or "table-caption"
+		// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
+		rdisplayswap = /^(none|table(?!-c[ea]).+)/,
+		rnumsplit = new RegExp( "^(" + pnum + ")(.*)$", "i" ),
+		rrelNum = new RegExp( "^([+-])=(" + pnum + ")", "i" ),
+
+		cssShow = { position: "absolute", visibility: "hidden", display: "block" },
+		cssNormalTransform = {
+			letterSpacing: "0",
+			fontWeight: "400"
+		},
+
+		cssPrefixes = [ "Webkit", "O", "Moz", "ms" ];
+
+	// Return a css property mapped to a potentially vendor prefixed property
+	function vendorPropName( style, name ) {
+
+		// Shortcut for names that are not vendor prefixed
+		if ( name in style ) {
+			return name;
+		}
+
+		// Check for vendor prefixed names
+		var capName = name[0].toUpperCase() + name.slice(1),
+			origName = name,
+			i = cssPrefixes.length;
+
+		while ( i-- ) {
+			name = cssPrefixes[ i ] + capName;
+			if ( name in style ) {
+				return name;
+			}
+		}
+
+		return origName;
+	}
+
+	function setPositiveNumber( elem, value, subtract ) {
+		var matches = rnumsplit.exec( value );
+		return matches ?
+			// Guard against undefined "subtract", e.g., when used as in cssHooks
+			Math.max( 0, matches[ 1 ] - ( subtract || 0 ) ) + ( matches[ 2 ] || "px" ) :
+			value;
+	}
+
+	function augmentWidthOrHeight( elem, name, extra, isBorderBox, styles ) {
+		var i = extra === ( isBorderBox ? "border" : "content" ) ?
+			// If we already have the right measurement, avoid augmentation
+			4 :
+			// Otherwise initialize for horizontal or vertical properties
+			name === "width" ? 1 : 0,
+
+			val = 0;
+
+		for ( ; i < 4; i += 2 ) {
+			// Both box models exclude margin, so add it if we want it
+			if ( extra === "margin" ) {
+				val += jQuery.css( elem, extra + cssExpand[ i ], true, styles );
+			}
+
+			if ( isBorderBox ) {
+				// border-box includes padding, so remove it if we want content
+				if ( extra === "content" ) {
+					val -= jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
+				}
+
+				// At this point, extra isn't border nor margin, so remove border
+				if ( extra !== "margin" ) {
+					val -= jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
+				}
+			} else {
+				// At this point, extra isn't content, so add padding
+				val += jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
+
+				// At this point, extra isn't content nor padding, so add border
+				if ( extra !== "padding" ) {
+					val += jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
+				}
+			}
+		}
+
+		return val;
+	}
+
+	function getWidthOrHeight( elem, name, extra ) {
+
+		// Start with offset property, which is equivalent to the border-box value
+		var valueIsBorderBox = true,
+			val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
+			styles = getStyles( elem ),
+			isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
+
+		// Some non-html elements return undefined for offsetWidth, so check for null/undefined
+		// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
+		// MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
+		if ( val <= 0 || val == null ) {
+			// Fall back to computed then uncomputed css if necessary
+			val = curCSS( elem, name, styles );
+			if ( val < 0 || val == null ) {
+				val = elem.style[ name ];
+			}
+
+			// Computed unit is not pixels. Stop here and return.
+			if ( rnumnonpx.test(val) ) {
+				return val;
+			}
+
+			// Check for style in case a browser which returns unreliable values
+			// for getComputedStyle silently falls back to the reliable elem.style
+			valueIsBorderBox = isBorderBox &&
+				( support.boxSizingReliable() || val === elem.style[ name ] );
+
+			// Normalize "", auto, and prepare for extra
+			val = parseFloat( val ) || 0;
+		}
+
+		// Use the active box-sizing model to add/subtract irrelevant styles
+		return ( val +
+			augmentWidthOrHeight(
+				elem,
+				name,
+				extra || ( isBorderBox ? "border" : "content" ),
+				valueIsBorderBox,
+				styles
+			)
+		) + "px";
+	}
+
+	function showHide( elements, show ) {
+		var display, elem, hidden,
+			values = [],
+			index = 0,
+			length = elements.length;
+
+		for ( ; index < length; index++ ) {
+			elem = elements[ index ];
+			if ( !elem.style ) {
+				continue;
+			}
+
+			values[ index ] = data_priv.get( elem, "olddisplay" );
+			display = elem.style.display;
+			if ( show ) {
+				// Reset the inline display of this element to learn if it is
+				// being hidden by cascaded rules or not
+				if ( !values[ index ] && display === "none" ) {
+					elem.style.display = "";
+				}
+
+				// Set elements which have been overridden with display: none
+				// in a stylesheet to whatever the default browser style is
+				// for such an element
+				if ( elem.style.display === "" && isHidden( elem ) ) {
+					values[ index ] = data_priv.access( elem, "olddisplay", defaultDisplay(elem.nodeName) );
+				}
+			} else {
+				hidden = isHidden( elem );
+
+				if ( display !== "none" || !hidden ) {
+					data_priv.set( elem, "olddisplay", hidden ? display : jQuery.css( elem, "display" ) );
+				}
+			}
+		}
+
+		// Set the display of most of the elements in a second loop
+		// to avoid the constant reflow
+		for ( index = 0; index < length; index++ ) {
+			elem = elements[ index ];
+			if ( !elem.style ) {
+				continue;
+			}
+			if ( !show || elem.style.display === "none" || elem.style.display === "" ) {
+				elem.style.display = show ? values[ index ] || "" : "none";
+			}
+		}
+
+		return elements;
+	}
+
+	jQuery.extend({
+
+		// Add in style property hooks for overriding the default
+		// behavior of getting and setting a style property
+		cssHooks: {
+			opacity: {
+				get: function( elem, computed ) {
+					if ( computed ) {
+
+						// We should always get a number back from opacity
+						var ret = curCSS( elem, "opacity" );
+						return ret === "" ? "1" : ret;
+					}
+				}
+			}
+		},
+
+		// Don't automatically add "px" to these possibly-unitless properties
+		cssNumber: {
+			"columnCount": true,
+			"fillOpacity": true,
+			"flexGrow": true,
+			"flexShrink": true,
+			"fontWeight": true,
+			"lineHeight": true,
+			"opacity": true,
+			"order": true,
+			"orphans": true,
+			"widows": true,
+			"zIndex": true,
+			"zoom": true
+		},
+
+		// Add in properties whose names you wish to fix before
+		// setting or getting the value
+		cssProps: {
+			"float": "cssFloat"
+		},
+
+		// Get and set the style property on a DOM Node
+		style: function( elem, name, value, extra ) {
+
+			// Don't set styles on text and comment nodes
+			if ( !elem || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style ) {
+				return;
+			}
+
+			// Make sure that we're working with the right name
+			var ret, type, hooks,
+				origName = jQuery.camelCase( name ),
+				style = elem.style;
+
+			name = jQuery.cssProps[ origName ] || ( jQuery.cssProps[ origName ] = vendorPropName( style, origName ) );
+
+			// Gets hook for the prefixed version, then unprefixed version
+			hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
+
+			// Check if we're setting a value
+			if ( value !== undefined ) {
+				type = typeof value;
+
+				// Convert "+=" or "-=" to relative numbers (#7345)
+				if ( type === "string" && (ret = rrelNum.exec( value )) ) {
+					value = ( ret[1] + 1 ) * ret[2] + parseFloat( jQuery.css( elem, name ) );
+					// Fixes bug #9237
+					type = "number";
+				}
+
+				// Make sure that null and NaN values aren't set (#7116)
+				if ( value == null || value !== value ) {
+					return;
+				}
+
+				// If a number, add 'px' to the (except for certain CSS properties)
+				if ( type === "number" && !jQuery.cssNumber[ origName ] ) {
+					value += "px";
+				}
+
+				// Support: IE9-11+
+				// background-* props affect original clone's values
+				if ( !support.clearCloneStyle && value === "" && name.indexOf( "background" ) === 0 ) {
+					style[ name ] = "inherit";
+				}
+
+				// If a hook was provided, use that value, otherwise just set the specified value
+				if ( !hooks || !("set" in hooks) || (value = hooks.set( elem, value, extra )) !== undefined ) {
+					style[ name ] = value;
+				}
+
+			} else {
+				// If a hook was provided get the non-computed value from there
+				if ( hooks && "get" in hooks && (ret = hooks.get( elem, false, extra )) !== undefined ) {
+					return ret;
+				}
+
+				// Otherwise just get the value from the style object
+				return style[ name ];
+			}
+		},
+
+		css: function( elem, name, extra, styles ) {
+			var val, num, hooks,
+				origName = jQuery.camelCase( name );
+
+			// Make sure that we're working with the right name
+			name = jQuery.cssProps[ origName ] || ( jQuery.cssProps[ origName ] = vendorPropName( elem.style, origName ) );
+
+			// Try prefixed name followed by the unprefixed name
+			hooks = jQuery.cssHooks[ name ] || jQuery.cssHooks[ origName ];
+
+			// If a hook was provided get the computed value from there
+			if ( hooks && "get" in hooks ) {
+				val = hooks.get( elem, true, extra );
+			}
+
+			// Otherwise, if a way to get the computed value exists, use that
+			if ( val === undefined ) {
+				val = curCSS( elem, name, styles );
+			}
+
+			// Convert "normal" to computed value
+			if ( val === "normal" && name in cssNormalTransform ) {
+				val = cssNormalTransform[ name ];
+			}
+
+			// Make numeric if forced or a qualifier was provided and val looks numeric
+			if ( extra === "" || extra ) {
+				num = parseFloat( val );
+				return extra === true || jQuery.isNumeric( num ) ? num || 0 : val;
+			}
+			return val;
+		}
+	});
+
+	jQuery.each([ "height", "width" ], function( i, name ) {
+		jQuery.cssHooks[ name ] = {
+			get: function( elem, computed, extra ) {
+				if ( computed ) {
+
+					// Certain elements can have dimension info if we invisibly show them
+					// but it must have a current display style that would benefit
+					return rdisplayswap.test( jQuery.css( elem, "display" ) ) && elem.offsetWidth === 0 ?
+						jQuery.swap( elem, cssShow, function() {
+							return getWidthOrHeight( elem, name, extra );
+						}) :
+						getWidthOrHeight( elem, name, extra );
+				}
+			},
+
+			set: function( elem, value, extra ) {
+				var styles = extra && getStyles( elem );
+				return setPositiveNumber( elem, value, extra ?
+					augmentWidthOrHeight(
+						elem,
+						name,
+						extra,
+						jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+						styles
+					) : 0
+				);
+			}
+		};
+	});
+
+	// Support: Android 2.3
+	jQuery.cssHooks.marginRight = addGetHookIf( support.reliableMarginRight,
+		function( elem, computed ) {
+			if ( computed ) {
+				return jQuery.swap( elem, { "display": "inline-block" },
+					curCSS, [ elem, "marginRight" ] );
+			}
+		}
+	);
+
+	// These hooks are used by animate to expand properties
+	jQuery.each({
+		margin: "",
+		padding: "",
+		border: "Width"
+	}, function( prefix, suffix ) {
+		jQuery.cssHooks[ prefix + suffix ] = {
+			expand: function( value ) {
+				var i = 0,
+					expanded = {},
+
+					// Assumes a single number if not a string
+					parts = typeof value === "string" ? value.split(" ") : [ value ];
+
+				for ( ; i < 4; i++ ) {
+					expanded[ prefix + cssExpand[ i ] + suffix ] =
+						parts[ i ] || parts[ i - 2 ] || parts[ 0 ];
+				}
+
+				return expanded;
+			}
+		};
+
+		if ( !rmargin.test( prefix ) ) {
+			jQuery.cssHooks[ prefix + suffix ].set = setPositiveNumber;
+		}
+	});
+
+	jQuery.fn.extend({
+		css: function( name, value ) {
+			return access( this, function( elem, name, value ) {
+				var styles, len,
+					map = {},
+					i = 0;
+
+				if ( jQuery.isArray( name ) ) {
+					styles = getStyles( elem );
+					len = name.length;
+
+					for ( ; i < len; i++ ) {
+						map[ name[ i ] ] = jQuery.css( elem, name[ i ], false, styles );
+					}
+
+					return map;
+				}
+
+				return value !== undefined ?
+					jQuery.style( elem, name, value ) :
+					jQuery.css( elem, name );
+			}, name, value, arguments.length > 1 );
+		},
+		show: function() {
+			return showHide( this, true );
+		},
+		hide: function() {
+			return showHide( this );
+		},
+		toggle: function( state ) {
+			if ( typeof state === "boolean" ) {
+				return state ? this.show() : this.hide();
+			}
+
+			return this.each(function() {
+				if ( isHidden( this ) ) {
+					jQuery( this ).show();
+				} else {
+					jQuery( this ).hide();
+				}
+			});
+		}
+	});
+
+
+	function Tween( elem, options, prop, end, easing ) {
+		return new Tween.prototype.init( elem, options, prop, end, easing );
+	}
+	jQuery.Tween = Tween;
+
+	Tween.prototype = {
+		constructor: Tween,
+		init: function( elem, options, prop, end, easing, unit ) {
+			this.elem = elem;
+			this.prop = prop;
+			this.easing = easing || "swing";
+			this.options = options;
+			this.start = this.now = this.cur();
+			this.end = end;
+			this.unit = unit || ( jQuery.cssNumber[ prop ] ? "" : "px" );
+		},
+		cur: function() {
+			var hooks = Tween.propHooks[ this.prop ];
+
+			return hooks && hooks.get ?
+				hooks.get( this ) :
+				Tween.propHooks._default.get( this );
+		},
+		run: function( percent ) {
+			var eased,
+				hooks = Tween.propHooks[ this.prop ];
+
+			if ( this.options.duration ) {
+				this.pos = eased = jQuery.easing[ this.easing ](
+					percent, this.options.duration * percent, 0, 1, this.options.duration
+				);
+			} else {
+				this.pos = eased = percent;
+			}
+			this.now = ( this.end - this.start ) * eased + this.start;
+
+			if ( this.options.step ) {
+				this.options.step.call( this.elem, this.now, this );
+			}
+
+			if ( hooks && hooks.set ) {
+				hooks.set( this );
+			} else {
+				Tween.propHooks._default.set( this );
+			}
+			return this;
+		}
+	};
+
+	Tween.prototype.init.prototype = Tween.prototype;
+
+	Tween.propHooks = {
+		_default: {
+			get: function( tween ) {
+				var result;
+
+				if ( tween.elem[ tween.prop ] != null &&
+					(!tween.elem.style || tween.elem.style[ tween.prop ] == null) ) {
+					return tween.elem[ tween.prop ];
+				}
+
+				// Passing an empty string as a 3rd parameter to .css will automatically
+				// attempt a parseFloat and fallback to a string if the parse fails.
+				// Simple values such as "10px" are parsed to Float;
+				// complex values such as "rotate(1rad)" are returned as-is.
+				result = jQuery.css( tween.elem, tween.prop, "" );
+				// Empty strings, null, undefined and "auto" are converted to 0.
+				return !result || result === "auto" ? 0 : result;
+			},
+			set: function( tween ) {
+				// Use step hook for back compat.
+				// Use cssHook if its there.
+				// Use .style if available and use plain properties where available.
+				if ( jQuery.fx.step[ tween.prop ] ) {
+					jQuery.fx.step[ tween.prop ]( tween );
+				} else if ( tween.elem.style && ( tween.elem.style[ jQuery.cssProps[ tween.prop ] ] != null || jQuery.cssHooks[ tween.prop ] ) ) {
+					jQuery.style( tween.elem, tween.prop, tween.now + tween.unit );
+				} else {
+					tween.elem[ tween.prop ] = tween.now;
+				}
+			}
+		}
+	};
+
+	// Support: IE9
+	// Panic based approach to setting things on disconnected nodes
+	Tween.propHooks.scrollTop = Tween.propHooks.scrollLeft = {
+		set: function( tween ) {
+			if ( tween.elem.nodeType && tween.elem.parentNode ) {
+				tween.elem[ tween.prop ] = tween.now;
+			}
+		}
+	};
+
+	jQuery.easing = {
+		linear: function( p ) {
+			return p;
+		},
+		swing: function( p ) {
+			return 0.5 - Math.cos( p * Math.PI ) / 2;
+		}
+	};
+
+	jQuery.fx = Tween.prototype.init;
+
+	// Back Compat <1.8 extension point
+	jQuery.fx.step = {};
+
+
+
+
+	var
+		fxNow, timerId,
+		rfxtypes = /^(?:toggle|show|hide)$/,
+		rfxnum = new RegExp( "^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i" ),
+		rrun = /queueHooks$/,
+		animationPrefilters = [ defaultPrefilter ],
+		tweeners = {
+			"*": [ function( prop, value ) {
+				var tween = this.createTween( prop, value ),
+					target = tween.cur(),
+					parts = rfxnum.exec( value ),
+					unit = parts && parts[ 3 ] || ( jQuery.cssNumber[ prop ] ? "" : "px" ),
+
+					// Starting value computation is required for potential unit mismatches
+					start = ( jQuery.cssNumber[ prop ] || unit !== "px" && +target ) &&
+						rfxnum.exec( jQuery.css( tween.elem, prop ) ),
+					scale = 1,
+					maxIterations = 20;
+
+				if ( start && start[ 3 ] !== unit ) {
+					// Trust units reported by jQuery.css
+					unit = unit || start[ 3 ];
+
+					// Make sure we update the tween properties later on
+					parts = parts || [];
+
+					// Iteratively approximate from a nonzero starting point
+					start = +target || 1;
+
+					do {
+						// If previous iteration zeroed out, double until we get *something*.
+						// Use string for doubling so we don't accidentally see scale as unchanged below
+						scale = scale || ".5";
+
+						// Adjust and apply
+						start = start / scale;
+						jQuery.style( tween.elem, prop, start + unit );
+
+					// Update scale, tolerating zero or NaN from tween.cur(),
+					// break the loop if scale is unchanged or perfect, or if we've just had enough
+					} while ( scale !== (scale = tween.cur() / target) && scale !== 1 && --maxIterations );
+				}
+
+				// Update tween properties
+				if ( parts ) {
+					start = tween.start = +start || +target || 0;
+					tween.unit = unit;
+					// If a +=/-= token was provided, we're doing a relative animation
+					tween.end = parts[ 1 ] ?
+						start + ( parts[ 1 ] + 1 ) * parts[ 2 ] :
+						+parts[ 2 ];
+				}
+
+				return tween;
+			} ]
+		};
+
+	// Animations created synchronously will run synchronously
+	function createFxNow() {
+		setTimeout(function() {
+			fxNow = undefined;
+		});
+		return ( fxNow = jQuery.now() );
+	}
+
+	// Generate parameters to create a standard animation
+	function genFx( type, includeWidth ) {
+		var which,
+			i = 0,
+			attrs = { height: type };
+
+		// If we include width, step value is 1 to do all cssExpand values,
+		// otherwise step value is 2 to skip over Left and Right
+		includeWidth = includeWidth ? 1 : 0;
+		for ( ; i < 4 ; i += 2 - includeWidth ) {
+			which = cssExpand[ i ];
+			attrs[ "margin" + which ] = attrs[ "padding" + which ] = type;
+		}
+
+		if ( includeWidth ) {
+			attrs.opacity = attrs.width = type;
+		}
+
+		return attrs;
+	}
+
+	function createTween( value, prop, animation ) {
+		var tween,
+			collection = ( tweeners[ prop ] || [] ).concat( tweeners[ "*" ] ),
+			index = 0,
+			length = collection.length;
+		for ( ; index < length; index++ ) {
+			if ( (tween = collection[ index ].call( animation, prop, value )) ) {
+
+				// We're done with this property
+				return tween;
+			}
+		}
+	}
+
+	function defaultPrefilter( elem, props, opts ) {
+		/* jshint validthis: true */
+		var prop, value, toggle, tween, hooks, oldfire, display, checkDisplay,
+			anim = this,
+			orig = {},
+			style = elem.style,
+			hidden = elem.nodeType && isHidden( elem ),
+			dataShow = data_priv.get( elem, "fxshow" );
+
+		// Handle queue: false promises
+		if ( !opts.queue ) {
+			hooks = jQuery._queueHooks( elem, "fx" );
+			if ( hooks.unqueued == null ) {
+				hooks.unqueued = 0;
+				oldfire = hooks.empty.fire;
+				hooks.empty.fire = function() {
+					if ( !hooks.unqueued ) {
+						oldfire();
+					}
+				};
+			}
+			hooks.unqueued++;
+
+			anim.always(function() {
+				// Ensure the complete handler is called before this completes
+				anim.always(function() {
+					hooks.unqueued--;
+					if ( !jQuery.queue( elem, "fx" ).length ) {
+						hooks.empty.fire();
+					}
+				});
+			});
+		}
+
+		// Height/width overflow pass
+		if ( elem.nodeType === 1 && ( "height" in props || "width" in props ) ) {
+			// Make sure that nothing sneaks out
+			// Record all 3 overflow attributes because IE9-10 do not
+			// change the overflow attribute when overflowX and
+			// overflowY are set to the same value
+			opts.overflow = [ style.overflow, style.overflowX, style.overflowY ];
+
+			// Set display property to inline-block for height/width
+			// animations on inline elements that are having width/height animated
+			display = jQuery.css( elem, "display" );
+
+			// Test default display if display is currently "none"
+			checkDisplay = display === "none" ?
+				data_priv.get( elem, "olddisplay" ) || defaultDisplay( elem.nodeName ) : display;
+
+			if ( checkDisplay === "inline" && jQuery.css( elem, "float" ) === "none" ) {
+				style.display = "inline-block";
+			}
+		}
+
+		if ( opts.overflow ) {
+			style.overflow = "hidden";
+			anim.always(function() {
+				style.overflow = opts.overflow[ 0 ];
+				style.overflowX = opts.overflow[ 1 ];
+				style.overflowY = opts.overflow[ 2 ];
+			});
+		}
+
+		// show/hide pass
+		for ( prop in props ) {
+			value = props[ prop ];
+			if ( rfxtypes.exec( value ) ) {
+				delete props[ prop ];
+				toggle = toggle || value === "toggle";
+				if ( value === ( hidden ? "hide" : "show" ) ) {
+
+					// If there is dataShow left over from a stopped hide or show and we are going to proceed with show, we should pretend to be hidden
+					if ( value === "show" && dataShow && dataShow[ prop ] !== undefined ) {
+						hidden = true;
+					} else {
+						continue;
+					}
+				}
+				orig[ prop ] = dataShow && dataShow[ prop ] || jQuery.style( elem, prop );
+
+			// Any non-fx value stops us from restoring the original display value
+			} else {
+				display = undefined;
+			}
+		}
+
+		if ( !jQuery.isEmptyObject( orig ) ) {
+			if ( dataShow ) {
+				if ( "hidden" in dataShow ) {
+					hidden = dataShow.hidden;
+				}
+			} else {
+				dataShow = data_priv.access( elem, "fxshow", {} );
+			}
+
+			// Store state if its toggle - enables .stop().toggle() to "reverse"
+			if ( toggle ) {
+				dataShow.hidden = !hidden;
+			}
+			if ( hidden ) {
+				jQuery( elem ).show();
+			} else {
+				anim.done(function() {
+					jQuery( elem ).hide();
+				});
+			}
+			anim.done(function() {
+				var prop;
+
+				data_priv.remove( elem, "fxshow" );
+				for ( prop in orig ) {
+					jQuery.style( elem, prop, orig[ prop ] );
+				}
+			});
+			for ( prop in orig ) {
+				tween = createTween( hidden ? dataShow[ prop ] : 0, prop, anim );
+
+				if ( !( prop in dataShow ) ) {
+					dataShow[ prop ] = tween.start;
+					if ( hidden ) {
+						tween.end = tween.start;
+						tween.start = prop === "width" || prop === "height" ? 1 : 0;
+					}
+				}
+			}
+
+		// If this is a noop like .hide().hide(), restore an overwritten display value
+		} else if ( (display === "none" ? defaultDisplay( elem.nodeName ) : display) === "inline" ) {
+			style.display = display;
+		}
+	}
+
+	function propFilter( props, specialEasing ) {
+		var index, name, easing, value, hooks;
+
+		// camelCase, specialEasing and expand cssHook pass
+		for ( index in props ) {
+			name = jQuery.camelCase( index );
+			easing = specialEasing[ name ];
+			value = props[ index ];
+			if ( jQuery.isArray( value ) ) {
+				easing = value[ 1 ];
+				value = props[ index ] = value[ 0 ];
+			}
+
+			if ( index !== name ) {
+				props[ name ] = value;
+				delete props[ index ];
+			}
+
+			hooks = jQuery.cssHooks[ name ];
+			if ( hooks && "expand" in hooks ) {
+				value = hooks.expand( value );
+				delete props[ name ];
+
+				// Not quite $.extend, this won't overwrite existing keys.
+				// Reusing 'index' because we have the correct "name"
+				for ( index in value ) {
+					if ( !( index in props ) ) {
+						props[ index ] = value[ index ];
+						specialEasing[ index ] = easing;
+					}
+				}
+			} else {
+				specialEasing[ name ] = easing;
+			}
+		}
+	}
+
+	function Animation( elem, properties, options ) {
+		var result,
+			stopped,
+			index = 0,
+			length = animationPrefilters.length,
+			deferred = jQuery.Deferred().always( function() {
+				// Don't match elem in the :animated selector
+				delete tick.elem;
+			}),
+			tick = function() {
+				if ( stopped ) {
+					return false;
+				}
+				var currentTime = fxNow || createFxNow(),
+					remaining = Math.max( 0, animation.startTime + animation.duration - currentTime ),
+					// Support: Android 2.3
+					// Archaic crash bug won't allow us to use `1 - ( 0.5 || 0 )` (#12497)
+					temp = remaining / animation.duration || 0,
+					percent = 1 - temp,
+					index = 0,
+					length = animation.tweens.length;
+
+				for ( ; index < length ; index++ ) {
+					animation.tweens[ index ].run( percent );
+				}
+
+				deferred.notifyWith( elem, [ animation, percent, remaining ]);
+
+				if ( percent < 1 && length ) {
+					return remaining;
+				} else {
+					deferred.resolveWith( elem, [ animation ] );
+					return false;
+				}
+			},
+			animation = deferred.promise({
+				elem: elem,
+				props: jQuery.extend( {}, properties ),
+				opts: jQuery.extend( true, { specialEasing: {} }, options ),
+				originalProperties: properties,
+				originalOptions: options,
+				startTime: fxNow || createFxNow(),
+				duration: options.duration,
+				tweens: [],
+				createTween: function( prop, end ) {
+					var tween = jQuery.Tween( elem, animation.opts, prop, end,
+							animation.opts.specialEasing[ prop ] || animation.opts.easing );
+					animation.tweens.push( tween );
+					return tween;
+				},
+				stop: function( gotoEnd ) {
+					var index = 0,
+						// If we are going to the end, we want to run all the tweens
+						// otherwise we skip this part
+						length = gotoEnd ? animation.tweens.length : 0;
+					if ( stopped ) {
+						return this;
+					}
+					stopped = true;
+					for ( ; index < length ; index++ ) {
+						animation.tweens[ index ].run( 1 );
+					}
+
+					// Resolve when we played the last frame; otherwise, reject
+					if ( gotoEnd ) {
+						deferred.resolveWith( elem, [ animation, gotoEnd ] );
+					} else {
+						deferred.rejectWith( elem, [ animation, gotoEnd ] );
+					}
+					return this;
+				}
+			}),
+			props = animation.props;
+
+		propFilter( props, animation.opts.specialEasing );
+
+		for ( ; index < length ; index++ ) {
+			result = animationPrefilters[ index ].call( animation, elem, props, animation.opts );
+			if ( result ) {
+				return result;
+			}
+		}
+
+		jQuery.map( props, createTween, animation );
+
+		if ( jQuery.isFunction( animation.opts.start ) ) {
+			animation.opts.start.call( elem, animation );
+		}
+
+		jQuery.fx.timer(
+			jQuery.extend( tick, {
+				elem: elem,
+				anim: animation,
+				queue: animation.opts.queue
+			})
+		);
+
+		// attach callbacks from options
+		return animation.progress( animation.opts.progress )
+			.done( animation.opts.done, animation.opts.complete )
+			.fail( animation.opts.fail )
+			.always( animation.opts.always );
+	}
+
+	jQuery.Animation = jQuery.extend( Animation, {
+
+		tweener: function( props, callback ) {
+			if ( jQuery.isFunction( props ) ) {
+				callback = props;
+				props = [ "*" ];
+			} else {
+				props = props.split(" ");
+			}
+
+			var prop,
+				index = 0,
+				length = props.length;
+
+			for ( ; index < length ; index++ ) {
+				prop = props[ index ];
+				tweeners[ prop ] = tweeners[ prop ] || [];
+				tweeners[ prop ].unshift( callback );
+			}
+		},
+
+		prefilter: function( callback, prepend ) {
+			if ( prepend ) {
+				animationPrefilters.unshift( callback );
+			} else {
+				animationPrefilters.push( callback );
+			}
+		}
+	});
+
+	jQuery.speed = function( speed, easing, fn ) {
+		var opt = speed && typeof speed === "object" ? jQuery.extend( {}, speed ) : {
+			complete: fn || !fn && easing ||
+				jQuery.isFunction( speed ) && speed,
+			duration: speed,
+			easing: fn && easing || easing && !jQuery.isFunction( easing ) && easing
+		};
+
+		opt.duration = jQuery.fx.off ? 0 : typeof opt.duration === "number" ? opt.duration :
+			opt.duration in jQuery.fx.speeds ? jQuery.fx.speeds[ opt.duration ] : jQuery.fx.speeds._default;
+
+		// Normalize opt.queue - true/undefined/null -> "fx"
+		if ( opt.queue == null || opt.queue === true ) {
+			opt.queue = "fx";
+		}
+
+		// Queueing
+		opt.old = opt.complete;
+
+		opt.complete = function() {
+			if ( jQuery.isFunction( opt.old ) ) {
+				opt.old.call( this );
+			}
+
+			if ( opt.queue ) {
+				jQuery.dequeue( this, opt.queue );
+			}
+		};
+
+		return opt;
+	};
+
+	jQuery.fn.extend({
+		fadeTo: function( speed, to, easing, callback ) {
+
+			// Show any hidden elements after setting opacity to 0
+			return this.filter( isHidden ).css( "opacity", 0 ).show()
+
+				// Animate to the value specified
+				.end().animate({ opacity: to }, speed, easing, callback );
+		},
+		animate: function( prop, speed, easing, callback ) {
+			var empty = jQuery.isEmptyObject( prop ),
+				optall = jQuery.speed( speed, easing, callback ),
+				doAnimation = function() {
+					// Operate on a copy of prop so per-property easing won't be lost
+					var anim = Animation( this, jQuery.extend( {}, prop ), optall );
+
+					// Empty animations, or finishing resolves immediately
+					if ( empty || data_priv.get( this, "finish" ) ) {
+						anim.stop( true );
+					}
+				};
+				doAnimation.finish = doAnimation;
+
+			return empty || optall.queue === false ?
+				this.each( doAnimation ) :
+				this.queue( optall.queue, doAnimation );
+		},
+		stop: function( type, clearQueue, gotoEnd ) {
+			var stopQueue = function( hooks ) {
+				var stop = hooks.stop;
+				delete hooks.stop;
+				stop( gotoEnd );
+			};
+
+			if ( typeof type !== "string" ) {
+				gotoEnd = clearQueue;
+				clearQueue = type;
+				type = undefined;
+			}
+			if ( clearQueue && type !== false ) {
+				this.queue( type || "fx", [] );
+			}
+
+			return this.each(function() {
+				var dequeue = true,
+					index = type != null && type + "queueHooks",
+					timers = jQuery.timers,
+					data = data_priv.get( this );
+
+				if ( index ) {
+					if ( data[ index ] && data[ index ].stop ) {
+						stopQueue( data[ index ] );
+					}
+				} else {
+					for ( index in data ) {
+						if ( data[ index ] && data[ index ].stop && rrun.test( index ) ) {
+							stopQueue( data[ index ] );
+						}
+					}
+				}
+
+				for ( index = timers.length; index--; ) {
+					if ( timers[ index ].elem === this && (type == null || timers[ index ].queue === type) ) {
+						timers[ index ].anim.stop( gotoEnd );
+						dequeue = false;
+						timers.splice( index, 1 );
+					}
+				}
+
+				// Start the next in the queue if the last step wasn't forced.
+				// Timers currently will call their complete callbacks, which
+				// will dequeue but only if they were gotoEnd.
+				if ( dequeue || !gotoEnd ) {
+					jQuery.dequeue( this, type );
+				}
+			});
+		},
+		finish: function( type ) {
+			if ( type !== false ) {
+				type = type || "fx";
+			}
+			return this.each(function() {
+				var index,
+					data = data_priv.get( this ),
+					queue = data[ type + "queue" ],
+					hooks = data[ type + "queueHooks" ],
+					timers = jQuery.timers,
+					length = queue ? queue.length : 0;
+
+				// Enable finishing flag on private data
+				data.finish = true;
+
+				// Empty the queue first
+				jQuery.queue( this, type, [] );
+
+				if ( hooks && hooks.stop ) {
+					hooks.stop.call( this, true );
+				}
+
+				// Look for any active animations, and finish them
+				for ( index = timers.length; index--; ) {
+					if ( timers[ index ].elem === this && timers[ index ].queue === type ) {
+						timers[ index ].anim.stop( true );
+						timers.splice( index, 1 );
+					}
+				}
+
+				// Look for any animations in the old queue and finish them
+				for ( index = 0; index < length; index++ ) {
+					if ( queue[ index ] && queue[ index ].finish ) {
+						queue[ index ].finish.call( this );
+					}
+				}
+
+				// Turn off finishing flag
+				delete data.finish;
+			});
+		}
+	});
+
+	jQuery.each([ "toggle", "show", "hide" ], function( i, name ) {
+		var cssFn = jQuery.fn[ name ];
+		jQuery.fn[ name ] = function( speed, easing, callback ) {
+			return speed == null || typeof speed === "boolean" ?
+				cssFn.apply( this, arguments ) :
+				this.animate( genFx( name, true ), speed, easing, callback );
+		};
+	});
+
+	// Generate shortcuts for custom animations
+	jQuery.each({
+		slideDown: genFx("show"),
+		slideUp: genFx("hide"),
+		slideToggle: genFx("toggle"),
+		fadeIn: { opacity: "show" },
+		fadeOut: { opacity: "hide" },
+		fadeToggle: { opacity: "toggle" }
+	}, function( name, props ) {
+		jQuery.fn[ name ] = function( speed, easing, callback ) {
+			return this.animate( props, speed, easing, callback );
+		};
+	});
+
+	jQuery.timers = [];
+	jQuery.fx.tick = function() {
+		var timer,
+			i = 0,
+			timers = jQuery.timers;
+
+		fxNow = jQuery.now();
+
+		for ( ; i < timers.length; i++ ) {
+			timer = timers[ i ];
+			// Checks the timer has not already been removed
+			if ( !timer() && timers[ i ] === timer ) {
+				timers.splice( i--, 1 );
+			}
+		}
+
+		if ( !timers.length ) {
+			jQuery.fx.stop();
+		}
+		fxNow = undefined;
+	};
+
+	jQuery.fx.timer = function( timer ) {
+		jQuery.timers.push( timer );
+		if ( timer() ) {
+			jQuery.fx.start();
+		} else {
+			jQuery.timers.pop();
+		}
+	};
+
+	jQuery.fx.interval = 13;
+
+	jQuery.fx.start = function() {
+		if ( !timerId ) {
+			timerId = setInterval( jQuery.fx.tick, jQuery.fx.interval );
+		}
+	};
+
+	jQuery.fx.stop = function() {
+		clearInterval( timerId );
+		timerId = null;
+	};
+
+	jQuery.fx.speeds = {
+		slow: 600,
+		fast: 200,
+		// Default speed
+		_default: 400
+	};
+
+
+	// Based off of the plugin by Clint Helfers, with permission.
+	// http://blindsignals.com/index.php/2009/07/jquery-delay/
+	jQuery.fn.delay = function( time, type ) {
+		time = jQuery.fx ? jQuery.fx.speeds[ time ] || time : time;
+		type = type || "fx";
+
+		return this.queue( type, function( next, hooks ) {
+			var timeout = setTimeout( next, time );
+			hooks.stop = function() {
+				clearTimeout( timeout );
+			};
+		});
+	};
+
+
+	(function() {
+		var input = document.createElement( "input" ),
+			select = document.createElement( "select" ),
+			opt = select.appendChild( document.createElement( "option" ) );
+
+		input.type = "checkbox";
+
+		// Support: iOS<=5.1, Android<=4.2+
+		// Default value for a checkbox should be "on"
+		support.checkOn = input.value !== "";
+
+		// Support: IE<=11+
+		// Must access selectedIndex to make default options select
+		support.optSelected = opt.selected;
+
+		// Support: Android<=2.3
+		// Options inside disabled selects are incorrectly marked as disabled
+		select.disabled = true;
+		support.optDisabled = !opt.disabled;
+
+		// Support: IE<=11+
+		// An input loses its value after becoming a radio
+		input = document.createElement( "input" );
+		input.value = "t";
+		input.type = "radio";
+		support.radioValue = input.value === "t";
+	})();
+
+
+	var nodeHook, boolHook,
+		attrHandle = jQuery.expr.attrHandle;
+
+	jQuery.fn.extend({
+		attr: function( name, value ) {
+			return access( this, jQuery.attr, name, value, arguments.length > 1 );
+		},
+
+		removeAttr: function( name ) {
+			return this.each(function() {
+				jQuery.removeAttr( this, name );
+			});
+		}
+	});
+
+	jQuery.extend({
+		attr: function( elem, name, value ) {
+			var hooks, ret,
+				nType = elem.nodeType;
+
+			// don't get/set attributes on text, comment and attribute nodes
+			if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
+				return;
+			}
+
+			// Fallback to prop when attributes are not supported
+			if ( typeof elem.getAttribute === strundefined ) {
+				return jQuery.prop( elem, name, value );
+			}
+
+			// All attributes are lowercase
+			// Grab necessary hook if one is defined
+			if ( nType !== 1 || !jQuery.isXMLDoc( elem ) ) {
+				name = name.toLowerCase();
+				hooks = jQuery.attrHooks[ name ] ||
+					( jQuery.expr.match.bool.test( name ) ? boolHook : nodeHook );
+			}
+
+			if ( value !== undefined ) {
+
+				if ( value === null ) {
+					jQuery.removeAttr( elem, name );
+
+				} else if ( hooks && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ) {
+					return ret;
+
+				} else {
+					elem.setAttribute( name, value + "" );
+					return value;
+				}
+
+			} else if ( hooks && "get" in hooks && (ret = hooks.get( elem, name )) !== null ) {
+				return ret;
+
+			} else {
+				ret = jQuery.find.attr( elem, name );
+
+				// Non-existent attributes return null, we normalize to undefined
+				return ret == null ?
+					undefined :
+					ret;
+			}
+		},
+
+		removeAttr: function( elem, value ) {
+			var name, propName,
+				i = 0,
+				attrNames = value && value.match( rnotwhite );
+
+			if ( attrNames && elem.nodeType === 1 ) {
+				while ( (name = attrNames[i++]) ) {
+					propName = jQuery.propFix[ name ] || name;
+
+					// Boolean attributes get special treatment (#10870)
+					if ( jQuery.expr.match.bool.test( name ) ) {
+						// Set corresponding property to false
+						elem[ propName ] = false;
+					}
+
+					elem.removeAttribute( name );
+				}
+			}
+		},
+
+		attrHooks: {
+			type: {
+				set: function( elem, value ) {
+					if ( !support.radioValue && value === "radio" &&
+						jQuery.nodeName( elem, "input" ) ) {
+						var val = elem.value;
+						elem.setAttribute( "type", value );
+						if ( val ) {
+							elem.value = val;
+						}
+						return value;
+					}
+				}
+			}
+		}
+	});
+
+	// Hooks for boolean attributes
+	boolHook = {
+		set: function( elem, value, name ) {
+			if ( value === false ) {
+				// Remove boolean attributes when set to false
+				jQuery.removeAttr( elem, name );
+			} else {
+				elem.setAttribute( name, name );
+			}
+			return name;
+		}
+	};
+	jQuery.each( jQuery.expr.match.bool.source.match( /\w+/g ), function( i, name ) {
+		var getter = attrHandle[ name ] || jQuery.find.attr;
+
+		attrHandle[ name ] = function( elem, name, isXML ) {
+			var ret, handle;
+			if ( !isXML ) {
+				// Avoid an infinite loop by temporarily removing this function from the getter
+				handle = attrHandle[ name ];
+				attrHandle[ name ] = ret;
+				ret = getter( elem, name, isXML ) != null ?
+					name.toLowerCase() :
+					null;
+				attrHandle[ name ] = handle;
+			}
+			return ret;
+		};
+	});
+
+
+
+
+	var rfocusable = /^(?:input|select|textarea|button)$/i;
+
+	jQuery.fn.extend({
+		prop: function( name, value ) {
+			return access( this, jQuery.prop, name, value, arguments.length > 1 );
+		},
+
+		removeProp: function( name ) {
+			return this.each(function() {
+				delete this[ jQuery.propFix[ name ] || name ];
+			});
+		}
+	});
+
+	jQuery.extend({
+		propFix: {
+			"for": "htmlFor",
+			"class": "className"
+		},
+
+		prop: function( elem, name, value ) {
+			var ret, hooks, notxml,
+				nType = elem.nodeType;
+
+			// Don't get/set properties on text, comment and attribute nodes
+			if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
+				return;
+			}
+
+			notxml = nType !== 1 || !jQuery.isXMLDoc( elem );
+
+			if ( notxml ) {
+				// Fix name and attach hooks
+				name = jQuery.propFix[ name ] || name;
+				hooks = jQuery.propHooks[ name ];
+			}
+
+			if ( value !== undefined ) {
+				return hooks && "set" in hooks && (ret = hooks.set( elem, value, name )) !== undefined ?
+					ret :
+					( elem[ name ] = value );
+
+			} else {
+				return hooks && "get" in hooks && (ret = hooks.get( elem, name )) !== null ?
+					ret :
+					elem[ name ];
+			}
+		},
+
+		propHooks: {
+			tabIndex: {
+				get: function( elem ) {
+					return elem.hasAttribute( "tabindex" ) || rfocusable.test( elem.nodeName ) || elem.href ?
+						elem.tabIndex :
+						-1;
+				}
+			}
+		}
+	});
+
+	if ( !support.optSelected ) {
+		jQuery.propHooks.selected = {
+			get: function( elem ) {
+				var parent = elem.parentNode;
+				if ( parent && parent.parentNode ) {
+					parent.parentNode.selectedIndex;
+				}
+				return null;
+			}
+		};
+	}
+
+	jQuery.each([
+		"tabIndex",
+		"readOnly",
+		"maxLength",
+		"cellSpacing",
+		"cellPadding",
+		"rowSpan",
+		"colSpan",
+		"useMap",
+		"frameBorder",
+		"contentEditable"
+	], function() {
+		jQuery.propFix[ this.toLowerCase() ] = this;
+	});
+
+
+
+
+	var rclass = /[\t\r\n\f]/g;
+
+	jQuery.fn.extend({
+		addClass: function( value ) {
+			var classes, elem, cur, clazz, j, finalValue,
+				proceed = typeof value === "string" && value,
+				i = 0,
+				len = this.length;
+
+			if ( jQuery.isFunction( value ) ) {
+				return this.each(function( j ) {
+					jQuery( this ).addClass( value.call( this, j, this.className ) );
+				});
+			}
+
+			if ( proceed ) {
+				// The disjunction here is for better compressibility (see removeClass)
+				classes = ( value || "" ).match( rnotwhite ) || [];
+
+				for ( ; i < len; i++ ) {
+					elem = this[ i ];
+					cur = elem.nodeType === 1 && ( elem.className ?
+						( " " + elem.className + " " ).replace( rclass, " " ) :
+						" "
+					);
+
+					if ( cur ) {
+						j = 0;
+						while ( (clazz = classes[j++]) ) {
+							if ( cur.indexOf( " " + clazz + " " ) < 0 ) {
+								cur += clazz + " ";
+							}
+						}
+
+						// only assign if different to avoid unneeded rendering.
+						finalValue = jQuery.trim( cur );
+						if ( elem.className !== finalValue ) {
+							elem.className = finalValue;
+						}
+					}
+				}
+			}
+
+			return this;
+		},
+
+		removeClass: function( value ) {
+			var classes, elem, cur, clazz, j, finalValue,
+				proceed = arguments.length === 0 || typeof value === "string" && value,
+				i = 0,
+				len = this.length;
+
+			if ( jQuery.isFunction( value ) ) {
+				return this.each(function( j ) {
+					jQuery( this ).removeClass( value.call( this, j, this.className ) );
+				});
+			}
+			if ( proceed ) {
+				classes = ( value || "" ).match( rnotwhite ) || [];
+
+				for ( ; i < len; i++ ) {
+					elem = this[ i ];
+					// This expression is here for better compressibility (see addClass)
+					cur = elem.nodeType === 1 && ( elem.className ?
+						( " " + elem.className + " " ).replace( rclass, " " ) :
+						""
+					);
+
+					if ( cur ) {
+						j = 0;
+						while ( (clazz = classes[j++]) ) {
+							// Remove *all* instances
+							while ( cur.indexOf( " " + clazz + " " ) >= 0 ) {
+								cur = cur.replace( " " + clazz + " ", " " );
+							}
+						}
+
+						// Only assign if different to avoid unneeded rendering.
+						finalValue = value ? jQuery.trim( cur ) : "";
+						if ( elem.className !== finalValue ) {
+							elem.className = finalValue;
+						}
+					}
+				}
+			}
+
+			return this;
+		},
+
+		toggleClass: function( value, stateVal ) {
+			var type = typeof value;
+
+			if ( typeof stateVal === "boolean" && type === "string" ) {
+				return stateVal ? this.addClass( value ) : this.removeClass( value );
+			}
+
+			if ( jQuery.isFunction( value ) ) {
+				return this.each(function( i ) {
+					jQuery( this ).toggleClass( value.call(this, i, this.className, stateVal), stateVal );
+				});
+			}
+
+			return this.each(function() {
+				if ( type === "string" ) {
+					// Toggle individual class names
+					var className,
+						i = 0,
+						self = jQuery( this ),
+						classNames = value.match( rnotwhite ) || [];
+
+					while ( (className = classNames[ i++ ]) ) {
+						// Check each className given, space separated list
+						if ( self.hasClass( className ) ) {
+							self.removeClass( className );
+						} else {
+							self.addClass( className );
+						}
+					}
+
+				// Toggle whole class name
+				} else if ( type === strundefined || type === "boolean" ) {
+					if ( this.className ) {
+						// store className if set
+						data_priv.set( this, "__className__", this.className );
+					}
+
+					// If the element has a class name or if we're passed `false`,
+					// then remove the whole classname (if there was one, the above saved it).
+					// Otherwise bring back whatever was previously saved (if anything),
+					// falling back to the empty string if nothing was stored.
+					this.className = this.className || value === false ? "" : data_priv.get( this, "__className__" ) || "";
+				}
+			});
+		},
+
+		hasClass: function( selector ) {
+			var className = " " + selector + " ",
+				i = 0,
+				l = this.length;
+			for ( ; i < l; i++ ) {
+				if ( this[i].nodeType === 1 && (" " + this[i].className + " ").replace(rclass, " ").indexOf( className ) >= 0 ) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+	});
+
+
+
+
+	var rreturn = /\r/g;
+
+	jQuery.fn.extend({
+		val: function( value ) {
+			var hooks, ret, isFunction,
+				elem = this[0];
+
+			if ( !arguments.length ) {
+				if ( elem ) {
+					hooks = jQuery.valHooks[ elem.type ] || jQuery.valHooks[ elem.nodeName.toLowerCase() ];
+
+					if ( hooks && "get" in hooks && (ret = hooks.get( elem, "value" )) !== undefined ) {
+						return ret;
+					}
+
+					ret = elem.value;
+
+					return typeof ret === "string" ?
+						// Handle most common string cases
+						ret.replace(rreturn, "") :
+						// Handle cases where value is null/undef or number
+						ret == null ? "" : ret;
+				}
+
+				return;
+			}
+
+			isFunction = jQuery.isFunction( value );
+
+			return this.each(function( i ) {
+				var val;
+
+				if ( this.nodeType !== 1 ) {
+					return;
+				}
+
+				if ( isFunction ) {
+					val = value.call( this, i, jQuery( this ).val() );
+				} else {
+					val = value;
+				}
+
+				// Treat null/undefined as ""; convert numbers to string
+				if ( val == null ) {
+					val = "";
+
+				} else if ( typeof val === "number" ) {
+					val += "";
+
+				} else if ( jQuery.isArray( val ) ) {
+					val = jQuery.map( val, function( value ) {
+						return value == null ? "" : value + "";
+					});
+				}
+
+				hooks = jQuery.valHooks[ this.type ] || jQuery.valHooks[ this.nodeName.toLowerCase() ];
+
+				// If set returns undefined, fall back to normal setting
+				if ( !hooks || !("set" in hooks) || hooks.set( this, val, "value" ) === undefined ) {
+					this.value = val;
+				}
+			});
+		}
+	});
+
+	jQuery.extend({
+		valHooks: {
+			option: {
+				get: function( elem ) {
+					var val = jQuery.find.attr( elem, "value" );
+					return val != null ?
+						val :
+						// Support: IE10-11+
+						// option.text throws exceptions (#14686, #14858)
+						jQuery.trim( jQuery.text( elem ) );
+				}
+			},
+			select: {
+				get: function( elem ) {
+					var value, option,
+						options = elem.options,
+						index = elem.selectedIndex,
+						one = elem.type === "select-one" || index < 0,
+						values = one ? null : [],
+						max = one ? index + 1 : options.length,
+						i = index < 0 ?
+							max :
+							one ? index : 0;
+
+					// Loop through all the selected options
+					for ( ; i < max; i++ ) {
+						option = options[ i ];
+
+						// IE6-9 doesn't update selected after form reset (#2551)
+						if ( ( option.selected || i === index ) &&
+								// Don't return options that are disabled or in a disabled optgroup
+								( support.optDisabled ? !option.disabled : option.getAttribute( "disabled" ) === null ) &&
+								( !option.parentNode.disabled || !jQuery.nodeName( option.parentNode, "optgroup" ) ) ) {
+
+							// Get the specific value for the option
+							value = jQuery( option ).val();
+
+							// We don't need an array for one selects
+							if ( one ) {
+								return value;
+							}
+
+							// Multi-Selects return an array
+							values.push( value );
+						}
+					}
+
+					return values;
+				},
+
+				set: function( elem, value ) {
+					var optionSet, option,
+						options = elem.options,
+						values = jQuery.makeArray( value ),
+						i = options.length;
+
+					while ( i-- ) {
+						option = options[ i ];
+						if ( (option.selected = jQuery.inArray( option.value, values ) >= 0) ) {
+							optionSet = true;
+						}
+					}
+
+					// Force browsers to behave consistently when non-matching value is set
+					if ( !optionSet ) {
+						elem.selectedIndex = -1;
+					}
+					return values;
+				}
+			}
+		}
+	});
+
+	// Radios and checkboxes getter/setter
+	jQuery.each([ "radio", "checkbox" ], function() {
+		jQuery.valHooks[ this ] = {
+			set: function( elem, value ) {
+				if ( jQuery.isArray( value ) ) {
+					return ( elem.checked = jQuery.inArray( jQuery(elem).val(), value ) >= 0 );
+				}
+			}
+		};
+		if ( !support.checkOn ) {
+			jQuery.valHooks[ this ].get = function( elem ) {
+				return elem.getAttribute("value") === null ? "on" : elem.value;
+			};
+		}
+	});
+
+
+
+
+	// Return jQuery for attributes-only inclusion
+
+
+	jQuery.each( ("blur focus focusin focusout load resize scroll unload click dblclick " +
+		"mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
+		"change select submit keydown keypress keyup error contextmenu").split(" "), function( i, name ) {
+
+		// Handle event binding
+		jQuery.fn[ name ] = function( data, fn ) {
+			return arguments.length > 0 ?
+				this.on( name, null, data, fn ) :
+				this.trigger( name );
+		};
+	});
+
+	jQuery.fn.extend({
+		hover: function( fnOver, fnOut ) {
+			return this.mouseenter( fnOver ).mouseleave( fnOut || fnOver );
+		},
+
+		bind: function( types, data, fn ) {
+			return this.on( types, null, data, fn );
+		},
+		unbind: function( types, fn ) {
+			return this.off( types, null, fn );
+		},
+
+		delegate: function( selector, types, data, fn ) {
+			return this.on( types, selector, data, fn );
+		},
+		undelegate: function( selector, types, fn ) {
+			// ( namespace ) or ( selector, types [, fn] )
+			return arguments.length === 1 ? this.off( selector, "**" ) : this.off( types, selector || "**", fn );
+		}
+	});
+
+
+	var nonce = jQuery.now();
+
+	var rquery = (/\?/);
+
+
+
+	// Support: Android 2.3
+	// Workaround failure to string-cast null input
+	jQuery.parseJSON = function( data ) {
+		return JSON.parse( data + "" );
+	};
+
+
+	// Cross-browser xml parsing
+	jQuery.parseXML = function( data ) {
+		var xml, tmp;
+		if ( !data || typeof data !== "string" ) {
+			return null;
+		}
+
+		// Support: IE9
+		try {
+			tmp = new DOMParser();
+			xml = tmp.parseFromString( data, "text/xml" );
+		} catch ( e ) {
+			xml = undefined;
+		}
+
+		if ( !xml || xml.getElementsByTagName( "parsererror" ).length ) {
+			jQuery.error( "Invalid XML: " + data );
+		}
+		return xml;
+	};
+
+
+	var
+		rhash = /#.*$/,
+		rts = /([?&])_=[^&]*/,
+		rheaders = /^(.*?):[ \t]*([^\r\n]*)$/mg,
+		// #7653, #8125, #8152: local protocol detection
+		rlocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/,
+		rnoContent = /^(?:GET|HEAD)$/,
+		rprotocol = /^\/\//,
+		rurl = /^([\w.+-]+:)(?:\/\/(?:[^\/?#]*@|)([^\/?#:]*)(?::(\d+)|)|)/,
+
+		/* Prefilters
+		 * 1) They are useful to introduce custom dataTypes (see ajax/jsonp.js for an example)
+		 * 2) These are called:
+		 *    - BEFORE asking for a transport
+		 *    - AFTER param serialization (s.data is a string if s.processData is true)
+		 * 3) key is the dataType
+		 * 4) the catchall symbol "*" can be used
+		 * 5) execution will start with transport dataType and THEN continue down to "*" if needed
+		 */
+		prefilters = {},
+
+		/* Transports bindings
+		 * 1) key is the dataType
+		 * 2) the catchall symbol "*" can be used
+		 * 3) selection will start with transport dataType and THEN go to "*" if needed
+		 */
+		transports = {},
+
+		// Avoid comment-prolog char sequence (#10098); must appease lint and evade compression
+		allTypes = "*/".concat( "*" ),
+
+		// Document location
+		ajaxLocation = window.location.href,
+
+		// Segment location into parts
+		ajaxLocParts = rurl.exec( ajaxLocation.toLowerCase() ) || [];
+
+	// Base "constructor" for jQuery.ajaxPrefilter and jQuery.ajaxTransport
+	function addToPrefiltersOrTransports( structure ) {
+
+		// dataTypeExpression is optional and defaults to "*"
+		return function( dataTypeExpression, func ) {
+
+			if ( typeof dataTypeExpression !== "string" ) {
+				func = dataTypeExpression;
+				dataTypeExpression = "*";
+			}
+
+			var dataType,
+				i = 0,
+				dataTypes = dataTypeExpression.toLowerCase().match( rnotwhite ) || [];
+
+			if ( jQuery.isFunction( func ) ) {
+				// For each dataType in the dataTypeExpression
+				while ( (dataType = dataTypes[i++]) ) {
+					// Prepend if requested
+					if ( dataType[0] === "+" ) {
+						dataType = dataType.slice( 1 ) || "*";
+						(structure[ dataType ] = structure[ dataType ] || []).unshift( func );
+
+					// Otherwise append
+					} else {
+						(structure[ dataType ] = structure[ dataType ] || []).push( func );
+					}
+				}
+			}
+		};
+	}
+
+	// Base inspection function for prefilters and transports
+	function inspectPrefiltersOrTransports( structure, options, originalOptions, jqXHR ) {
+
+		var inspected = {},
+			seekingTransport = ( structure === transports );
+
+		function inspect( dataType ) {
+			var selected;
+			inspected[ dataType ] = true;
+			jQuery.each( structure[ dataType ] || [], function( _, prefilterOrFactory ) {
+				var dataTypeOrTransport = prefilterOrFactory( options, originalOptions, jqXHR );
+				if ( typeof dataTypeOrTransport === "string" && !seekingTransport && !inspected[ dataTypeOrTransport ] ) {
+					options.dataTypes.unshift( dataTypeOrTransport );
+					inspect( dataTypeOrTransport );
+					return false;
+				} else if ( seekingTransport ) {
+					return !( selected = dataTypeOrTransport );
+				}
+			});
+			return selected;
+		}
+
+		return inspect( options.dataTypes[ 0 ] ) || !inspected[ "*" ] && inspect( "*" );
+	}
+
+	// A special extend for ajax options
+	// that takes "flat" options (not to be deep extended)
+	// Fixes #9887
+	function ajaxExtend( target, src ) {
+		var key, deep,
+			flatOptions = jQuery.ajaxSettings.flatOptions || {};
+
+		for ( key in src ) {
+			if ( src[ key ] !== undefined ) {
+				( flatOptions[ key ] ? target : ( deep || (deep = {}) ) )[ key ] = src[ key ];
+			}
+		}
+		if ( deep ) {
+			jQuery.extend( true, target, deep );
+		}
+
+		return target;
+	}
+
+	/* Handles responses to an ajax request:
+	 * - finds the right dataType (mediates between content-type and expected dataType)
+	 * - returns the corresponding response
+	 */
+	function ajaxHandleResponses( s, jqXHR, responses ) {
+
+		var ct, type, finalDataType, firstDataType,
+			contents = s.contents,
+			dataTypes = s.dataTypes;
+
+		// Remove auto dataType and get content-type in the process
+		while ( dataTypes[ 0 ] === "*" ) {
+			dataTypes.shift();
+			if ( ct === undefined ) {
+				ct = s.mimeType || jqXHR.getResponseHeader("Content-Type");
+			}
+		}
+
+		// Check if we're dealing with a known content-type
+		if ( ct ) {
+			for ( type in contents ) {
+				if ( contents[ type ] && contents[ type ].test( ct ) ) {
+					dataTypes.unshift( type );
+					break;
+				}
+			}
+		}
+
+		// Check to see if we have a response for the expected dataType
+		if ( dataTypes[ 0 ] in responses ) {
+			finalDataType = dataTypes[ 0 ];
+		} else {
+			// Try convertible dataTypes
+			for ( type in responses ) {
+				if ( !dataTypes[ 0 ] || s.converters[ type + " " + dataTypes[0] ] ) {
+					finalDataType = type;
+					break;
+				}
+				if ( !firstDataType ) {
+					firstDataType = type;
+				}
+			}
+			// Or just use first one
+			finalDataType = finalDataType || firstDataType;
+		}
+
+		// If we found a dataType
+		// We add the dataType to the list if needed
+		// and return the corresponding response
+		if ( finalDataType ) {
+			if ( finalDataType !== dataTypes[ 0 ] ) {
+				dataTypes.unshift( finalDataType );
+			}
+			return responses[ finalDataType ];
+		}
+	}
+
+	/* Chain conversions given the request and the original response
+	 * Also sets the responseXXX fields on the jqXHR instance
+	 */
+	function ajaxConvert( s, response, jqXHR, isSuccess ) {
+		var conv2, current, conv, tmp, prev,
+			converters = {},
+			// Work with a copy of dataTypes in case we need to modify it for conversion
+			dataTypes = s.dataTypes.slice();
+
+		// Create converters map with lowercased keys
+		if ( dataTypes[ 1 ] ) {
+			for ( conv in s.converters ) {
+				converters[ conv.toLowerCase() ] = s.converters[ conv ];
+			}
+		}
+
+		current = dataTypes.shift();
+
+		// Convert to each sequential dataType
+		while ( current ) {
+
+			if ( s.responseFields[ current ] ) {
+				jqXHR[ s.responseFields[ current ] ] = response;
+			}
+
+			// Apply the dataFilter if provided
+			if ( !prev && isSuccess && s.dataFilter ) {
+				response = s.dataFilter( response, s.dataType );
+			}
+
+			prev = current;
+			current = dataTypes.shift();
+
+			if ( current ) {
+
+			// There's only work to do if current dataType is non-auto
+				if ( current === "*" ) {
+
+					current = prev;
+
+				// Convert response if prev dataType is non-auto and differs from current
+				} else if ( prev !== "*" && prev !== current ) {
+
+					// Seek a direct converter
+					conv = converters[ prev + " " + current ] || converters[ "* " + current ];
+
+					// If none found, seek a pair
+					if ( !conv ) {
+						for ( conv2 in converters ) {
+
+							// If conv2 outputs current
+							tmp = conv2.split( " " );
+							if ( tmp[ 1 ] === current ) {
+
+								// If prev can be converted to accepted input
+								conv = converters[ prev + " " + tmp[ 0 ] ] ||
+									converters[ "* " + tmp[ 0 ] ];
+								if ( conv ) {
+									// Condense equivalence converters
+									if ( conv === true ) {
+										conv = converters[ conv2 ];
+
+									// Otherwise, insert the intermediate dataType
+									} else if ( converters[ conv2 ] !== true ) {
+										current = tmp[ 0 ];
+										dataTypes.unshift( tmp[ 1 ] );
+									}
+									break;
+								}
+							}
+						}
+					}
+
+					// Apply converter (if not an equivalence)
+					if ( conv !== true ) {
+
+						// Unless errors are allowed to bubble, catch and return them
+						if ( conv && s[ "throws" ] ) {
+							response = conv( response );
+						} else {
+							try {
+								response = conv( response );
+							} catch ( e ) {
+								return { state: "parsererror", error: conv ? e : "No conversion from " + prev + " to " + current };
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return { state: "success", data: response };
+	}
+
+	jQuery.extend({
+
+		// Counter for holding the number of active queries
+		active: 0,
+
+		// Last-Modified header cache for next request
+		lastModified: {},
+		etag: {},
+
+		ajaxSettings: {
+			url: ajaxLocation,
+			type: "GET",
+			isLocal: rlocalProtocol.test( ajaxLocParts[ 1 ] ),
+			global: true,
+			processData: true,
+			async: true,
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+			/*
+			timeout: 0,
+			data: null,
+			dataType: null,
+			username: null,
+			password: null,
+			cache: null,
+			throws: false,
+			traditional: false,
+			headers: {},
+			*/
+
+			accepts: {
+				"*": allTypes,
+				text: "text/plain",
+				html: "text/html",
+				xml: "application/xml, text/xml",
+				json: "application/json, text/javascript"
+			},
+
+			contents: {
+				xml: /xml/,
+				html: /html/,
+				json: /json/
+			},
+
+			responseFields: {
+				xml: "responseXML",
+				text: "responseText",
+				json: "responseJSON"
+			},
+
+			// Data converters
+			// Keys separate source (or catchall "*") and destination types with a single space
+			converters: {
+
+				// Convert anything to text
+				"* text": String,
+
+				// Text to html (true = no transformation)
+				"text html": true,
+
+				// Evaluate text as a json expression
+				"text json": jQuery.parseJSON,
+
+				// Parse text as xml
+				"text xml": jQuery.parseXML
+			},
+
+			// For options that shouldn't be deep extended:
+			// you can add your own custom options here if
+			// and when you create one that shouldn't be
+			// deep extended (see ajaxExtend)
+			flatOptions: {
+				url: true,
+				context: true
+			}
+		},
+
+		// Creates a full fledged settings object into target
+		// with both ajaxSettings and settings fields.
+		// If target is omitted, writes into ajaxSettings.
+		ajaxSetup: function( target, settings ) {
+			return settings ?
+
+				// Building a settings object
+				ajaxExtend( ajaxExtend( target, jQuery.ajaxSettings ), settings ) :
+
+				// Extending ajaxSettings
+				ajaxExtend( jQuery.ajaxSettings, target );
+		},
+
+		ajaxPrefilter: addToPrefiltersOrTransports( prefilters ),
+		ajaxTransport: addToPrefiltersOrTransports( transports ),
+
+		// Main method
+		ajax: function( url, options ) {
+
+			// If url is an object, simulate pre-1.5 signature
+			if ( typeof url === "object" ) {
+				options = url;
+				url = undefined;
+			}
+
+			// Force options to be an object
+			options = options || {};
+
+			var transport,
+				// URL without anti-cache param
+				cacheURL,
+				// Response headers
+				responseHeadersString,
+				responseHeaders,
+				// timeout handle
+				timeoutTimer,
+				// Cross-domain detection vars
+				parts,
+				// To know if global events are to be dispatched
+				fireGlobals,
+				// Loop variable
+				i,
+				// Create the final options object
+				s = jQuery.ajaxSetup( {}, options ),
+				// Callbacks context
+				callbackContext = s.context || s,
+				// Context for global events is callbackContext if it is a DOM node or jQuery collection
+				globalEventContext = s.context && ( callbackContext.nodeType || callbackContext.jquery ) ?
+					jQuery( callbackContext ) :
+					jQuery.event,
+				// Deferreds
+				deferred = jQuery.Deferred(),
+				completeDeferred = jQuery.Callbacks("once memory"),
+				// Status-dependent callbacks
+				statusCode = s.statusCode || {},
+				// Headers (they are sent all at once)
+				requestHeaders = {},
+				requestHeadersNames = {},
+				// The jqXHR state
+				state = 0,
+				// Default abort message
+				strAbort = "canceled",
+				// Fake xhr
+				jqXHR = {
+					readyState: 0,
+
+					// Builds headers hashtable if needed
+					getResponseHeader: function( key ) {
+						var match;
+						if ( state === 2 ) {
+							if ( !responseHeaders ) {
+								responseHeaders = {};
+								while ( (match = rheaders.exec( responseHeadersString )) ) {
+									responseHeaders[ match[1].toLowerCase() ] = match[ 2 ];
+								}
+							}
+							match = responseHeaders[ key.toLowerCase() ];
+						}
+						return match == null ? null : match;
+					},
+
+					// Raw string
+					getAllResponseHeaders: function() {
+						return state === 2 ? responseHeadersString : null;
+					},
+
+					// Caches the header
+					setRequestHeader: function( name, value ) {
+						var lname = name.toLowerCase();
+						if ( !state ) {
+							name = requestHeadersNames[ lname ] = requestHeadersNames[ lname ] || name;
+							requestHeaders[ name ] = value;
+						}
+						return this;
+					},
+
+					// Overrides response content-type header
+					overrideMimeType: function( type ) {
+						if ( !state ) {
+							s.mimeType = type;
+						}
+						return this;
+					},
+
+					// Status-dependent callbacks
+					statusCode: function( map ) {
+						var code;
+						if ( map ) {
+							if ( state < 2 ) {
+								for ( code in map ) {
+									// Lazy-add the new callback in a way that preserves old ones
+									statusCode[ code ] = [ statusCode[ code ], map[ code ] ];
+								}
+							} else {
+								// Execute the appropriate callbacks
+								jqXHR.always( map[ jqXHR.status ] );
+							}
+						}
+						return this;
+					},
+
+					// Cancel the request
+					abort: function( statusText ) {
+						var finalText = statusText || strAbort;
+						if ( transport ) {
+							transport.abort( finalText );
+						}
+						done( 0, finalText );
+						return this;
+					}
+				};
+
+			// Attach deferreds
+			deferred.promise( jqXHR ).complete = completeDeferred.add;
+			jqXHR.success = jqXHR.done;
+			jqXHR.error = jqXHR.fail;
+
+			// Remove hash character (#7531: and string promotion)
+			// Add protocol if not provided (prefilters might expect it)
+			// Handle falsy url in the settings object (#10093: consistency with old signature)
+			// We also use the url parameter if available
+			s.url = ( ( url || s.url || ajaxLocation ) + "" ).replace( rhash, "" )
+				.replace( rprotocol, ajaxLocParts[ 1 ] + "//" );
+
+			// Alias method option to type as per ticket #12004
+			s.type = options.method || options.type || s.method || s.type;
+
+			// Extract dataTypes list
+			s.dataTypes = jQuery.trim( s.dataType || "*" ).toLowerCase().match( rnotwhite ) || [ "" ];
+
+			// A cross-domain request is in order when we have a protocol:host:port mismatch
+			if ( s.crossDomain == null ) {
+				parts = rurl.exec( s.url.toLowerCase() );
+				s.crossDomain = !!( parts &&
+					( parts[ 1 ] !== ajaxLocParts[ 1 ] || parts[ 2 ] !== ajaxLocParts[ 2 ] ||
+						( parts[ 3 ] || ( parts[ 1 ] === "http:" ? "80" : "443" ) ) !==
+							( ajaxLocParts[ 3 ] || ( ajaxLocParts[ 1 ] === "http:" ? "80" : "443" ) ) )
+				);
+			}
+
+			// Convert data if not already a string
+			if ( s.data && s.processData && typeof s.data !== "string" ) {
+				s.data = jQuery.param( s.data, s.traditional );
+			}
+
+			// Apply prefilters
+			inspectPrefiltersOrTransports( prefilters, s, options, jqXHR );
+
+			// If request was aborted inside a prefilter, stop there
+			if ( state === 2 ) {
+				return jqXHR;
+			}
+
+			// We can fire global events as of now if asked to
+			// Don't fire events if jQuery.event is undefined in an AMD-usage scenario (#15118)
+			fireGlobals = jQuery.event && s.global;
+
+			// Watch for a new set of requests
+			if ( fireGlobals && jQuery.active++ === 0 ) {
+				jQuery.event.trigger("ajaxStart");
+			}
+
+			// Uppercase the type
+			s.type = s.type.toUpperCase();
+
+			// Determine if request has content
+			s.hasContent = !rnoContent.test( s.type );
+
+			// Save the URL in case we're toying with the If-Modified-Since
+			// and/or If-None-Match header later on
+			cacheURL = s.url;
+
+			// More options handling for requests with no content
+			if ( !s.hasContent ) {
+
+				// If data is available, append data to url
+				if ( s.data ) {
+					cacheURL = ( s.url += ( rquery.test( cacheURL ) ? "&" : "?" ) + s.data );
+					// #9682: remove data so that it's not used in an eventual retry
+					delete s.data;
+				}
+
+				// Add anti-cache in url if needed
+				if ( s.cache === false ) {
+					s.url = rts.test( cacheURL ) ?
+
+						// If there is already a '_' parameter, set its value
+						cacheURL.replace( rts, "$1_=" + nonce++ ) :
+
+						// Otherwise add one to the end
+						cacheURL + ( rquery.test( cacheURL ) ? "&" : "?" ) + "_=" + nonce++;
+				}
+			}
+
+			// Set the If-Modified-Since and/or If-None-Match header, if in ifModified mode.
+			if ( s.ifModified ) {
+				if ( jQuery.lastModified[ cacheURL ] ) {
+					jqXHR.setRequestHeader( "If-Modified-Since", jQuery.lastModified[ cacheURL ] );
+				}
+				if ( jQuery.etag[ cacheURL ] ) {
+					jqXHR.setRequestHeader( "If-None-Match", jQuery.etag[ cacheURL ] );
+				}
+			}
+
+			// Set the correct header, if data is being sent
+			if ( s.data && s.hasContent && s.contentType !== false || options.contentType ) {
+				jqXHR.setRequestHeader( "Content-Type", s.contentType );
+			}
+
+			// Set the Accepts header for the server, depending on the dataType
+			jqXHR.setRequestHeader(
+				"Accept",
+				s.dataTypes[ 0 ] && s.accepts[ s.dataTypes[0] ] ?
+					s.accepts[ s.dataTypes[0] ] + ( s.dataTypes[ 0 ] !== "*" ? ", " + allTypes + "; q=0.01" : "" ) :
+					s.accepts[ "*" ]
+			);
+
+			// Check for headers option
+			for ( i in s.headers ) {
+				jqXHR.setRequestHeader( i, s.headers[ i ] );
+			}
+
+			// Allow custom headers/mimetypes and early abort
+			if ( s.beforeSend && ( s.beforeSend.call( callbackContext, jqXHR, s ) === false || state === 2 ) ) {
+				// Abort if not done already and return
+				return jqXHR.abort();
+			}
+
+			// Aborting is no longer a cancellation
+			strAbort = "abort";
+
+			// Install callbacks on deferreds
+			for ( i in { success: 1, error: 1, complete: 1 } ) {
+				jqXHR[ i ]( s[ i ] );
+			}
+
+			// Get transport
+			transport = inspectPrefiltersOrTransports( transports, s, options, jqXHR );
+
+			// If no transport, we auto-abort
+			if ( !transport ) {
+				done( -1, "No Transport" );
+			} else {
+				jqXHR.readyState = 1;
+
+				// Send global event
+				if ( fireGlobals ) {
+					globalEventContext.trigger( "ajaxSend", [ jqXHR, s ] );
+				}
+				// Timeout
+				if ( s.async && s.timeout > 0 ) {
+					timeoutTimer = setTimeout(function() {
+						jqXHR.abort("timeout");
+					}, s.timeout );
+				}
+
+				try {
+					state = 1;
+					transport.send( requestHeaders, done );
+				} catch ( e ) {
+					// Propagate exception as error if not done
+					if ( state < 2 ) {
+						done( -1, e );
+					// Simply rethrow otherwise
+					} else {
+						throw e;
+					}
+				}
+			}
+
+			// Callback for when everything is done
+			function done( status, nativeStatusText, responses, headers ) {
+				var isSuccess, success, error, response, modified,
+					statusText = nativeStatusText;
+
+				// Called once
+				if ( state === 2 ) {
+					return;
+				}
+
+				// State is "done" now
+				state = 2;
+
+				// Clear timeout if it exists
+				if ( timeoutTimer ) {
+					clearTimeout( timeoutTimer );
+				}
+
+				// Dereference transport for early garbage collection
+				// (no matter how long the jqXHR object will be used)
+				transport = undefined;
+
+				// Cache response headers
+				responseHeadersString = headers || "";
+
+				// Set readyState
+				jqXHR.readyState = status > 0 ? 4 : 0;
+
+				// Determine if successful
+				isSuccess = status >= 200 && status < 300 || status === 304;
+
+				// Get response data
+				if ( responses ) {
+					response = ajaxHandleResponses( s, jqXHR, responses );
+				}
+
+				// Convert no matter what (that way responseXXX fields are always set)
+				response = ajaxConvert( s, response, jqXHR, isSuccess );
+
+				// If successful, handle type chaining
+				if ( isSuccess ) {
+
+					// Set the If-Modified-Since and/or If-None-Match header, if in ifModified mode.
+					if ( s.ifModified ) {
+						modified = jqXHR.getResponseHeader("Last-Modified");
+						if ( modified ) {
+							jQuery.lastModified[ cacheURL ] = modified;
+						}
+						modified = jqXHR.getResponseHeader("etag");
+						if ( modified ) {
+							jQuery.etag[ cacheURL ] = modified;
+						}
+					}
+
+					// if no content
+					if ( status === 204 || s.type === "HEAD" ) {
+						statusText = "nocontent";
+
+					// if not modified
+					} else if ( status === 304 ) {
+						statusText = "notmodified";
+
+					// If we have data, let's convert it
+					} else {
+						statusText = response.state;
+						success = response.data;
+						error = response.error;
+						isSuccess = !error;
+					}
+				} else {
+					// Extract error from statusText and normalize for non-aborts
+					error = statusText;
+					if ( status || !statusText ) {
+						statusText = "error";
+						if ( status < 0 ) {
+							status = 0;
+						}
+					}
+				}
+
+				// Set data for the fake xhr object
+				jqXHR.status = status;
+				jqXHR.statusText = ( nativeStatusText || statusText ) + "";
+
+				// Success/Error
+				if ( isSuccess ) {
+					deferred.resolveWith( callbackContext, [ success, statusText, jqXHR ] );
+				} else {
+					deferred.rejectWith( callbackContext, [ jqXHR, statusText, error ] );
+				}
+
+				// Status-dependent callbacks
+				jqXHR.statusCode( statusCode );
+				statusCode = undefined;
+
+				if ( fireGlobals ) {
+					globalEventContext.trigger( isSuccess ? "ajaxSuccess" : "ajaxError",
+						[ jqXHR, s, isSuccess ? success : error ] );
+				}
+
+				// Complete
+				completeDeferred.fireWith( callbackContext, [ jqXHR, statusText ] );
+
+				if ( fireGlobals ) {
+					globalEventContext.trigger( "ajaxComplete", [ jqXHR, s ] );
+					// Handle the global AJAX counter
+					if ( !( --jQuery.active ) ) {
+						jQuery.event.trigger("ajaxStop");
+					}
+				}
+			}
+
+			return jqXHR;
+		},
+
+		getJSON: function( url, data, callback ) {
+			return jQuery.get( url, data, callback, "json" );
+		},
+
+		getScript: function( url, callback ) {
+			return jQuery.get( url, undefined, callback, "script" );
+		}
+	});
+
+	jQuery.each( [ "get", "post" ], function( i, method ) {
+		jQuery[ method ] = function( url, data, callback, type ) {
+			// Shift arguments if data argument was omitted
+			if ( jQuery.isFunction( data ) ) {
+				type = type || callback;
+				callback = data;
+				data = undefined;
+			}
+
+			return jQuery.ajax({
+				url: url,
+				type: method,
+				dataType: type,
+				data: data,
+				success: callback
+			});
+		};
+	});
+
+
+	jQuery._evalUrl = function( url ) {
+		return jQuery.ajax({
+			url: url,
+			type: "GET",
+			dataType: "script",
+			async: false,
+			global: false,
+			"throws": true
+		});
+	};
+
+
+	jQuery.fn.extend({
+		wrapAll: function( html ) {
+			var wrap;
+
+			if ( jQuery.isFunction( html ) ) {
+				return this.each(function( i ) {
+					jQuery( this ).wrapAll( html.call(this, i) );
+				});
+			}
+
+			if ( this[ 0 ] ) {
+
+				// The elements to wrap the target around
+				wrap = jQuery( html, this[ 0 ].ownerDocument ).eq( 0 ).clone( true );
+
+				if ( this[ 0 ].parentNode ) {
+					wrap.insertBefore( this[ 0 ] );
+				}
+
+				wrap.map(function() {
+					var elem = this;
+
+					while ( elem.firstElementChild ) {
+						elem = elem.firstElementChild;
+					}
+
+					return elem;
+				}).append( this );
+			}
+
+			return this;
+		},
+
+		wrapInner: function( html ) {
+			if ( jQuery.isFunction( html ) ) {
+				return this.each(function( i ) {
+					jQuery( this ).wrapInner( html.call(this, i) );
+				});
+			}
+
+			return this.each(function() {
+				var self = jQuery( this ),
+					contents = self.contents();
+
+				if ( contents.length ) {
+					contents.wrapAll( html );
+
+				} else {
+					self.append( html );
+				}
+			});
+		},
+
+		wrap: function( html ) {
+			var isFunction = jQuery.isFunction( html );
+
+			return this.each(function( i ) {
+				jQuery( this ).wrapAll( isFunction ? html.call(this, i) : html );
+			});
+		},
+
+		unwrap: function() {
+			return this.parent().each(function() {
+				if ( !jQuery.nodeName( this, "body" ) ) {
+					jQuery( this ).replaceWith( this.childNodes );
+				}
+			}).end();
+		}
+	});
+
+
+	jQuery.expr.filters.hidden = function( elem ) {
+		// Support: Opera <= 12.12
+		// Opera reports offsetWidths and offsetHeights less than zero on some elements
+		return elem.offsetWidth <= 0 && elem.offsetHeight <= 0;
+	};
+	jQuery.expr.filters.visible = function( elem ) {
+		return !jQuery.expr.filters.hidden( elem );
+	};
+
+
+
+
+	var r20 = /%20/g,
+		rbracket = /\[\]$/,
+		rCRLF = /\r?\n/g,
+		rsubmitterTypes = /^(?:submit|button|image|reset|file)$/i,
+		rsubmittable = /^(?:input|select|textarea|keygen)/i;
+
+	function buildParams( prefix, obj, traditional, add ) {
+		var name;
+
+		if ( jQuery.isArray( obj ) ) {
+			// Serialize array item.
+			jQuery.each( obj, function( i, v ) {
+				if ( traditional || rbracket.test( prefix ) ) {
+					// Treat each array item as a scalar.
+					add( prefix, v );
+
+				} else {
+					// Item is non-scalar (array or object), encode its numeric index.
+					buildParams( prefix + "[" + ( typeof v === "object" ? i : "" ) + "]", v, traditional, add );
+				}
+			});
+
+		} else if ( !traditional && jQuery.type( obj ) === "object" ) {
+			// Serialize object item.
+			for ( name in obj ) {
+				buildParams( prefix + "[" + name + "]", obj[ name ], traditional, add );
+			}
+
+		} else {
+			// Serialize scalar item.
+			add( prefix, obj );
+		}
+	}
+
+	// Serialize an array of form elements or a set of
+	// key/values into a query string
+	jQuery.param = function( a, traditional ) {
+		var prefix,
+			s = [],
+			add = function( key, value ) {
+				// If value is a function, invoke it and return its value
+				value = jQuery.isFunction( value ) ? value() : ( value == null ? "" : value );
+				s[ s.length ] = encodeURIComponent( key ) + "=" + encodeURIComponent( value );
+			};
+
+		// Set traditional to true for jQuery <= 1.3.2 behavior.
+		if ( traditional === undefined ) {
+			traditional = jQuery.ajaxSettings && jQuery.ajaxSettings.traditional;
+		}
+
+		// If an array was passed in, assume that it is an array of form elements.
+		if ( jQuery.isArray( a ) || ( a.jquery && !jQuery.isPlainObject( a ) ) ) {
+			// Serialize the form elements
+			jQuery.each( a, function() {
+				add( this.name, this.value );
+			});
+
+		} else {
+			// If traditional, encode the "old" way (the way 1.3.2 or older
+			// did it), otherwise encode params recursively.
+			for ( prefix in a ) {
+				buildParams( prefix, a[ prefix ], traditional, add );
+			}
+		}
+
+		// Return the resulting serialization
+		return s.join( "&" ).replace( r20, "+" );
+	};
+
+	jQuery.fn.extend({
+		serialize: function() {
+			return jQuery.param( this.serializeArray() );
+		},
+		serializeArray: function() {
+			return this.map(function() {
+				// Can add propHook for "elements" to filter or add form elements
+				var elements = jQuery.prop( this, "elements" );
+				return elements ? jQuery.makeArray( elements ) : this;
+			})
+			.filter(function() {
+				var type = this.type;
+
+				// Use .is( ":disabled" ) so that fieldset[disabled] works
+				return this.name && !jQuery( this ).is( ":disabled" ) &&
+					rsubmittable.test( this.nodeName ) && !rsubmitterTypes.test( type ) &&
+					( this.checked || !rcheckableType.test( type ) );
+			})
+			.map(function( i, elem ) {
+				var val = jQuery( this ).val();
+
+				return val == null ?
+					null :
+					jQuery.isArray( val ) ?
+						jQuery.map( val, function( val ) {
+							return { name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
+						}) :
+						{ name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
+			}).get();
+		}
+	});
+
+
+	jQuery.ajaxSettings.xhr = function() {
+		try {
+			return new XMLHttpRequest();
+		} catch( e ) {}
+	};
+
+	var xhrId = 0,
+		xhrCallbacks = {},
+		xhrSuccessStatus = {
+			// file protocol always yields status code 0, assume 200
+			0: 200,
+			// Support: IE9
+			// #1450: sometimes IE returns 1223 when it should be 204
+			1223: 204
+		},
+		xhrSupported = jQuery.ajaxSettings.xhr();
+
+	// Support: IE9
+	// Open requests must be manually aborted on unload (#5280)
+	// See https://support.microsoft.com/kb/2856746 for more info
+	if ( window.attachEvent ) {
+		window.attachEvent( "onunload", function() {
+			for ( var key in xhrCallbacks ) {
+				xhrCallbacks[ key ]();
+			}
+		});
+	}
+
+	support.cors = !!xhrSupported && ( "withCredentials" in xhrSupported );
+	support.ajax = xhrSupported = !!xhrSupported;
+
+	jQuery.ajaxTransport(function( options ) {
+		var callback;
+
+		// Cross domain only allowed if supported through XMLHttpRequest
+		if ( support.cors || xhrSupported && !options.crossDomain ) {
+			return {
+				send: function( headers, complete ) {
+					var i,
+						xhr = options.xhr(),
+						id = ++xhrId;
+
+					xhr.open( options.type, options.url, options.async, options.username, options.password );
+
+					// Apply custom fields if provided
+					if ( options.xhrFields ) {
+						for ( i in options.xhrFields ) {
+							xhr[ i ] = options.xhrFields[ i ];
+						}
+					}
+
+					// Override mime type if needed
+					if ( options.mimeType && xhr.overrideMimeType ) {
+						xhr.overrideMimeType( options.mimeType );
+					}
+
+					// X-Requested-With header
+					// For cross-domain requests, seeing as conditions for a preflight are
+					// akin to a jigsaw puzzle, we simply never set it to be sure.
+					// (it can always be set on a per-request basis or even using ajaxSetup)
+					// For same-domain requests, won't change header if already provided.
+					if ( !options.crossDomain && !headers["X-Requested-With"] ) {
+						headers["X-Requested-With"] = "XMLHttpRequest";
+					}
+
+					// Set headers
+					for ( i in headers ) {
+						xhr.setRequestHeader( i, headers[ i ] );
+					}
+
+					// Callback
+					callback = function( type ) {
+						return function() {
+							if ( callback ) {
+								delete xhrCallbacks[ id ];
+								callback = xhr.onload = xhr.onerror = null;
+
+								if ( type === "abort" ) {
+									xhr.abort();
+								} else if ( type === "error" ) {
+									complete(
+										// file: protocol always yields status 0; see #8605, #14207
+										xhr.status,
+										xhr.statusText
+									);
+								} else {
+									complete(
+										xhrSuccessStatus[ xhr.status ] || xhr.status,
+										xhr.statusText,
+										// Support: IE9
+										// Accessing binary-data responseText throws an exception
+										// (#11426)
+										typeof xhr.responseText === "string" ? {
+											text: xhr.responseText
+										} : undefined,
+										xhr.getAllResponseHeaders()
+									);
+								}
+							}
+						};
+					};
+
+					// Listen to events
+					xhr.onload = callback();
+					xhr.onerror = callback("error");
+
+					// Create the abort callback
+					callback = xhrCallbacks[ id ] = callback("abort");
+
+					try {
+						// Do send the request (this may raise an exception)
+						xhr.send( options.hasContent && options.data || null );
+					} catch ( e ) {
+						// #14683: Only rethrow if this hasn't been notified as an error yet
+						if ( callback ) {
+							throw e;
+						}
+					}
+				},
+
+				abort: function() {
+					if ( callback ) {
+						callback();
+					}
+				}
+			};
+		}
+	});
+
+
+
+
+	// Install script dataType
+	jQuery.ajaxSetup({
+		accepts: {
+			script: "text/javascript, application/javascript, application/ecmascript, application/x-ecmascript"
+		},
+		contents: {
+			script: /(?:java|ecma)script/
+		},
+		converters: {
+			"text script": function( text ) {
+				jQuery.globalEval( text );
+				return text;
+			}
+		}
+	});
+
+	// Handle cache's special case and crossDomain
+	jQuery.ajaxPrefilter( "script", function( s ) {
+		if ( s.cache === undefined ) {
+			s.cache = false;
+		}
+		if ( s.crossDomain ) {
+			s.type = "GET";
+		}
+	});
+
+	// Bind script tag hack transport
+	jQuery.ajaxTransport( "script", function( s ) {
+		// This transport only deals with cross domain requests
+		if ( s.crossDomain ) {
+			var script, callback;
+			return {
+				send: function( _, complete ) {
+					script = jQuery("<script>").prop({
+						async: true,
+						charset: s.scriptCharset,
+						src: s.url
+					}).on(
+						"load error",
+						callback = function( evt ) {
+							script.remove();
+							callback = null;
+							if ( evt ) {
+								complete( evt.type === "error" ? 404 : 200, evt.type );
+							}
+						}
+					);
+					document.head.appendChild( script[ 0 ] );
+				},
+				abort: function() {
+					if ( callback ) {
+						callback();
+					}
+				}
+			};
+		}
+	});
+
+
+
+
+	var oldCallbacks = [],
+		rjsonp = /(=)\?(?=&|$)|\?\?/;
+
+	// Default jsonp settings
+	jQuery.ajaxSetup({
+		jsonp: "callback",
+		jsonpCallback: function() {
+			var callback = oldCallbacks.pop() || ( jQuery.expando + "_" + ( nonce++ ) );
+			this[ callback ] = true;
+			return callback;
+		}
+	});
+
+	// Detect, normalize options and install callbacks for jsonp requests
+	jQuery.ajaxPrefilter( "json jsonp", function( s, originalSettings, jqXHR ) {
+
+		var callbackName, overwritten, responseContainer,
+			jsonProp = s.jsonp !== false && ( rjsonp.test( s.url ) ?
+				"url" :
+				typeof s.data === "string" && !( s.contentType || "" ).indexOf("application/x-www-form-urlencoded") && rjsonp.test( s.data ) && "data"
+			);
+
+		// Handle iff the expected data type is "jsonp" or we have a parameter to set
+		if ( jsonProp || s.dataTypes[ 0 ] === "jsonp" ) {
+
+			// Get callback name, remembering preexisting value associated with it
+			callbackName = s.jsonpCallback = jQuery.isFunction( s.jsonpCallback ) ?
+				s.jsonpCallback() :
+				s.jsonpCallback;
+
+			// Insert callback into url or form data
+			if ( jsonProp ) {
+				s[ jsonProp ] = s[ jsonProp ].replace( rjsonp, "$1" + callbackName );
+			} else if ( s.jsonp !== false ) {
+				s.url += ( rquery.test( s.url ) ? "&" : "?" ) + s.jsonp + "=" + callbackName;
+			}
+
+			// Use data converter to retrieve json after script execution
+			s.converters["script json"] = function() {
+				if ( !responseContainer ) {
+					jQuery.error( callbackName + " was not called" );
+				}
+				return responseContainer[ 0 ];
+			};
+
+			// force json dataType
+			s.dataTypes[ 0 ] = "json";
+
+			// Install callback
+			overwritten = window[ callbackName ];
+			window[ callbackName ] = function() {
+				responseContainer = arguments;
+			};
+
+			// Clean-up function (fires after converters)
+			jqXHR.always(function() {
+				// Restore preexisting value
+				window[ callbackName ] = overwritten;
+
+				// Save back as free
+				if ( s[ callbackName ] ) {
+					// make sure that re-using the options doesn't screw things around
+					s.jsonpCallback = originalSettings.jsonpCallback;
+
+					// save the callback name for future use
+					oldCallbacks.push( callbackName );
+				}
+
+				// Call if it was a function and we have a response
+				if ( responseContainer && jQuery.isFunction( overwritten ) ) {
+					overwritten( responseContainer[ 0 ] );
+				}
+
+				responseContainer = overwritten = undefined;
+			});
+
+			// Delegate to script
+			return "script";
+		}
+	});
+
+
+
+
+	// data: string of html
+	// context (optional): If specified, the fragment will be created in this context, defaults to document
+	// keepScripts (optional): If true, will include scripts passed in the html string
+	jQuery.parseHTML = function( data, context, keepScripts ) {
+		if ( !data || typeof data !== "string" ) {
+			return null;
+		}
+		if ( typeof context === "boolean" ) {
+			keepScripts = context;
+			context = false;
+		}
+		context = context || document;
+
+		var parsed = rsingleTag.exec( data ),
+			scripts = !keepScripts && [];
+
+		// Single tag
+		if ( parsed ) {
+			return [ context.createElement( parsed[1] ) ];
+		}
+
+		parsed = jQuery.buildFragment( [ data ], context, scripts );
+
+		if ( scripts && scripts.length ) {
+			jQuery( scripts ).remove();
+		}
+
+		return jQuery.merge( [], parsed.childNodes );
+	};
+
+
+	// Keep a copy of the old load method
+	var _load = jQuery.fn.load;
+
+	/**
+	 * Load a url into a page
+	 */
+	jQuery.fn.load = function( url, params, callback ) {
+		if ( typeof url !== "string" && _load ) {
+			return _load.apply( this, arguments );
+		}
+
+		var selector, type, response,
+			self = this,
+			off = url.indexOf(" ");
+
+		if ( off >= 0 ) {
+			selector = jQuery.trim( url.slice( off ) );
+			url = url.slice( 0, off );
+		}
+
+		// If it's a function
+		if ( jQuery.isFunction( params ) ) {
+
+			// We assume that it's the callback
+			callback = params;
+			params = undefined;
+
+		// Otherwise, build a param string
+		} else if ( params && typeof params === "object" ) {
+			type = "POST";
+		}
+
+		// If we have elements to modify, make the request
+		if ( self.length > 0 ) {
+			jQuery.ajax({
+				url: url,
+
+				// if "type" variable is undefined, then "GET" method will be used
+				type: type,
+				dataType: "html",
+				data: params
+			}).done(function( responseText ) {
+
+				// Save response for use in complete callback
+				response = arguments;
+
+				self.html( selector ?
+
+					// If a selector was specified, locate the right elements in a dummy div
+					// Exclude scripts to avoid IE 'Permission Denied' errors
+					jQuery("<div>").append( jQuery.parseHTML( responseText ) ).find( selector ) :
+
+					// Otherwise use the full result
+					responseText );
+
+			}).complete( callback && function( jqXHR, status ) {
+				self.each( callback, response || [ jqXHR.responseText, status, jqXHR ] );
+			});
+		}
+
+		return this;
+	};
+
+
+
+
+	// Attach a bunch of functions for handling common AJAX events
+	jQuery.each( [ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function( i, type ) {
+		jQuery.fn[ type ] = function( fn ) {
+			return this.on( type, fn );
+		};
+	});
+
+
+
+
+	jQuery.expr.filters.animated = function( elem ) {
+		return jQuery.grep(jQuery.timers, function( fn ) {
+			return elem === fn.elem;
+		}).length;
+	};
+
+
+
+
+	var docElem = window.document.documentElement;
+
+	/**
+	 * Gets a window from an element
+	 */
+	function getWindow( elem ) {
+		return jQuery.isWindow( elem ) ? elem : elem.nodeType === 9 && elem.defaultView;
+	}
+
+	jQuery.offset = {
+		setOffset: function( elem, options, i ) {
+			var curPosition, curLeft, curCSSTop, curTop, curOffset, curCSSLeft, calculatePosition,
+				position = jQuery.css( elem, "position" ),
+				curElem = jQuery( elem ),
+				props = {};
+
+			// Set position first, in-case top/left are set even on static elem
+			if ( position === "static" ) {
+				elem.style.position = "relative";
+			}
+
+			curOffset = curElem.offset();
+			curCSSTop = jQuery.css( elem, "top" );
+			curCSSLeft = jQuery.css( elem, "left" );
+			calculatePosition = ( position === "absolute" || position === "fixed" ) &&
+				( curCSSTop + curCSSLeft ).indexOf("auto") > -1;
+
+			// Need to be able to calculate position if either
+			// top or left is auto and position is either absolute or fixed
+			if ( calculatePosition ) {
+				curPosition = curElem.position();
+				curTop = curPosition.top;
+				curLeft = curPosition.left;
+
+			} else {
+				curTop = parseFloat( curCSSTop ) || 0;
+				curLeft = parseFloat( curCSSLeft ) || 0;
+			}
+
+			if ( jQuery.isFunction( options ) ) {
+				options = options.call( elem, i, curOffset );
+			}
+
+			if ( options.top != null ) {
+				props.top = ( options.top - curOffset.top ) + curTop;
+			}
+			if ( options.left != null ) {
+				props.left = ( options.left - curOffset.left ) + curLeft;
+			}
+
+			if ( "using" in options ) {
+				options.using.call( elem, props );
+
+			} else {
+				curElem.css( props );
+			}
+		}
+	};
+
+	jQuery.fn.extend({
+		offset: function( options ) {
+			if ( arguments.length ) {
+				return options === undefined ?
+					this :
+					this.each(function( i ) {
+						jQuery.offset.setOffset( this, options, i );
+					});
+			}
+
+			var docElem, win,
+				elem = this[ 0 ],
+				box = { top: 0, left: 0 },
+				doc = elem && elem.ownerDocument;
+
+			if ( !doc ) {
+				return;
+			}
+
+			docElem = doc.documentElement;
+
+			// Make sure it's not a disconnected DOM node
+			if ( !jQuery.contains( docElem, elem ) ) {
+				return box;
+			}
+
+			// Support: BlackBerry 5, iOS 3 (original iPhone)
+			// If we don't have gBCR, just use 0,0 rather than error
+			if ( typeof elem.getBoundingClientRect !== strundefined ) {
+				box = elem.getBoundingClientRect();
+			}
+			win = getWindow( doc );
+			return {
+				top: box.top + win.pageYOffset - docElem.clientTop,
+				left: box.left + win.pageXOffset - docElem.clientLeft
+			};
+		},
+
+		position: function() {
+			if ( !this[ 0 ] ) {
+				return;
+			}
+
+			var offsetParent, offset,
+				elem = this[ 0 ],
+				parentOffset = { top: 0, left: 0 };
+
+			// Fixed elements are offset from window (parentOffset = {top:0, left: 0}, because it is its only offset parent
+			if ( jQuery.css( elem, "position" ) === "fixed" ) {
+				// Assume getBoundingClientRect is there when computed position is fixed
+				offset = elem.getBoundingClientRect();
+
+			} else {
+				// Get *real* offsetParent
+				offsetParent = this.offsetParent();
+
+				// Get correct offsets
+				offset = this.offset();
+				if ( !jQuery.nodeName( offsetParent[ 0 ], "html" ) ) {
+					parentOffset = offsetParent.offset();
+				}
+
+				// Add offsetParent borders
+				parentOffset.top += jQuery.css( offsetParent[ 0 ], "borderTopWidth", true );
+				parentOffset.left += jQuery.css( offsetParent[ 0 ], "borderLeftWidth", true );
+			}
+
+			// Subtract parent offsets and element margins
+			return {
+				top: offset.top - parentOffset.top - jQuery.css( elem, "marginTop", true ),
+				left: offset.left - parentOffset.left - jQuery.css( elem, "marginLeft", true )
+			};
+		},
+
+		offsetParent: function() {
+			return this.map(function() {
+				var offsetParent = this.offsetParent || docElem;
+
+				while ( offsetParent && ( !jQuery.nodeName( offsetParent, "html" ) && jQuery.css( offsetParent, "position" ) === "static" ) ) {
+					offsetParent = offsetParent.offsetParent;
+				}
+
+				return offsetParent || docElem;
+			});
+		}
+	});
+
+	// Create scrollLeft and scrollTop methods
+	jQuery.each( { scrollLeft: "pageXOffset", scrollTop: "pageYOffset" }, function( method, prop ) {
+		var top = "pageYOffset" === prop;
+
+		jQuery.fn[ method ] = function( val ) {
+			return access( this, function( elem, method, val ) {
+				var win = getWindow( elem );
+
+				if ( val === undefined ) {
+					return win ? win[ prop ] : elem[ method ];
+				}
+
+				if ( win ) {
+					win.scrollTo(
+						!top ? val : window.pageXOffset,
+						top ? val : window.pageYOffset
+					);
+
+				} else {
+					elem[ method ] = val;
+				}
+			}, method, val, arguments.length, null );
+		};
+	});
+
+	// Support: Safari<7+, Chrome<37+
+	// Add the top/left cssHooks using jQuery.fn.position
+	// Webkit bug: https://bugs.webkit.org/show_bug.cgi?id=29084
+	// Blink bug: https://code.google.com/p/chromium/issues/detail?id=229280
+	// getComputedStyle returns percent when specified for top/left/bottom/right;
+	// rather than make the css module depend on the offset module, just check for it here
+	jQuery.each( [ "top", "left" ], function( i, prop ) {
+		jQuery.cssHooks[ prop ] = addGetHookIf( support.pixelPosition,
+			function( elem, computed ) {
+				if ( computed ) {
+					computed = curCSS( elem, prop );
+					// If curCSS returns percentage, fallback to offset
+					return rnumnonpx.test( computed ) ?
+						jQuery( elem ).position()[ prop ] + "px" :
+						computed;
+				}
+			}
+		);
+	});
+
+
+	// Create innerHeight, innerWidth, height, width, outerHeight and outerWidth methods
+	jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
+		jQuery.each( { padding: "inner" + name, content: type, "": "outer" + name }, function( defaultExtra, funcName ) {
+			// Margin is only for outerHeight, outerWidth
+			jQuery.fn[ funcName ] = function( margin, value ) {
+				var chainable = arguments.length && ( defaultExtra || typeof margin !== "boolean" ),
+					extra = defaultExtra || ( margin === true || value === true ? "margin" : "border" );
+
+				return access( this, function( elem, type, value ) {
+					var doc;
+
+					if ( jQuery.isWindow( elem ) ) {
+						// As of 5/8/2012 this will yield incorrect results for Mobile Safari, but there
+						// isn't a whole lot we can do. See pull request at this URL for discussion:
+						// https://github.com/jquery/jquery/pull/764
+						return elem.document.documentElement[ "client" + name ];
+					}
+
+					// Get document width or height
+					if ( elem.nodeType === 9 ) {
+						doc = elem.documentElement;
+
+						// Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+						// whichever is greatest
+						return Math.max(
+							elem.body[ "scroll" + name ], doc[ "scroll" + name ],
+							elem.body[ "offset" + name ], doc[ "offset" + name ],
+							doc[ "client" + name ]
+						);
+					}
+
+					return value === undefined ?
+						// Get width or height on the element, requesting but not forcing parseFloat
+						jQuery.css( elem, type, extra ) :
+
+						// Set width or height on the element
+						jQuery.style( elem, type, value, extra );
+				}, type, chainable ? margin : undefined, chainable, null );
+			};
+		});
+	});
+
+
+	// The number of elements contained in the matched element set
+	jQuery.fn.size = function() {
+		return this.length;
+	};
+
+	jQuery.fn.andSelf = jQuery.fn.addBack;
+
+
+
+
+	// Register as a named AMD module, since jQuery can be concatenated with other
+	// files that may use define, but not via a proper concatenation script that
+	// understands anonymous AMD modules. A named AMD is safest and most robust
+	// way to register. Lowercase jquery is used because AMD module names are
+	// derived from file names, and jQuery is normally delivered in a lowercase
+	// file name. Do this after creating the global so that if an AMD module wants
+	// to call noConflict to hide this version of jQuery, it will work.
+
+	// Note that for maximum portability, libraries that are not jQuery should
+	// declare themselves as anonymous modules, and avoid setting a global if an
+	// AMD loader is present. jQuery is a special case. For more information, see
+	// https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
+
+	if ( true ) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+			return jQuery;
+		}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+
+
+
+
+	var
+		// Map over jQuery in case of overwrite
+		_jQuery = window.jQuery,
+
+		// Map over the $ in case of overwrite
+		_$ = window.$;
+
+	jQuery.noConflict = function( deep ) {
+		if ( window.$ === jQuery ) {
+			window.$ = _$;
+		}
+
+		if ( deep && window.jQuery === jQuery ) {
+			window.jQuery = _jQuery;
+		}
+
+		return jQuery;
+	};
+
+	// Expose jQuery and $ identifiers, even in AMD
+	// (#7102#comment:10, https://github.com/jquery/jquery/pull/557)
+	// and CommonJS for browser emulators (#13566)
+	if ( typeof noGlobal === strundefined ) {
+		window.jQuery = window.$ = jQuery;
+	}
+
+
+
+
+	return jQuery;
+
+	}));
 
 
 /***/ },
-/* 54 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(55);
+	__webpack_require__(71);
 	module.exports = 'ngRoute';
 
 
 /***/ },
-/* 55 */
+/* 71 */
 /***/ function(module, exports) {
 
 	/**
@@ -37499,13 +47085,79 @@
 
 
 /***/ },
-/* 56 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = angular.module('wizardApp.duel', [
-	  __webpack_require__(54),
-	  __webpack_require__(57),
-	  __webpack_require__(58),
+	module.exports = angular.module('wizardApp.home', [
+	  __webpack_require__(70),
+	  __webpack_require__(73),
+	])
+	  .config(['$routeProvider', function($routeProvider) {
+	    $routeProvider
+	      .when('/waiting', {
+	        controller: 'HomeCtrl',
+	        controllerAs: 'home',
+	        templateUrl: './views/home/home.html'
+	      });
+	  }])
+
+	  .controller('HomeCtrl', ['$scope', '$location', 'socketIO', HomeCtrl])
+
+	  .name;
+
+	function HomeCtrl($scope, $location, socketIO) {
+	  var socket = socketIO.socket;
+	  var E = socketIO.E
+
+	  $scope.enterBattle = function() {
+	    socket.emit(socketIO.E.DUEL);
+	  };
+
+	  socket.on(socketIO.E.BEGIN, function(data) {
+	    $location.path('/duel');
+	    $scope.$apply();
+	    socketHelper.initialize(socket, data, E)
+	    // console.log('The battle has begun!');
+	  });
+	}
+
+	var socketHelper = {
+	  initialize: function(socket, BeginData, E) {
+	    socket.condition = BeginData.condition;
+	    socket.wizStats = BeginData.wizStats;
+	    socket.health = BeginData.wizStats[socket.id].health;
+	    socket.mana = BeginData.wizStats[socket.id].mana;
+	    this.registerFoeIdFn(socket);
+	    this.registerAttackFn(socket, E);
+	  },
+	  registerFoeIdFn: function(socket) {
+	    socket.getFoeId = function(){
+	      for (id in this.wizStats) {
+	        if (id !== this.id) {
+	          return id;
+	        }
+	      }
+	    };
+	  },
+	  registerAttackFn: function(socket, E) {
+	    socket.attackWith = function(spell) {
+	      spell.attackId = new Date().getTime();
+	      socket.emit(E.ATTACK_PU, {attackId: spell.attackId, targetId: socket.getFoeId()});
+	      return spell;
+	    };
+	  }
+
+	};
+
+
+/***/ },
+/* 73 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function($) {module.exports = angular.module('wizardApp.duel', [
+	  __webpack_require__(70),
+	  __webpack_require__(74),
+	  __webpack_require__(75),
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -37516,31 +47168,32 @@
 	      });
 	  }])
 
-	  .controller('DuelCtrl', ['$scope', 'socketIO', '$location', '$window',DuelCtrl])
+	  .controller('DuelCtrl', ['$scope', 'socketIO', '$location', '$window', '$timeout', DuelCtrl])
 	  .name;
 
-	function DuelCtrl($scope, socketIO, $location, $window) {
+	function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 	  var socket = socketIO.socket;
 	  var E = socketIO.E;
+	  socket.attacking = false;
 
 	  $scope.spells = [
-	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry' },
-	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost' },
-	    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack' }
-	  ];
+	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
+	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
+	    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
+	  ]
 
+	  wizard2 = Math.floor(Math.random() * wizardPhotos.length);
+
+	  $scope.foe = '';
 	  $scope.wizards = [
-	    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png', id: socket.id },
-	    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
+	    { user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard2], id: socket.getFoeId() }
 	  ];
-
 
 	  var foe = {id:socket.getFoeId()};
 	  var self = {id: socket.id};
+
 	  [self, foe].map(function(wiz) {
-	    console.log('createWiz')
-	    console.log(wiz)
-	    console.log(wiz.id)
+
 	    wiz.getAvatar = function(){
 	      return document.getElementById(this.id);
 	    }
@@ -37562,33 +47215,101 @@
 	    wiz.setMana = function(mana) {
 	      this.getMana().style.width = mana+'%';
 	    }
-	    console.log('output')
-	    console.log(wiz)
+
+	    wiz.enableCounterSpells = function() {
+	      var buttons = document.getElementsByClassName('btn-spell')
+	      for (var i = 0; i < buttons.length; i++ ){
+	        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
+	          buttons[i].removeAttribute('disabled')
+	        }
+	      }
+	    }
+	    wiz.disableCounterSpells = function() {
+	      var buttons = document.getElementsByClassName('btn-spell')
+	      for (var i = 0; i < buttons.length; i++ ){
+	        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
+	          buttons[i].setAttribute('disabled', 'disabled')
+	        }
+	      }
+	    }
+	    wiz.enableAttackSpells = function() {
+	      var buttons = document.getElementsByClassName('btn-spell')
+	      for (var i = 0; i < buttons.length; i++ ){
+	        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
+	          buttons[i].removeAttribute('disabled')
+	        }
+	      }
+	    }
+	    wiz.disableAttackSpells = function() {
+	      var buttons = document.getElementsByClassName('btn-spell')
+	      for (var i = 0; i < buttons.length; i++ ){
+	        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
+	          buttons[i].setAttribute('disabled', 'disabled')
+	        }
+	      }
+	    }
 	    return wiz
 	  });
 
-	  var avatars = {};
+
+	  var avatars = socket.avatars = {};
 	  avatars[foe.id] = foe;
 	  avatars[self.id] = self;
 
 	  socket.on(E.ATTACK_PU, function(data) {
-	    console.log('received attack')
-	    console.log(data.casterId)
-	    console.log(avatars)
+	    // console.log('received attack')
+	    // console.log(data.casterId)
+	    // console.log(avatars)
 	    avatars[data.casterId].addClass('purple');
 	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
 	  });
+
 	  socket.on(E.RESOLVE_ATTACK, function(solution) {
 	    // update world based on solution
 	    for (wiz in solution.wizStats) {
-	      // console.log(wiz)
-	      // console.log(avatars[wiz])
-	      avatars[wiz].setHealth(solution.wizStats[wiz].health)
-	      avatars[wiz].setMana(solution.wizStats[wiz].mana)
+	      avatars[wiz].setHealth(solution.wizStats[wiz].health);
+	      avatars[wiz].setMana(solution.wizStats[wiz].mana);
 	    }
-	    console.log('received solution:')
-	    console.log(solution)
+
+	    // Allow access to spells
+	    self.enableAttackSpells();
+	    self.disableCounterSpells();
 	  });
+
+	  socket.on(E.MANA_REGEN, function(data) {
+	    console.log(data)
+	    for (var wiz in data) {
+	      avatars[wiz].setMana(data[wiz].mana);
+	    }
+	  });
+
+	  angular.element(document).ready(function(){
+	    socket.emit(E.READY);
+	  });
+
+	  socket.on('Start', function(){
+	    $scope.counter = 3;
+	    console.log('started')
+
+	    $scope.countdown = function() {
+	      if($scope.counter === 0){
+	        $timeout.cancel(stopped);
+	        $scope.counter = "Duel!";
+	        $timeout(function() {
+	          $('.overlay').removeClass('overlay');
+	          $('.start-timer').hide();
+	        }, 1200);
+	      } else {
+	        stopped = $timeout(function() {
+	         $scope.counter--;
+	         $scope.countdown();
+	        }, 1000);
+	      }
+	    };
+
+	    $scope.countdown();
+	  });
+
 	  socket.on('End of battle', function(msg) {
 	    alert(msg)
 	    $scope.$apply(function() {
@@ -37597,10 +47318,22 @@
 	    });
 	  })
 	}
+	var wizardPhotos = [
+	  'walking_wizard.gif',
+	  'simpsons_wizard.jpg',
+	  'wizard_by_adam_brown.jpg',
+	  'cartman_wizard.png',
+	  'character_wizard.png',
+	  'DC_wizard.png',
+	  'eggplant_wizard_uprising.png',
+	  'evil_wizard.png',
+	  'merlin_the_wizard.png',
+	]
 
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(69)))
 
 /***/ },
-/* 57 */
+/* 74 */
 /***/ function(module, exports) {
 
 	/* globals angular */
@@ -37620,27 +47353,46 @@
 	    };
 	  })
 
-	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
-
-	  .directive('spinner', function() {
+	  .directive('powerBar', function() {
 	    return {
 	      restrict: 'E',
 	      replace: true,
-	      templateUrl: './views/components/spells/spinner.html',
+	      templateUrl: './views/components/spells/powerBar.html',
 	      controller: 'SpellsCtrl'
 	    };
 	  })
 
+	  .directive('spellPanel', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        spellList: '=list'
+	      },
+	      templateUrl: './views/components/spells/spellPanel.html',
+	      controller: 'SpellsCtrl'
+	    }
+	  })
+
+	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+
 	  .name;
 
 	function SpellsCtrl($scope, $timeout, socketIO) {
+	  // set initial values for magic casting
 	  var E = socketIO.E;
 	  var socket = socketIO.socket;
 	  $scope.castingSpell = false; // shows powerbar when true
-	  $scope.underAttack = false;
+	  // gain access to the world
+	  var avatars = socket.avatars
+	  var avatar = socket.avatars[socket.id]
+	  $scope.self = socket.id
+	  // set counterspells to disabled
+	  avatar.disableCounterSpells()
 
 	  $scope.initializeSpell = function (spell) {
-	    console.log('initialize spell:', spell)
+	    avatar.disableAttackSpells();
+	    avatar.disableCounterSpells();
 	    if (spell.type === 'Attack') { // initialize the attack cycle
 	      spell = socket.attackWith(spell);
 	    }
@@ -37682,6 +47434,24 @@
 	    }
 	  };
 
+	  socket.on(E.ATTACK_PU, function(data) {
+	    if (data.targetId === socket.id) avatar.enableCounterSpells()
+	    avatars[data.casterId].addClass('purple');
+	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
+	  });
+
+	  $scope.AttackSpells = [
+	    { name: 'Magic Missile', type: 'Attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
+	    {name: 'Water Coffin', type: 'Attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
+	    {name: 'Wind Swords', type: 'Attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
+	  ]
+	  $scope.nonAttackSpells  = [
+	    {name: 'Heal', icon: 'ion-heart', type: 'recovery', target: 'caster', role: 'heal', afinity: 'basic', cost: 5, power: 5},
+	    {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff', target: 'caster', role:'buff', afinity:'basic', cost: 5, duration: 15},
+	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe', role: 'perry', afinity: 'basic', cost: 5 },
+	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
+	  ]
+
 	} // Spells controller
 
 	var magic = {
@@ -37708,13 +47478,13 @@
 
 
 /***/ },
-/* 58 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* globals angular */
 
 	module.exports = angular.module('wizardApp.wizards', [
-	  __webpack_require__(59)
+	  __webpack_require__(76)
 	  ])
 	  .directive('wizards', function() {
 	    return {
@@ -37738,7 +47508,7 @@
 
 
 /***/ },
-/* 59 */
+/* 76 */
 /***/ function(module, exports) {
 
 	module.exports = angular.module('wizardApp.wizard', [])
@@ -37762,6 +47532,12 @@
 	  $scope.mana = socket.mana;
 	}
 
+
+/***/ },
+/* 77 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "6c7bf6aaca5c44a7dfb4019420571ebb.jpg";
 
 /***/ }
 /******/ ]);

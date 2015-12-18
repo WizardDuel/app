@@ -4,7 +4,7 @@ module.exports = angular.module('wizardApp.home', [
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
-      .when('/', {
+      .when('/waiting', {
         controller: 'HomeCtrl',
         controllerAs: 'home',
         templateUrl: './views/home/home.html'
@@ -27,7 +27,7 @@ function HomeCtrl($scope, $location, socketIO) {
     $location.path('/duel');
     $scope.$apply();
     socketHelper.initialize(socket, data, E)
-    console.log('The battle has begun!');
+    // console.log('The battle has begun!');
   });
 }
 
@@ -44,17 +44,17 @@ var socketHelper = {
     socket.getFoeId = function(){
       for (id in this.wizStats) {
         if (id !== this.id) {
-          return id
+          return id;
         }
       }
-    }
+    };
   },
   registerAttackFn: function(socket, E) {
     socket.attackWith = function(spell) {
       spell.attackId = new Date().getTime();
       socket.emit(E.ATTACK_PU, {attackId: spell.attackId, targetId: socket.getFoeId()});
-      return spell
-    }
+      return spell;
+    };
   }
 
-}
+};

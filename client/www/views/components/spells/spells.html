@@ -1,7 +1,35 @@
-<div class="row">
-  <div class="col" ng-repeat="spell in spells">
-    <button  ng-click="initializeSpell(spell)" class="button icon-left {{spell.icon}}">{{ spell.name }}</button>
+<div id="spells" class="row">
+  <div class="col">
+    <div class="spell-panel">
+        <button
+        ng-repeat="spell in nonAttackSpells" ng-click="initializeSpell(spell)"
+        class="button btn-spell {{spell.stylesToAdd}}"
+        data-spell-type="{{spell.type}}">
+        {{ spell.name }}
+      </button>
+    </div>
   </div>
-
-  <spinner></spinner>
+  <div class="col">
+    <div class="row">
+      <div id="power-vessle">
+        <power-bar></power-bar>
+      </div>
+    </div>
+    <div class="row">
+      <div id="status-bars" class='col'>
+        <span id="{{self}}-health" class="health-bar status-bar" style="width:{{health}}%"></span>
+        <span id="{{self}}-mana" class="mana-bar status-bar" style="width:{{mana}}%"></span>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="spell-panel">
+        <button
+        ng-repeat="spell in AttackSpells" ng-click="initializeSpell(spell)"
+        class="button btn-spell button-assertive"
+        data-spell-type="{{spell.type}}">
+        {{ spell.name }}
+      </button>
+    </div>
+  </div>
 </div>

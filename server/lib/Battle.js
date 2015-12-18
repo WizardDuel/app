@@ -5,6 +5,7 @@ function Battle(socket) {
   this.sockets = [];
   this.addCombatant(socket);
   this.attacks = {};
+  this.readyCount = 0;
 }
 
 Battle.prototype.addCombatant = function(socket) {
@@ -58,7 +59,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
         break;
     }
   } else {
-    resolution = {targetId: attack.targetId, damage:attackSpell.power, casterId: attack.casterId};
+    resolution = {targetId: attack.targetId, spellName: attackSpell.spellName, damage: attackSpell.power, casterId: attack.casterId};
   }
   return this.applyResolution(resolution)
 };
@@ -66,6 +67,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
 Battle.prototype.resolvePerry = function(attack, counterSpell, attackSpell) {
   return {
     targetId: attack.targetId,
+    spellName: attackSpell.spellName,
     damage: this.resolveCrit(attackSpell, counterSpell),
     msg: 'Attack perried!',
     counterCasterId: attack.targetId,
@@ -114,6 +116,7 @@ Battle.prototype.resolveRepost = function(attack, counterSpell, attackSpell){
   ];
   var response = {
     targetId: attack.targetId,
+    spellName: attackSpell.spellName,
     damage: 0,
     msg: msg[0]
   }
@@ -149,9 +152,9 @@ Battle.prototype.applyResolution = function(resolution) {
   console.log('health: ' + this.sockets[0].health + ' -- ' + this.sockets[1].health)
   if (this.sockets[0].health <= 0 || this.sockets[1].health <= 0) {
     var winner = this.sockets.filter(function(sk) {return sk.health > 0})[0]
-    return {condition:'Victory', wizStats:this.wizStats(), winner:winner}
+    return {condition:'Victory', wizStats:this.wizStats(), winner:winner, targetId: resolution.targetId, casterId: resolution.casterId, spellName: resolution.spellName}
   } else {
-    return {condition: 'Battle', wizStats:this.wizStats()}
+    return {condition: 'Battle', wizStats:this.wizStats(), targetId: resolution.targetId, casterId: resolution.casterId, spellName: resolution.spellName}
   }
 }
 
@@ -162,5 +165,12 @@ Battle.prototype.wizStats = function() {
   });
   return obj;
 }
+
+Battle.prototype.manaRegen = function(callback) {
+  this.sockets.map(function(wiz) {
+    if(wiz.mana < 100) wiz.mana += 5;
+  });
+  callback();
+};
 
 module.exports = Battle;

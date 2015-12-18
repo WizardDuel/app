@@ -6,9 +6,15 @@ module.exports = function(io) {
   // Battle State
   var openBattles = [];
 
-  io.on('connection', function(socket) {
 
+  io.on('connection', function(socket) {
     var battle = null;
+
+    function regenerateMana(){
+      battle.manaRegen(function() {
+        io.to(battle.id).emit(E.MANA_REGEN, battle.wizStats());
+      });
+    }
 
     socket.once(E.DUEL, function() {
 
@@ -22,6 +28,13 @@ module.exports = function(io) {
         battle = new Battle(socket);
         openBattles.push(battle);
         io.sockets.connected[socket.id].emit('waiting for opponent');
+      }
+    });
+
+    socket.on(E.READY, function(socket){
+      if(++battle.readyCount === battle.sockets.length){
+        io.to(battle.id).emit(E.START);
+        setInterval(regenerateMana, 7000);
       }
     });
 
@@ -44,6 +57,7 @@ module.exports = function(io) {
       setTimeout(function(){
         var resolution = battle.resolveAttack(data);
         if (resolution.condition === 'Victory') {
+          clearInterval(regenerateMana);
           battle.sockets.map(function(sock) {
             var msg = null;
             if (sock.id === resolution.winner) {
@@ -51,7 +65,7 @@ module.exports = function(io) {
             } else {
               msg = 'you lose :('
             }
-            io.sockets.connected[sock.id].emit('End of battle', msg)
+            io.sockets.connected[sock.id].emit('End of battle', msg);
           })
         } else {
           io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution);
@@ -61,16 +75,20 @@ module.exports = function(io) {
     });
 
     socket.on('disconnect', function() {
+      console.log('disconnect')
       if (battle) {
-        io.to(battle.id).emit('End of battle', 'opponent disconnected')
+        io.to(battle.id).emit('End of battle', 'opponent disconnected');
         if (_.includes(_.pluck(openBattles, 'id'), battle.id) ){
           openBattles = openBattles.filter(function(btl) {
-            return btl.id !== battle.id
-          })
+            return btl.id !== battle.id;
+          });
         }
       }
-      //io.to(battle.id).emit('End of battle', 'opponent disconnected')
       io.emit('disconnect');
+    });
+
+    socket.on('error', function(err){
+      console.log(err);
     });
   });
 };

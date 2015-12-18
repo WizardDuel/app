@@ -1,0 +1,127 @@
+@import "reset";
+@import "variables";
+@import "mixins";
+
+/* view imports */
+@import "profile";
+@import "views/home";
+
+/* directive imports */
+@import "start-timer";
+@import "meter";
+
+
+.application-settings {
+  font-family: $main-font;
+}
+
+.background-image {
+  background: url('../imgs/oldpaperbackground.jpg') no-repeat center center;
+  min-height:100%;
+  background-size:auto;
+}
+
+/* add from style.css */
+
+#status-bars {
+  min-width: 120px;
+  max-width: 200px;
+  min-height: 50px;
+  padding:0;
+}
+#spells {
+  min-width: 366px;
+}
+.spell-panel {
+  min-width: 122px
+  
+}
+.btn-spell {
+  width: 60px;
+  height: 80px;
+  margin-bottom: 2px;
+  font-size: x-small;
+  line-height: 1;
+}
+#power-vessle {
+  min-height: 80px
+}
+#powerbar {
+  width: 122px;
+}
+
+#powerbar button{
+  line-height: 1
+  max-heigth: 100px;
+  font-size: small;
+  border-radius: 25px;
+}
+
+.red{
+  background-color: red;
+}
+
+.status-bar {
+  margin-bottom: 5px;
+  border-radius: 2px
+}
+.purple {
+  background-color: purple;
+}
+.container {
+  margin-top: 200px;
+}
+
+.health-bar {
+  background: #FF5656;
+  display: block;
+  height: 1em
+}
+
+.mana-bar {
+  background: #A621FF;
+  display: block;
+  height: 1em
+}
+
+$main-text-color: #fff;
+$black: #222;
+
+.start-timer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  height: 100px;
+  width: 100px;
+  font-size: 300px;
+  color: $main-text-color;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  background-color: $black;
+  width: 100%;
+  opacity: 0.75;
+  height: 99999px;
+}
+
+.avatar-container {
+  position: relative;
+}
+
+.avatar-overlay {
+  visibility: hidden;
+  position: absolute;
+  top: 250px;
+  background-color: $black;
+  color: ivory;
+  text-align: center;
+  width: 50%;
+  opacity: 0.75;
+}
+
+.spell-message {
+  display: inline-block;
+  height: 1rem;
+}
