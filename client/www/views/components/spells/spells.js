@@ -58,16 +58,22 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   //avatar.disableCounterSpells()
 
   $scope.initializeSpell = function (spell) {
-    avatar.disableAttackSpells();
-    avatar.disableCounterSpells();
-    if (spell.type === 'Attack') { // initialize the attack cycle
-      spell = socket.attackWith(spell);
+    if (spell.role !== 'enhancer') {
+      avatar.disableAttackSpells();
+      avatar.disableCounterSpells();
+      if (spell.type === 'Attack') { // initialize the attack cycle
+        spell = socket.attackWith(spell);
+      }
+      spell.initTime = new Date().getTime()
+      $scope.castingSpell = true;
+      socket.castingSpell = true;
+      // Inspect spell
+      $scope.spell = spell
+    } else {
+      var enhanceSpell = Magic.castEnhancer(spell);
+      socket.emit(E.ENHANCE, enhanceSpell);
     }
-    spell.initTime = new Date().getTime()
-    $scope.castingSpell = true;
-    socket.castingSpell = true;
-    // Inspect spell
-    $scope.spell = spell
+
   };
 
   $scope.finalizeSpell = function(spell) {
