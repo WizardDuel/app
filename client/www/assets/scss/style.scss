@@ -84,6 +84,44 @@
   height: 1em
 }
 
+$main-text-color: #fff;
+$black: #222;
 
-$header-height: 65px;
+.start-timer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  height: 100px;
+  width: 100px;
+  font-size: 300px;
+  color: $main-text-color;
+}
 
+.overlay {
+  position: absolute;
+  top: 0;
+  background-color: $black;
+  width: 100%;
+  opacity: 0.75;
+  height: 99999px;
+}
+
+.avatar-container {
+  position: relative;
+}
+
+.avatar-overlay {
+  visibility: hidden;
+  position: absolute;
+  top: 250px;
+  background-color: $black;
+  color: ivory;
+  text-align: center;
+  width: 50%;
+  opacity: 0.75;
+}
+
+.spell-message {
+  display: inline-block;
+  height: 1rem;
+}

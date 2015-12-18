@@ -71,9 +71,11 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   };
 
   $scope.castSpell = function(spell) {
-    var attackId = spell.attackId
-
-    console.log('cast spell')
+    var attackId = spell.attackId;
+    var attack = {
+      attackId: attackId,
+      spellName: spell.name
+    };
 
     switch (spell.type) {
       case 'Recover':
@@ -90,8 +92,10 @@ function SpellsCtrl($scope, $timeout, socketIO) {
         break;
 
       case 'Attack':
-          var attackSpell = magic.castSpell(attackId);
-          socket.emit(E.ATTACK, attackSpell)
+          var attackSpell = magic.castSpell(attack);
+          socket.emit(E.ATTACK, attackSpell);
+          document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';
+          setTimeout(function() { document.getElementById(socket.id + '-spell-message').innerHTML = '' }, 1500);
         break;
     }
   };
@@ -99,7 +103,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   socket.on(E.ATTACK_PU, function(data) {
     if (data.targetId === socket.id) avatar.enableCounterSpells()
     avatars[data.casterId].addClass('purple');
-    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
+    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 1500)
   });
 
   $scope.AttackSpells = [
@@ -129,10 +133,11 @@ var magic = {
 
   castSpell: function(attack, power, crit, timeShift) {
     var spell = {
-      attackId: attack,
+      attackId: attack.attackId,
       power: power ? power : this.setPower(),
       crit: crit !== null ? crit : this.setCrit(),
       time: this.setTime() + timeShift,
+      spellName: attack.spellName
     };
     return spell;
   },
