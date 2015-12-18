@@ -21,6 +21,7 @@ var Magic = {
   },
   castEnhancer: function(spell, target) {
     var effect = {
+      casterId: target,
       target: target,
       name: spell.name,
       effect: spell.type,

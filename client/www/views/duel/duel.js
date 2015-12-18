@@ -1,4 +1,5 @@
 var enableWorldUpdates = require('./enableWorldUpdates');
+var wizardPhotos = require('../../assets/imgs/wizardPhotos')
 
 module.exports = angular.module('wizardApp.duel', [
   require('angular-route'),
@@ -67,7 +68,11 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
   });
   socket.on(E.UPDATE, function(data) {
-    console.log(data)
+    var wizStats = data.wizStats;
+    for (wiz in resolution.wizStats) {
+      avatars[wiz].setHealth(wizStats[wiz].health);
+      avatars[wiz].setMana(wizStats[wiz].mana);
+    }
   })
 
   socket.on(E.MANA_REGEN, function(data) {
@@ -109,14 +114,3 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     });
   })
 }
-var wizardPhotos = [
-  'walking_wizard.gif',
-  'simpsons_wizard.jpg',
-  'wizard_by_adam_brown.jpg',
-  'cartman_wizard.png',
-  'character_wizard.png',
-  'DC_wizard.png',
-  'eggplant_wizard_uprising.png',
-  'evil_wizard.png',
-  'merlin_the_wizard.png',
-]

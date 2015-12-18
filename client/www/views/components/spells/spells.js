@@ -59,7 +59,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
     if (spell.role !== 'enhancer') {
       avatar.disableAttackSpells();
       avatar.disableCounterSpells();
-      if (spell.type === 'Attack') { // initialize the attack cycle
+      if (spell.type === 'attack') { // initialize the attack cycle
         spell = socket.attackWith(spell);
       }
       spell.initTime = new Date().getTime()
@@ -68,7 +68,6 @@ function SpellsCtrl($scope, $timeout, socketIO) {
       // Inspect spell
       $scope.spell = spell
     } else {
-      console.log('enhancer')
       var enhanceSpell = Magic.castEnhancer(spell, socket.id);
       socket.emit(E.ENHANCE, enhanceSpell);
     }
@@ -90,20 +89,16 @@ function SpellsCtrl($scope, $timeout, socketIO) {
     };
 
     switch (spell.type) {
-      case 'Recover':
-        break;
-      case 'Defend':
-        break;
-      case 'Perry':
+      case 'perry':
           var defensiveSpell = Magic.castSpell(attackId)
           socket.emit(E.PERRY, defensiveSpell);
         break;
-      case 'Repost':
+      case 'repost':
           var repostSpell = Magic.castSpell(attackId)
           socket.emit(E.REPOST, repostSpell);
         break;
 
-      case 'Attack':
+      case 'attack':
           var attackSpell = Magic.castSpell(attack);
           socket.emit(E.ATTACK, attackSpell);
           document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';

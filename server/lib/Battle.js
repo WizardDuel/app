@@ -14,6 +14,9 @@ Battle.prototype.addCombatant = function(socket) {
   socket.conditions = [];
   this.sockets.push(socket);
   socket.health = socket.mana = 100;
+  socket.spendMana = function(amount) {
+    this.mana -= amount;
+  }
 };
 
 Battle.prototype.setFoesForDuel = function() {
@@ -47,6 +50,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
   // get spells
   var resolution = {};
   var attack = this.attacks[attackSpell.attackId];
+  console.log(attack)
   if (attack.counterSpell) var counterSpell = attack.counterSpell.spell;
 
   if (counterSpell && counterSpell.time < attackSpell.time) {
@@ -170,12 +174,14 @@ Battle.prototype.wizStats = function() {
 Battle.prototype.manaRegen = function(callback) {
   this.sockets.map(function(wiz) {
     if(wiz.mana < 100) wiz.mana += 5;
+    if(wiz.mana >= 100) wiz.mana = 100;
   });
   callback();
 };
 
 Battle.prototype.resolveEnhance = function(spell) {
   var msg = {};
+  this[spell.casterId].spendMana(spell.cost)
   switch (spell.effect) {
     case 'recover-health':
       this[spell.target] += spell.power

@@ -47295,6 +47295,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {var enableWorldUpdates = __webpack_require__(77);
+	var wizardPhotos = __webpack_require__(80)
 
 	module.exports = angular.module('wizardApp.duel', [
 	  __webpack_require__(69),
@@ -47363,7 +47364,11 @@
 
 	  });
 	  socket.on(E.UPDATE, function(data) {
-	    console.log(data)
+	    var wizStats = data.wizStats;
+	    for (wiz in resolution.wizStats) {
+	      avatars[wiz].setHealth(wizStats[wiz].health);
+	      avatars[wiz].setMana(wizStats[wiz].mana);
+	    }
 	  })
 
 	  socket.on(E.MANA_REGEN, function(data) {
@@ -47405,17 +47410,6 @@
 	    });
 	  })
 	}
-	var wizardPhotos = [
-	  'walking_wizard.gif',
-	  'simpsons_wizard.jpg',
-	  'wizard_by_adam_brown.jpg',
-	  'cartman_wizard.png',
-	  'character_wizard.png',
-	  'DC_wizard.png',
-	  'eggplant_wizard_uprising.png',
-	  'evil_wizard.png',
-	  'merlin_the_wizard.png',
-	]
 
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(68)))
 
@@ -47484,7 +47478,7 @@
 	    if (spell.role !== 'enhancer') {
 	      avatar.disableAttackSpells();
 	      avatar.disableCounterSpells();
-	      if (spell.type === 'Attack') { // initialize the attack cycle
+	      if (spell.type === 'attack') { // initialize the attack cycle
 	        spell = socket.attackWith(spell);
 	      }
 	      spell.initTime = new Date().getTime()
@@ -47493,7 +47487,6 @@
 	      // Inspect spell
 	      $scope.spell = spell
 	    } else {
-	      console.log('enhancer')
 	      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
 	      socket.emit(E.ENHANCE, enhanceSpell);
 	    }
@@ -47515,20 +47508,16 @@
 	    };
 
 	    switch (spell.type) {
-	      case 'Recover':
-	        break;
-	      case 'Defend':
-	        break;
-	      case 'Perry':
+	      case 'perry':
 	          var defensiveSpell = Magic.castSpell(attackId)
 	          socket.emit(E.PERRY, defensiveSpell);
 	        break;
-	      case 'Repost':
+	      case 'repost':
 	          var repostSpell = Magic.castSpell(attackId)
 	          socket.emit(E.REPOST, repostSpell);
 	        break;
 
-	      case 'Attack':
+	      case 'attack':
 	          var attackSpell = Magic.castSpell(attack);
 	          socket.emit(E.ATTACK, attackSpell);
 	          document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';
@@ -47734,6 +47723,7 @@
 	  },
 	  castEnhancer: function(spell, target) {
 	    var effect = {
+	      casterId: target,
 	      target: target,
 	      name: spell.name,
 	      effect: spell.type,
@@ -47762,6 +47752,24 @@
 	};
 
 	module.exports = Magic;
+
+
+/***/ },
+/* 80 */
+/***/ function(module, exports) {
+
+	var wizardPhotos = [
+	  'walking_wizard.gif',
+	  'simpsons_wizard.jpg',
+	  'wizard_by_adam_brown.jpg',
+	  'cartman_wizard.png',
+	  'character_wizard.png',
+	  'DC_wizard.png',
+	  'eggplant_wizard_uprising.png',
+	  'evil_wizard.png',
+	  'merlin_the_wizard.png',
+	]
+	module.exports = wizardPhotos;
 
 
 /***/ }
