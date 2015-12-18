@@ -11,11 +11,12 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './www/build'),
     filename: 'bundle.js',
-    contentBase: './www/'
+    contentBase: './www/',
+    publicPath: '/build/'
   },
   sassLoader: {
     includePaths: [
-      './assets/scss'
+      './assets/scss', './assets/scss/mixins'
    ]
   },
   plugins: [
@@ -32,7 +33,8 @@ module.exports = {
         },
         {
             test: /\.scss$/,
-            loader: 'style!css?sourceMap!sass?sourceMap'
+            // loader: 'style!css?sourceMap!sass?sourceMap'
+            loader: 'style!css!sass'
         },
         {
           test:/\.css$/,
@@ -49,6 +51,13 @@ module.exports = {
         {
           test: /vendor\/.+\.(jsx|js)$/,
           loader: 'imports?jQuery=jquery,$=jquery,this=>window'
+        },
+        {
+          test: /\.(jpe?g|png|gif|svg)$/i,
+          loaders: [
+              'file?hash=sha512&digest=hex&name=[hash].[ext]',
+              'image-webpack?bypassOnDebug&optimizationLevel=7&interlaced=false'
+          ]
         }
       ]
     },

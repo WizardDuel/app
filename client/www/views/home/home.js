@@ -44,17 +44,17 @@ var socketHelper = {
     socket.getFoeId = function(){
       for (id in this.wizStats) {
         if (id !== this.id) {
-          return id
+          return id;
         }
       }
-    }
+    };
   },
   registerAttackFn: function(socket, E) {
     socket.attackWith = function(spell) {
       spell.attackId = new Date().getTime();
       socket.emit(E.ATTACK_PU, {attackId: spell.attackId, targetId: socket.getFoeId()});
-      return spell
-    }
+      return spell;
+    };
   }
 
-}
+};

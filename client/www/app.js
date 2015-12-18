@@ -1,3 +1,4 @@
+require('./assets/css/reset.css');
 require('./assets/css/style.css');
 require('./lib/ionic/css/ionic.css');
 require('./assets/scss/style.scss');

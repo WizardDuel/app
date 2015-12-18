@@ -17,13 +17,19 @@ module.exports = angular.module('wizardApp.profile', [
   .name;
 
 function ProfileCtrl($scope, $location, $timeout, $interval){
-  $scope.wins = 0;    //Database Call Needed
-  $scope.losses = 0;  //Database Call Needed
+  $scope.wins = 5;    //Database Call Needed
+  $scope.losses = 5;  //Database Call Needed
+  $scope.winPercent = (100 * $scope.wins) / ($scope.wins + $scope.losses);
   $scope.book = [];
 
-  $scope.range = function(n) {
-    return new Array(n);
-  };
+  $scope.games = [
+    { opponent: 'Bob', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'},
+    { opponent: 'Bob', result: 'Victory', spellbook: 'Fire Spells', damageDealt: 124, favoriteSpell: 'fireball'},
+    { opponent: 'Henry', result: 'Victory', spellbook: 'Water Spells', damageDealt: 100, favoriteSpell: 'fireball'},
+    { opponent: 'Bob', result: 'Loss', spellbook: 'Earth/Fire Spells', damageDealt: 186, favoriteSpell: 'Lava Torrent'},
+    { opponent: 'Maria', result: 'Victory', spellbook: 'Spirt/Wind', damageDealt: 101, favoriteSpell: 'Vortex'},
+    { opponent: 'Norm', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'}
+  ];
 
   //Database Call Needed
   $scope.spells = [
@@ -31,6 +37,10 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
     { inSpellBook: false, name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
     { inSpellBook: false, name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
   ];
+
+  $scope.range = function(n) {
+    return new Array(n);
+  };
 
   $scope.playNow = function() {
     $location.path('/waiting');
@@ -52,8 +62,8 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
 
 
   function changeIndexClass() {
-    $('#section' + index).addClass('active-meter');
-    $('#section' + last).removeClass('active-meter');
+    $('#section-id-' + index).addClass('active-meter');
+    $('#section-id-' + last).removeClass('active-meter');
     last = index;
 
     if(index === $scope.maxRange) decrement = true;

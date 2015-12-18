@@ -1,42 +1,45 @@
 $main-text-color: #fff;
+$main-font: Galindo;
 $black: #222;
 
-.start-timer {
+.application-settings {
+  font-family: $main-font;
+}
+
+.background-image {
+  background: url('../imgs/oldpaperbackground.jpg') no-repeat center center;
+  min-height:100%;
+  background-size:auto;
+}
+
+
+
+$header-height: 65px;
+
+header {
+  height: $header-height;
+  background-color: #c2b280;
   position: fixed;
-  top: 50%;
-  left: 50%;
-  height: 100px;
-  width: 100px;
-  font-size: 300px;
-  color: $main-text-color;
 }
 
-.overlay {
-  position: absolute;
-  top: 0;
-  background-color: $black;
-  width: 100%;
-  opacity: 0.75;
-  height: 99999px;
+div.content-from-header.extra-specificity {
+  margin-top: $header-height + 10px;
 }
 
-.spinner {
-  height: 200px;
-  width: 500px;
-  background-color: red;
-  // overflow: none;
+.game {
+  display: block;
+  background-color: tan;
+  hieght: 100%;
+  width: 200px;
+  border: solid 3px brown;
 }
 
-.section {
-  display: inline-block;
-  width: 3px;
-  hieght: 100px;
-  background-color: #222;
-  color: #222;
+.stat-item {
+  display: block;
 }
+@import "variables";
+@import "mixins";
 
-.active-meter {
-  background-color: #fff;
-  // color: #fff;
-  // border: solid 1px #fff;
-}
+@import "profile";
+@import "start-timer";
+@import "meter";

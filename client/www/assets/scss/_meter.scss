@@ -1,0 +1,69 @@
+/* meter*/
+.spinner {
+  width: 250px;
+  height: 100px;
+}
+
+.section {
+  display: inline-block;
+  width: 2.5px;
+  hieght: 100px;
+  background-color: #222;
+  color: #222;
+}
+
+@mixin text-background($color) {
+  background-color: $color;
+  color: $color;
+}
+
+@for $i from 0 through 100 {
+
+  #section-id-#{$i} {
+    @if $i < 15 {
+
+      @include text-background(#FF3840)
+    }
+
+    @else if $i < 30 {
+      @include text-background(#FE5328)
+    }
+
+    @else if $i < 45 {
+      @include text-background(#FE993A)
+    }
+
+    @else if $i < 60 {
+      @include text-background(#FDBC3B)
+    }
+
+    @else if $i < 60 {
+      @include text-background(#FDDE3C)
+    }
+
+    @else if $i < 73 {
+      @include text-background(#FAFD3C)
+    }
+
+    @else if $i < 88{
+      @include text-background(#D8FC3D)
+    }
+
+    @else if $i < 93 {
+      @include text-background(#B6FC3E)
+    }
+
+    @else if $i < 97 {
+      @include text-background(#D8FC3D)
+    }
+
+    @else {
+      @include text-background(#FAFD3C)
+    }
+  }
+}
+
+.active-meter {
+  background-color: #000 !important;
+  color: #000 !important;
+}
