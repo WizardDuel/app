@@ -37687,6 +37687,7 @@
 	  // gain access to the world
 	  var avatars = socket.avatars
 	  var avatar = socket.avatars[socket.id]
+	  $scope.self = socket.id
 	  // set counterspells to disabled
 	  avatar.disableCounterSpells()
 

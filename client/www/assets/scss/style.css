@@ -1,8 +1,15 @@
+#status-bars {
+  min-width: 120px;
+  max-width: 200px;
+  min-height: 50px;
+  padding:0;
+}
 #spells {
   min-width: 366px;
 }
 .spell-panel {
   min-width: 122px
+  
 }
 .btn-spell {
   width: 60px;
@@ -11,13 +18,18 @@
   font-size: x-small;
   line-height: 1;
 }
+#power-vessle {
+  min-height: 80px
+}
 #powerbar {
   width: 122px;
 }
 
 #powerbar button{
   line-height: 1
-  font-size: medium;
+  max-heigth: 100px;
+  font-size: small;
+  border-radius: 25px;
 }
 
 .red{
@@ -26,6 +38,7 @@
 
 .status-bar {
   margin-bottom: 5px;
+  border-radius: 2px
 }
 .purple {
   background-color: purple;
