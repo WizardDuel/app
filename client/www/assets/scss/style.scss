@@ -19,3 +19,23 @@ $black: #222;
   opacity: 0.75;
   height: 99999px;
 }
+
+.avatar-container {
+  position: relative;
+}
+
+.avatar-overlay {
+  visibility: hidden;
+  position: absolute;
+  top: 250px;
+  background-color: $black;
+  color: ivory;
+  text-align: center;
+  width: 50%;
+  opacity: 0.75;
+}
+
+.spell-message {
+  display: inline-block;
+  height: 1rem;
+}

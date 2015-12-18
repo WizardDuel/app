@@ -120,9 +120,19 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
   socket.on(E.RESOLVE_ATTACK, function(solution) {
     // update world based on solution
+    console.log('solution.wizStats: ', solution.wizStats);
     for (wiz in solution.wizStats) {
       avatars[wiz].setHealth(solution.wizStats[wiz].health);
       avatars[wiz].setMana(solution.wizStats[wiz].mana);
+      console.log('wiz: ', wiz);
+      if (true) {
+        document.getElementById(foe.id + '-wizard-message').innerHTML = 'IMPACT!';
+        document.getElementById(foe.id + '-avatar-overlay').style.visibility = 'visible';
+        setTimeout(function() {
+          document.getElementById(foe.id + '-avatar-overlay').style.visibility = 'hidden';
+          document.getElementById(foe.id + '-wizard-message').innerHTML = ''
+        }, 1500);
+      }
     }
 
     // Allow access to spells
