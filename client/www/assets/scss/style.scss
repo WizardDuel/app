@@ -18,7 +18,7 @@
 .background-image {
   background: url('../imgs/oldpaperbackground.jpg') no-repeat center center;
   min-height:100%;
-  background-size:auto;
+  background-size:cover;
 }
 
 /* add from style.css */
@@ -51,7 +51,7 @@
 }
 
 #powerbar button{
-  line-height: 1
+  line-height: 1;
   max-heigth: 100px;
   font-size: small;
   border-radius: 25px;
