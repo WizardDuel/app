@@ -47,9 +47,6 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   avatars[self.id] = self;
 
   socket.on(E.ATTACK_PU, function(data) {
-    // console.log('received attack')
-    // console.log(data.casterId)
-    // console.log(avatars)
     avatars[data.casterId].addClass('purple');
     setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
   });
@@ -64,7 +61,8 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
     // Allow access to spells
     if (!socket.casting) {
-      self.reset();
+      self.enableAttackSpells();
+      self.disableCounterSpells();
     }
 
   });

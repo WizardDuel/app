@@ -2,23 +2,19 @@ function enableWorldUpdates(wiz){
   wiz.getAvatar = function(){
     return document.getElementById(this.id);
   }
-  wiz.getHealth = function(){
-    return document.getElementById(this.id+'-health');
+  wiz.toggleClass = function(className) {
+    var avatar = this.getAvatar();
+    if (avatar.classList.indexOf(className) !== -1) {
+      avatar.classList.add(className)
+    } else {
+      avatar.classList.remove(className)
+    }
   }
-  wiz.getMana = function(){
-    return document.getElementById(this.id+'-mana');
+  wiz.getVital = function(vital) {
+    return document.getElementById(this.id+ '-' + vital);
   }
-  wiz.addClass = function(cname){
-    this.getAvatar().classList.add(cname)
-  }
-  wiz.removeClass = function(cname) {
-    this.getAvatar().classList.remove(cname)
-  }
-  wiz.setHealth = function(health) {
-    this.getHealth().style.width = health +'%';
-  }
-  wiz.setMana = function(mana) {
-    this.getMana().style.width = mana+'%';
+  wiz.setVital = function(vital, value) {
+    this.getVital(vital).style.width = value +'%';
   }
   wiz.enableCounterSpells = function() {
     var buttons = document.getElementsByClassName('btn-spell')
@@ -71,6 +67,29 @@ function enableWorldUpdates(wiz){
         break;
     }
   }
+  //// refactored out
+  wiz.addClass = function(cname){
+    this.getAvatar().classList.add(cname)
+  }
+  wiz.removeClass = function(cname) {
+    this.getAvatar().classList.remove(cname)
+  }
+  wiz.getHealth = function(){
+    return document.getElementById(this.id+'-health');
+  }
+  wiz.getMana = function(){
+    return document.getElementById(this.id+'-mana');
+  }
+  wiz.setHealth = function(health) {
+    this.getHealth().style.width = health +'%';
+  }
+  wiz.setMana = function(mana) {
+    this.getMana().style.width = mana+'%';
+  }
+
+
+
+
 return wiz
 }
 module.exports = enableWorldUpdates;

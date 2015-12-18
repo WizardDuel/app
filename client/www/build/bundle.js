@@ -47341,9 +47341,6 @@
 	  avatars[self.id] = self;
 
 	  socket.on(E.ATTACK_PU, function(data) {
-	    // console.log('received attack')
-	    // console.log(data.casterId)
-	    // console.log(avatars)
 	    avatars[data.casterId].addClass('purple');
 	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
 	  });
@@ -47358,7 +47355,8 @@
 
 	    // Allow access to spells
 	    if (!socket.casting) {
-	      self.reset();
+	      self.enableAttackSpells();
+	      self.disableCounterSpells();
 	    }
 
 	  });
@@ -47421,9 +47419,10 @@
 
 /***/ },
 /* 73 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	/* globals angular */
+	var spellList = __webpack_require__(78);
 
 	module.exports = angular.module('wizardApp.spells', [
 
@@ -47474,8 +47473,15 @@
 	  var avatars = socket.avatars
 	  var avatar = socket.avatars[socket.id]
 	  $scope.self = socket.id
+
+	  console.log(spellList)
+	  console.log(spellList.attacks)
+
+	  $scope.attacks = spellList.attacks;
+	  $scope.enhancers = spellList.counters;
+	  $scope.counters = spellList.enhancers;
 	  // set counterspells to disabled
-	  avatar.disableCounterSpells()
+	  //avatar.disableCounterSpells()
 
 	  $scope.initializeSpell = function (spell) {
 	    avatar.disableAttackSpells();
@@ -47485,6 +47491,7 @@
 	    }
 	    spell.initTime = new Date().getTime()
 	    $scope.castingSpell = true;
+	    socket.castingSpell = true;
 	    // Inspect spell
 	    $scope.spell = spell
 	  };
@@ -47492,6 +47499,7 @@
 	  $scope.finalizeSpell = function(spell) {
 	    spell.finalTime = new Date().getTime();
 	    $scope.castingSpell = false;
+	    socket.castingSpell = false;
 	    $scope.castSpell(spell);
 	  };
 
@@ -47531,17 +47539,7 @@
 	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 1500)
 	  });
 
-	  $scope.AttackSpells = [
-	    { name: 'Magic Missile', type: 'Attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
-	    {name: 'Water Coffin', type: 'Attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
-	    {name: 'Wind Swords', type: 'Attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
-	  ]
-	  $scope.nonAttackSpells  = [
-	    {name: 'Heal', icon: 'ion-heart', type: 'recovery', target: 'caster', role: 'heal', afinity: 'basic', cost: 5, power: 5},
-	    {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff', target: 'caster', role:'buff', afinity:'basic', cost: 5, duration: 15},
-	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe', role: 'perry', afinity: 'basic', cost: 5 },
-	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
-	  ]
+
 
 	} // Spells controller
 
@@ -47634,23 +47632,19 @@
 	  wiz.getAvatar = function(){
 	    return document.getElementById(this.id);
 	  }
-	  wiz.getHealth = function(){
-	    return document.getElementById(this.id+'-health');
+	  wiz.toggleClass = function(className) {
+	    var avatar = this.getAvatar();
+	    if (avatar.classList.indexOf(className) !== -1) {
+	      avatar.classList.add(className)
+	    } else {
+	      avatar.classList.remove(className)
+	    }
 	  }
-	  wiz.getMana = function(){
-	    return document.getElementById(this.id+'-mana');
+	  wiz.getVital = function(vital) {
+	    return document.getElementById(this.id+ '-' + vital);
 	  }
-	  wiz.addClass = function(cname){
-	    this.getAvatar().classList.add(cname)
-	  }
-	  wiz.removeClass = function(cname) {
-	    this.getAvatar().classList.remove(cname)
-	  }
-	  wiz.setHealth = function(health) {
-	    this.getHealth().style.width = health +'%';
-	  }
-	  wiz.setMana = function(mana) {
-	    this.getMana().style.width = mana+'%';
+	  wiz.setVital = function(vital, value) {
+	    this.getVital(vital).style.width = value +'%';
 	  }
 	  wiz.enableCounterSpells = function() {
 	    var buttons = document.getElementsByClassName('btn-spell')
@@ -47703,9 +47697,56 @@
 	        break;
 	    }
 	  }
+	  //// refactored out
+	  wiz.addClass = function(cname){
+	    this.getAvatar().classList.add(cname)
+	  }
+	  wiz.removeClass = function(cname) {
+	    this.getAvatar().classList.remove(cname)
+	  }
+	  wiz.getHealth = function(){
+	    return document.getElementById(this.id+'-health');
+	  }
+	  wiz.getMana = function(){
+	    return document.getElementById(this.id+'-mana');
+	  }
+	  wiz.setHealth = function(health) {
+	    this.getHealth().style.width = health +'%';
+	  }
+	  wiz.setMana = function(mana) {
+	    this.getMana().style.width = mana+'%';
+	  }
+
+
+
+
 	return wiz
 	}
 	module.exports = enableWorldUpdates;
+
+
+/***/ },
+/* 78 */
+/***/ function(module, exports) {
+
+	var spellList = {
+	  attacks: [
+	    { name: 'Magic Missile', type: 'Attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
+	    {name: 'Water Coffin', type: 'Attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
+	    {name: 'Wind Swords', type: 'Attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
+	  ],
+	  counters: [
+
+	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe', role: 'perry', afinity: 'basic', cost: 5 },
+	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
+	  ],
+	  enhancers: [
+	    {name: 'Heal', icon: 'ion-heart', type: 'recovery', target: 'caster', role: 'heal', afinity: 'basic', cost: 5, power: 5},
+	    {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff', target: 'caster', role:'buff', afinity:'basic', cost: 5, duration: 15},
+	  ]
+	}
+
+	module.exports = spellList;
 
 
 /***/ }

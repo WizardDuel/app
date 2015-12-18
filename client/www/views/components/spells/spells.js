@@ -1,4 +1,5 @@
 /* globals angular */
+var spellList = require('./spellList');
 
 module.exports = angular.module('wizardApp.spells', [
 
@@ -49,8 +50,15 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   var avatars = socket.avatars
   var avatar = socket.avatars[socket.id]
   $scope.self = socket.id
+
+  console.log(spellList)
+  console.log(spellList.attacks)
+
+  $scope.attacks = spellList.attacks;
+  $scope.enhancers = spellList.counters;
+  $scope.counters = spellList.enhancers;
   // set counterspells to disabled
-  avatar.disableCounterSpells()
+  //avatar.disableCounterSpells()
 
   $scope.initializeSpell = function (spell) {
     avatar.disableAttackSpells();
@@ -60,6 +68,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
     }
     spell.initTime = new Date().getTime()
     $scope.castingSpell = true;
+    socket.castingSpell = true;
     // Inspect spell
     $scope.spell = spell
   };
@@ -67,6 +76,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   $scope.finalizeSpell = function(spell) {
     spell.finalTime = new Date().getTime();
     $scope.castingSpell = false;
+    socket.castingSpell = false;
     $scope.castSpell(spell);
   };
 
@@ -106,17 +116,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
     setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 1500)
   });
 
-  $scope.AttackSpells = [
-    { name: 'Magic Missile', type: 'Attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
-    {name: 'Water Coffin', type: 'Attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
-    {name: 'Wind Swords', type: 'Attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
-  ]
-  $scope.nonAttackSpells  = [
-    {name: 'Heal', icon: 'ion-heart', type: 'recovery', target: 'caster', role: 'heal', afinity: 'basic', cost: 5, power: 5},
-    {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff', target: 'caster', role:'buff', afinity:'basic', cost: 5, duration: 15},
-    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe', role: 'perry', afinity: 'basic', cost: 5 },
-    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
-  ]
+
 
 } // Spells controller
 
