@@ -12,19 +12,18 @@ module.exports = angular.module('wizardApp.profile', [
       });
   }])
 
-  .controller('ProfileCtrl', ['$scope', '$location', ProfileCtrl])
+  .controller('ProfileCtrl', ['$scope', '$location', '$timeout', '$interval', ProfileCtrl])
 
-  .filter('inSpellBook', function() {
-    return function(inBook) {
-      return inBook;
-    };
-  })
   .name;
 
-function ProfileCtrl($scope, $location){
+function ProfileCtrl($scope, $location, $timeout, $interval){
   $scope.wins = 0;    //Database Call Needed
   $scope.losses = 0;  //Database Call Needed
   $scope.book = [];
+
+  $scope.range = function(n) {
+    return new Array(n);
+  };
 
   //Database Call Needed
   $scope.spells = [
@@ -40,4 +39,50 @@ function ProfileCtrl($scope, $location){
       return spell.inSpellBook;
     });
   };
+
+  $scope.speed = 1; //ms
+  $scope.maxRange = 100;
+  $scope.meterStarted = false;
+  $scope.counter = $scope.maxRange / 2;
+
+  var index = 0;
+  var last;
+  var decrement = false;
+  var intervalPromise;
+
+
+  function changeIndexClass() {
+    $('#section' + index).addClass('active-meter');
+    $('#section' + last).removeClass('active-meter');
+    last = index;
+
+    if(index === $scope.maxRange) decrement = true;
+    if(index === 0) decrement = false;
+
+    if(decrement) index--;
+    else index++;
+  }
+
+  function stopMeter(){
+    $interval.cancel(intervalPromise);
+    $scope.power = index;
+    $scope.meterStarted = false;
+    $('.section').removeClass('active-meter');
+    console.log($scope.power);
+  }
+
+  $scope.meterClick = function(){
+    console.log('clicked');
+
+    if(!$scope.meterStarted) {
+      $scope.meterStarted = true;
+      intervalPromise = $interval(changeIndexClass, $scope.speed);
+    } else {
+      stopMeter();
+    }
+  };
+
+  $scope.$on('$destroy', function() {
+    stopMeter();
+  });
 }

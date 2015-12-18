@@ -22,4 +22,10 @@
     </ul>
   </section>
 
+
+  <div ng-click="meterClick()" class='spinner'>
+      <ul id='meter-list'>
+        <li id="section{{$index}}" class='meter section' ng-repeat="i in range(maxRange) track by $index">&nbsp;|</li>
+      </ul>
+  </div>
 </div>

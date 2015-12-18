@@ -19,3 +19,24 @@ $black: #222;
   opacity: 0.75;
   height: 99999px;
 }
+
+.spinner {
+  height: 200px;
+  width: 500px;
+  background-color: red;
+  // overflow: none;
+}
+
+.section {
+  display: inline-block;
+  width: 3px;
+  hieght: 100px;
+  background-color: #222;
+  color: #222;
+}
+
+.active-meter {
+  background-color: #fff;
+  // color: #fff;
+  // border: solid 1px #fff;
+}
