@@ -43,8 +43,14 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     { user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard2], id: socket.getFoeId() }
   ];
 
-  var foe = {id:socket.getFoeId()};
-  var self = {id: socket.id};
+  var foe = {
+    id: socket.getFoeId(),
+    foeId: socket.id
+  };
+  var self = {
+    id: socket.id,
+    foeId: foe.id
+  };
 
   [self, foe].map(function(wiz) {
 
@@ -102,6 +108,25 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
         }
       }
     }
+    wiz.displayAttackResolutionMessage = function(resolution) {
+      function updateView(wizId) {
+        document.getElementById(wizId + '-wizard-message').innerHTML = resolution.spellName + ' (Damage: #)';
+        document.getElementById(wizId + '-avatar-overlay').style.visibility = 'visible';
+        setTimeout(function() {
+          document.getElementById(wizId + '-avatar-overlay').style.visibility = 'hidden';
+          document.getElementById(wizId + '-wizard-message').innerHTML = '';
+        }, 1500);
+      }
+      switch (this.id) {
+        case resolution.casterId:
+          updateView(this.foeId);
+          break;
+
+        case resolution.targetId:
+          updateView(this.id);
+          break;
+      }
+    }
     return wiz
   });
 
@@ -118,21 +143,12 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
   });
 
-  socket.on(E.RESOLVE_ATTACK, function(solution) {
+  socket.on(E.RESOLVE_ATTACK, function(resolution) {
     // update world based on solution
-    console.log('solution.wizStats: ', solution.wizStats);
-    for (wiz in solution.wizStats) {
-      avatars[wiz].setHealth(solution.wizStats[wiz].health);
-      avatars[wiz].setMana(solution.wizStats[wiz].mana);
-      console.log('wiz: ', wiz);
-      if (true) {
-        document.getElementById(foe.id + '-wizard-message').innerHTML = 'IMPACT!';
-        document.getElementById(foe.id + '-avatar-overlay').style.visibility = 'visible';
-        setTimeout(function() {
-          document.getElementById(foe.id + '-avatar-overlay').style.visibility = 'hidden';
-          document.getElementById(foe.id + '-wizard-message').innerHTML = ''
-        }, 1500);
-      }
+    for (wiz in resolution.wizStats) {
+      avatars[wiz].setHealth(resolution.wizStats[wiz].health);
+      avatars[wiz].setMana(resolution.wizStats[wiz].mana);
+      avatars[wiz].displayAttackResolutionMessage(resolution);
     }
 
     // Allow access to spells
