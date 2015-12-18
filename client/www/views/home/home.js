@@ -1,6 +1,6 @@
 module.exports = angular.module('wizardApp.home', [
   require('angular-route'),
-  require('../duel/duel.js'),
+  require('../duel/duel'),
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
@@ -17,7 +17,7 @@ module.exports = angular.module('wizardApp.home', [
 
 function HomeCtrl($scope, $location, socketIO) {
   var socket = socketIO.socket;
-  var E = socketIO.E
+  var E = socketIO.E;
 
   $scope.enterBattle = function() {
     socket.emit(socketIO.E.DUEL);
@@ -26,8 +26,7 @@ function HomeCtrl($scope, $location, socketIO) {
   socket.on(socketIO.E.BEGIN, function(data) {
     $location.path('/duel');
     $scope.$apply();
-    socketHelper.initialize(socket, data, E)
-    // console.log('The battle has begun!');
+    socketHelper.initialize(socket, data, E);
   });
 }
 
@@ -40,15 +39,15 @@ var socketHelper = {
     this.registerFoeIdFn(socket);
     this.registerAttackFn(socket, E);
   },
+
   registerFoeIdFn: function(socket) {
-    socket.getFoeId = function(){
-      for (id in this.wizStats) {
-        if (id !== this.id) {
-          return id;
-        }
+    socket.getFoeId = function() {
+      for (var id in this.wizStats) {
+        if (id !== this.id) return id;
       }
     };
   },
+
   registerAttackFn: function(socket, E) {
     socket.attackWith = function(spell) {
       spell.attackId = new Date().getTime();
@@ -56,5 +55,4 @@ var socketHelper = {
       return spell;
     };
   }
-
 };

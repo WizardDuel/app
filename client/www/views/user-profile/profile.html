@@ -1,40 +1,43 @@
 <header class="row application-settings">
   <h1>Wizard Duel</h1>
 </header>
+
 <div class="row content-from-header extra-specificity application-settings">
   <div class="col-75">
-    <section class="spell-lib" >
+    <section class="spell-lib">
       <ul>
-        <li ng-repeat="spell in spells | filter: { inSpellBook: false} " ng-click="spell.inSpellBook=true">
+        <li ng-repeat="spell in spells | filter: {inSpellBook: false}" ng-click="spell.inSpellBook = true">
           <span>{{spell.name}}</span>
         </li>
       </ul>
     </section>
-    <button ng-click="playNow()">Go to Waiting Room</button>
+    <button ng-click="playNow()">
+      Go to Waiting Room
+    </button>
     <section class="spell-book">
       <ul>
-        <li ng-click="spell.inSpellBook=false" ng-repeat="spell in spells | filter: { inSpellBook: true }">
+        <li ng-repeat="spell in spells | filter: {inSpellBook: true}" ng-click="spell.inSpellBook = false">
           <span>{{spell.name}}</span>
         </li>
       </ul>
     </section>
-
-    <div ng-click="meterClick()" class='spinner'>
-        <ul id='meter-list'>
-          <li id="section-id-{{$index}}" class=" meter section" ng-repeat="i in range(maxRange) track by $index">|</li>
+    <div ng-click="meterClick()" class="spinner">
+        <ul id="meter-list">
+          <li id="section-id-{{$index}}" class="meter section" ng-repeat="i in range(maxRange) track by $index">|</li>
         </ul>
     </div>
   </div>
+
   <section class="profile col-30">
     <div class="game">
       <span>Wins: {{wins}}</span>
       <span>Losses: {{losses}}</span>
-      <span class='stat-item'>Win Percentage: {{winPercent}}%
+      <span class="stat-item">Win Percentage: {{winPercent}}%
     </div>
     <div class="match-history">
       <ul>
         <li ng-repeat="game in games | limitTo: 3" class="game">
-          <span class="stat-item">Oppnent: {{game.opponent}}</span>
+          <span class="stat-item">Opponent: {{game.opponent}}</span>
           <span class="stat-item">Result: {{game.result}}</span>
           <span>Stats:</span>
           <span class="stat-item">Damage Dealt: {{game.damageDealt}}</span>

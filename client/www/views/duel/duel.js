@@ -1,7 +1,7 @@
 module.exports = angular.module('wizardApp.duel', [
   require('angular-route'),
-  require('../components/spells/spells.js'),
-  require('../components/wizards/wizards.js'),
+  require('../components/spells/spells'),
+  require('../components/wizards/wizards'),
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
@@ -13,6 +13,7 @@ module.exports = angular.module('wizardApp.duel', [
   }])
 
   .controller('DuelCtrl', ['$scope', 'socketIO', '$location', '$window', '$timeout', DuelCtrl])
+
   .name;
 
 function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
@@ -21,16 +22,16 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   socket.attacking = false;
 
   $scope.spells = [
-    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
-    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
-    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
+    {name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe'},
+    {name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'},
+    {name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'}
   ];
 
   wizard2 = Math.floor(Math.random() * wizardPhotos.length);
 
   $scope.foe = '';
   $scope.wizards = [
-    { user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard2], id: socket.getFoeId() }
+    {user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard2], id: socket.getFoeId()}
   ];
 
   var foe = {
@@ -43,75 +44,80 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   };
 
   [self, foe].map(function(wiz) {
-
-    wiz.getAvatar = function(){
+    wiz.getAvatar = function() {
       return document.getElementById(this.id);
     };
-    wiz.getHealth = function(){
-      return document.getElementById(this.id+'-health');
+
+    wiz.getHealth = function() {
+      return document.getElementById(this.id + '-health');
     };
-    wiz.getMana = function(){
-      return document.getElementById(this.id+'-mana');
+
+    wiz.getMana = function() {
+      return document.getElementById(this.id + '-mana');
     };
-    wiz.addClass = function(cname){
+
+    wiz.addClass = function(cname) {
       this.getAvatar().classList.add(cname);
     };
+
     wiz.removeClass = function(cname) {
       this.getAvatar().classList.remove(cname);
     };
+
     wiz.setHealth = function(health) {
-      this.getHealth().style.width = health +'%';
+      this.getHealth().style.width = health + '%';
     };
+
     wiz.setMana = function(mana) {
-      this.getMana().style.width = mana+'%';
+      this.getMana().style.width = mana + '%';
     };
 
     wiz.enableCounterSpells = function() {
       var buttons = document.getElementsByClassName('btn-spell');
-      for (var i = 0; i < buttons.length; i++ ){
+      for (var i = 0; i < buttons.length; i++) {
         if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
           buttons[i].removeAttribute('disabled');
         }
       }
     };
+
     wiz.disableCounterSpells = function() {
       var buttons = document.getElementsByClassName('btn-spell');
-      for (var i = 0; i < buttons.length; i++ ){
+      for (var i = 0; i < buttons.length; i++) {
         if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
           buttons[i].setAttribute('disabled', 'disabled');
         }
       }
     };
+
     wiz.enableAttackSpells = function() {
       var buttons = document.getElementsByClassName('btn-spell');
-      for (var i = 0; i < buttons.length; i++ ){
+      for (var i = 0; i < buttons.length; i++) {
         if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
           buttons[i].removeAttribute('disabled');
         }
       }
     };
+
     wiz.disableAttackSpells = function() {
       var buttons = document.getElementsByClassName('btn-spell');
-      for (var i = 0; i < buttons.length; i++ ){
+      for (var i = 0; i < buttons.length; i++) {
         if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
           buttons[i].setAttribute('disabled', 'disabled');
         }
       }
     };
+
     return wiz;
   });
-
 
   var avatars = socket.avatars = {};
   avatars[foe.id] = foe;
   avatars[self.id] = self;
 
   socket.on(E.ATTACK_PU, function(data) {
-    // console.log('received attack')
-    // console.log(data.casterId)
-    // console.log(avatars)
     avatars[data.casterId].addClass('purple');
-    setTimeout(function(){ avatars[data.casterId].removeClass('purple'); }, 500);
+    setTimeout(function() { avatars[data.casterId].removeClass('purple'); }, 500);
   });
 
   socket.on(E.RESOLVE_ATTACK, function(resolution) {
@@ -154,18 +160,18 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     }
   });
 
-  angular.element(document).ready(function(){
+  angular.element(document).ready(function() {
     socket.emit(E.READY);
   });
 
-  socket.on('Start', function(){
+  socket.on('Start', function() {
     $scope.counter = 3;
     console.log('started');
 
     $scope.countdown = function() {
-      if($scope.counter === 0){
+      if ($scope.counter === 0) {
         $timeout.cancel(stopped);
-        $scope.counter = "Duel!";
+        $scope.counter = 'Duel!';
         $timeout(function() {
           $('.overlay').removeClass('overlay');
           $('.start-timer').hide();
@@ -189,6 +195,7 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     });
   });
 }
+
 var wizardPhotos = [
   'walking_wizard.gif',
   'simpsons_wizard.jpg',
