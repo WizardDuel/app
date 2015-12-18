@@ -147,7 +147,6 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   });
 
   socket.on(E.MANA_REGEN, function(data) {
-    console.log(data)
     for (var wiz in data) {
       avatars[wiz].setMana(data[wiz].mana);
     }

@@ -1,12 +1,8 @@
 <div id="powerbar">
-  <button
-    ng-click="finalizeSpell(spell)"
-    ng-show="castingSpell"
-    class="power button button-assertive">
-    Release magic!
-  </button>
-
-  <div ng-click="meterClick()" class='spinner'>
+  <div  ng-click="meterClick()"
+        class=""
+        ng-click="finalizeSpell(spell)"
+        ng-show="castingSpell">
       <ul id='meter-list'>
         <li id="section-id-{{$index}}" class=" meter section" ng-repeat="i in range(maxRange) track by $index">|</li>
       </ul>

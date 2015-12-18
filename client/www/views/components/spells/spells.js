@@ -36,11 +36,11 @@ module.exports = angular.module('wizardApp.spells', [
     }
   })
 
-  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+  .controller('SpellsCtrl', ['$scope', '$timeout', '$interval', 'socketIO', SpellsCtrl])
 
   .name;
 
-function SpellsCtrl($scope, $timeout, socketIO) {
+function SpellsCtrl($scope, $timeout, $interval, socketIO) {
   // set initial values for magic casting
   var E = socketIO.E;
   var socket = socketIO.socket;
@@ -51,6 +51,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   $scope.self = socket.id
   // set counterspells to disabled
   avatar.disableCounterSpells()
+
 
   $scope.initializeSpell = function (spell) {
     avatar.disableAttackSpells();
@@ -118,6 +119,56 @@ function SpellsCtrl($scope, $timeout, socketIO) {
     { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
   ]
 
+  //Power Bar Logic
+  var index = 0;
+  var last;
+  var decrement = false;
+  var intervalPromise;
+
+  //Power Bar Scope variables
+  $scope.speed = 1; //ms
+  $scope.maxRange = 100;
+  $scope.meterStarted = false;
+  $scope.counter = $scope.maxRange / 2;
+
+  $scope.range = function(n) {
+    return new Array(n);
+  };
+
+  function changeIndexClass() {
+    $('#section-id-' + index).addClass('active-meter');
+    $('#section-id-' + last).removeClass('active-meter');
+    last = index;
+
+    if(index === $scope.maxRange) decrement = true;
+    if(index === 0) decrement = false;
+
+    if(decrement) index--;
+    else index++;
+  }
+
+  function stopMeter(){
+    $interval.cancel(intervalPromise);
+    $scope.power = index;
+    $scope.meterStarted = false;
+    $('.section').removeClass('active-meter');
+    console.log($scope.power);
+  }
+
+  $scope.meterClick = function(){
+    console.log('clicked');
+
+    if(!$scope.meterStarted) {
+      $scope.meterStarted = true;
+      intervalPromise = $interval(changeIndexClass, $scope.speed);
+    } else {
+      stopMeter();
+    }
+  };
+
+  $scope.$on('$destroy', function() {
+    stopMeter();
+  });
 } // Spells controller
 
 var magic = {
