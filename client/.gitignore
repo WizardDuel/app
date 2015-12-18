@@ -4,4 +4,4 @@
 node_modules/
 platforms/
 plugins/
-build/*
+www/build/

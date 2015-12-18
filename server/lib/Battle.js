@@ -152,9 +152,9 @@ Battle.prototype.applyResolution = function(resolution) {
   console.log('health: ' + this.sockets[0].health + ' -- ' + this.sockets[1].health)
   if (this.sockets[0].health <= 0 || this.sockets[1].health <= 0) {
     var winner = this.sockets.filter(function(sk) {return sk.health > 0})[0]
-    return {condition:'Victory', wizStats:this.wizStats(), winner:winner, targetId: resolution.targetId, casterId: resolution.casterId, spellName: resolution.spellName}
+    return {condition: 'Victory', wizStats: this.wizStats(), winner: winner, targetId: resolution.targetId, casterId: resolution.casterId, spellName: resolution.spellName, damage: resolution.damage}
   } else {
-    return {condition: 'Battle', wizStats:this.wizStats(), targetId: resolution.targetId, casterId: resolution.casterId, spellName: resolution.spellName}
+    return {condition: 'Battle', wizStats: this.wizStats(), targetId: resolution.targetId, casterId: resolution.casterId, spellName: resolution.spellName, damage: resolution.damage}
   }
 }
 
