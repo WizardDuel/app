@@ -1,3 +1,5 @@
+var enableWorldUpdates = require('./enableWorldUpdates');
+
 module.exports = angular.module('wizardApp.duel', [
   require('angular-route'),
   require('../components/spells/spells.js'),
@@ -20,12 +22,6 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   var E = socketIO.E;
   socket.attacking = false;
 
-  $scope.spells = [
-    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
-    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
-    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
-  ]
-
   wizard2 = Math.floor(Math.random() * wizardPhotos.length);
 
   $scope.foe = '';
@@ -43,83 +39,8 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   };
 
   [self, foe].map(function(wiz) {
-
-    wiz.getAvatar = function(){
-      return document.getElementById(this.id);
-    }
-    wiz.getHealth = function(){
-      return document.getElementById(this.id+'-health');
-    }
-    wiz.getMana = function(){
-      return document.getElementById(this.id+'-mana');
-    }
-    wiz.addClass = function(cname){
-      this.getAvatar().classList.add(cname)
-    }
-    wiz.removeClass = function(cname) {
-      this.getAvatar().classList.remove(cname)
-    }
-    wiz.setHealth = function(health) {
-      this.getHealth().style.width = health +'%';
-    }
-    wiz.setMana = function(mana) {
-      this.getMana().style.width = mana+'%';
-    }
-
-    wiz.enableCounterSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
-      for (var i = 0; i < buttons.length; i++ ){
-        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-          buttons[i].removeAttribute('disabled')
-        }
-      }
-    }
-    wiz.disableCounterSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
-      for (var i = 0; i < buttons.length; i++ ){
-        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-          buttons[i].setAttribute('disabled', 'disabled')
-        }
-      }
-    }
-    wiz.enableAttackSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
-      for (var i = 0; i < buttons.length; i++ ){
-        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-          buttons[i].removeAttribute('disabled')
-        }
-      }
-    }
-    wiz.disableAttackSpells = function() {
-      var buttons = document.getElementsByClassName('btn-spell')
-      for (var i = 0; i < buttons.length; i++ ){
-        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-          buttons[i].setAttribute('disabled', 'disabled')
-        }
-      }
-    }
-    wiz.displayAttackResolutionMessage = function(resolution) {
-      function updateView(wizId) {
-        document.getElementById(wizId + '-wizard-message').innerHTML = resolution.spellName + ' (Damage: #)';
-        document.getElementById(wizId + '-avatar-overlay').style.visibility = 'visible';
-        setTimeout(function() {
-          document.getElementById(wizId + '-avatar-overlay').style.visibility = 'hidden';
-          document.getElementById(wizId + '-wizard-message').innerHTML = '';
-        }, 1500);
-      }
-      switch (this.id) {
-        case resolution.casterId:
-          updateView(this.foeId);
-          break;
-
-        case resolution.targetId:
-          updateView(this.id);
-          break;
-      }
-    }
-    return wiz
-  });
-
+    enableWorldUpdates(wiz)
+  })
 
   var avatars = socket.avatars = {};
   avatars[foe.id] = foe;
@@ -142,8 +63,10 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     }
 
     // Allow access to spells
-    self.enableAttackSpells();
-    self.disableCounterSpells();
+    if (!socket.casting) {
+      self.reset();
+    }
+
   });
 
   socket.on(E.MANA_REGEN, function(data) {

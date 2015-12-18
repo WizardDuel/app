@@ -9,6 +9,7 @@
 /* directive imports */
 @import "start-timer";
 @import "meter";
+@import "wizard";
 
 
 .application-settings {
@@ -33,9 +34,9 @@
   min-width: 366px;
 }
 .spell-panel {
-  min-width: 122px
-  
+  min-width: 122px;
 }
+
 .btn-spell {
   width: 60px;
   height: 80px;
@@ -51,7 +52,7 @@
 }
 
 #powerbar button{
-  line-height: 1
+  line-height: 1;
   max-heigth: 100px;
   font-size: small;
   border-radius: 25px;
@@ -106,20 +107,7 @@ $black: #222;
   height: 99999px;
 }
 
-.avatar-container {
-  position: relative;
-}
 
-.avatar-overlay {
-  visibility: hidden;
-  position: absolute;
-  top: 250px;
-  background-color: $black;
-  color: ivory;
-  text-align: center;
-  width: 50%;
-  opacity: 0.75;
-}
 
 .spell-message {
   display: inline-block;
