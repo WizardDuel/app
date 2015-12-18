@@ -12,11 +12,6 @@
   color: #222;
 }
 
-@mixin text-background($color) {
-  background-color: $color;
-  color: $color;
-}
-
 @for $i from 0 through 100 {
 
   #section-id-#{$i} {

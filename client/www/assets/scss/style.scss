@@ -1,6 +1,15 @@
-$main-text-color: #fff;
-$main-font: Galindo;
-$black: #222;
+@import "reset";
+@import "variables";
+@import "mixins";
+
+/* view imports */
+@import "profile";
+@import "views/home";
+
+/* directive imports */
+@import "start-timer";
+@import "meter";
+
 
 .application-settings {
   font-family: $main-font;
@@ -16,30 +25,3 @@ $black: #222;
 
 $header-height: 65px;
 
-header {
-  height: $header-height;
-  background-color: #c2b280;
-  position: fixed;
-}
-
-div.content-from-header.extra-specificity {
-  margin-top: $header-height + 10px;
-}
-
-.game {
-  display: block;
-  background-color: tan;
-  hieght: 100%;
-  width: 200px;
-  border: solid 3px brown;
-}
-
-.stat-item {
-  display: block;
-}
-@import "variables";
-@import "mixins";
-
-@import "profile";
-@import "start-timer";
-@import "meter";

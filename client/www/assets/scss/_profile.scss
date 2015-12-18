@@ -1,0 +1,21 @@
+header {
+  height: $header-height;
+  background-color: #c2b280;
+  position: fixed;
+}
+
+div.content-from-header.extra-specificity {
+  margin-top: $header-height + 10px;
+}
+
+.game {
+  display: block;
+  background-color: tan;
+  hieght: 100%;
+  width: 200px;
+  border: solid 3px brown;
+}
+
+.stat-item {
+  display: block;
+}
