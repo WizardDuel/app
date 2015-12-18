@@ -72,6 +72,7 @@
 	        ATTACK: 'Attack',
 	        MANA_REGEN: 'Mana Regen',
 	        ENHANCE: 'Enhance',
+	        UPDATE: 'Update'
 	      }
 	    };
 	  });
@@ -47361,9 +47362,11 @@
 	    }
 
 	  });
+	  socket.on(E.UPDATE, function(data) {
+	    console.log(data)
+	  })
 
 	  socket.on(E.MANA_REGEN, function(data) {
-	    console.log(data)
 	    for (var wiz in data) {
 	      avatars[wiz].setMana(data[wiz].mana);
 	    }
@@ -47375,8 +47378,6 @@
 
 	  socket.on('Start', function(){
 	    $scope.counter = 3;
-	    console.log('started')
-
 	    $scope.countdown = function() {
 	      if($scope.counter === 0){
 	        $timeout.cancel(stopped);
@@ -47423,7 +47424,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* globals angular */
-	var Magic = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"./Magic\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+	var Magic = __webpack_require__(79);
 
 	module.exports = angular.module('wizardApp.spells', [
 
@@ -47476,10 +47477,8 @@
 	  $scope.self = socket.id
 
 	  $scope.attacks = Magic.spellList.attacks;
-	  $scope.enhancers = Magic.spellList.counters;
-	  $scope.counters = Magic.spellList.enhancers;
-	  // set counterspells to disabled
-	  //avatar.disableCounterSpells()
+	  $scope.counters = Magic.spellList.counters;
+	  $scope.enhancers = Magic.spellList.enhancers;
 
 	  $scope.initializeSpell = function (spell) {
 	    if (spell.role !== 'enhancer') {
@@ -47494,7 +47493,8 @@
 	      // Inspect spell
 	      $scope.spell = spell
 	    } else {
-	      var enhanceSpell = Magic.castEnhancer(spell);
+	      console.log('enhancer')
+	      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
 	      socket.emit(E.ENHANCE, enhanceSpell);
 	    }
 
@@ -47704,6 +47704,64 @@
 	return wiz
 	}
 	module.exports = enableWorldUpdates;
+
+
+/***/ },
+/* 78 */,
+/* 79 */
+/***/ function(module, exports) {
+
+	var Magic = {
+	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
+	  setCrit: function() {
+	    var roll = Math.floor(Math.random() * 20 + 1);
+	    var crit = null;
+	    if (roll > 17) return 1;
+	    if (roll < 3) return -1;
+	    return 0;
+	  },
+	  setTime: function() {return new Date().getTime();},
+
+	  castSpell: function(attack, power, crit, timeShift) {
+	    var spell = {
+	      attackId: attack.attackId,
+	      power: power ? power : this.setPower(),
+	      crit: crit !== null ? crit : this.setCrit(),
+	      time: this.setTime() + timeShift,
+	      spellName: attack.spellName
+	    };
+	    return spell;
+	  },
+	  castEnhancer: function(spell, target) {
+	    var effect = {
+	      target: target,
+	      name: spell.name,
+	      effect: spell.type,
+	      power: spell.power,
+	      sideEffects: spell.sideEffects,
+	      cost: spell.cost,
+	    }
+	    return effect
+	  },
+	  spellList: {
+	    attacks: [
+	      { name: 'Magic Missile', type: 'attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
+	      {name: 'Water Coffin', type: 'attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
+	      {name: 'Wind Swords', type: 'attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
+	    ],
+	    counters: [
+
+	      { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'perry', target: 'foe', role: 'counter', afinity: 'basic', cost: 5 },
+	      { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'repost', target: 'foe', role: 'counter', afinity: 'basic', cost: 6 },
+	    ],
+	    enhancers: [
+	      {name: 'Heal', icon: 'ion-heart', type: 'recover-health', target: 'caster', role: 'enhancer', afinity: 'basic', cost: 5, power: 5},
+	      {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff-health', target: 'caster', role:'enhancer', afinity:'basic', cost: 5, duration:20},
+	    ]
+	  }
+	};
+
+	module.exports = Magic;
 
 
 /***/ }

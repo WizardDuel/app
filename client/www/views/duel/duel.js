@@ -66,9 +66,11 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     }
 
   });
+  socket.on(E.UPDATE, function(data) {
+    console.log(data)
+  })
 
   socket.on(E.MANA_REGEN, function(data) {
-    console.log(data)
     for (var wiz in data) {
       avatars[wiz].setMana(data[wiz].mana);
     }
@@ -80,8 +82,6 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
   socket.on('Start', function(){
     $scope.counter = 3;
-    console.log('started')
-
     $scope.countdown = function() {
       if($scope.counter === 0){
         $timeout.cancel(stopped);

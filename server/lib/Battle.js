@@ -11,6 +11,7 @@ function Battle(socket) {
 Battle.prototype.addCombatant = function(socket) {
   this[socket.id] = socket;
   socket.join(this.id);
+  socket.conditions = [];
   this.sockets.push(socket);
   socket.health = socket.mana = 100;
 };
@@ -19,9 +20,6 @@ Battle.prototype.setFoesForDuel = function() {
   if (this.sockets.length !== 2) throw new Error('Invalid number of combatants');
   this.sockets[1].foeId = this.sockets[0].id;
   this.sockets[0].foeId = this.sockets[1].id;
-  this.sockets.map(function(sock) {
-    sock.conditions = [];
-  });
   //return [this.sockets[0], this.sockets[1]]
 };
 
@@ -177,19 +175,21 @@ Battle.prototype.manaRegen = function(callback) {
 };
 
 Battle.prototype.resolveEnhance = function(spell) {
+  var msg = {};
   switch (spell.effect) {
     case 'recover-health':
       this[spell.target] += spell.power
+      msg = {target:spell.target, body:'recovered ' + spell.power + 'health!'}
       break;
     case 'buff-health':
       this[spell.target].conditions.push({
         vital:'health',
-        duration:spell.power,
+        duration: spell.duration,
         time: new Date().getTime(),
       })
     break;
   }
-  return this.wizStats();
+  return {wizStats:this.wizStats(), msg:msg}
 }
 
 module.exports = Battle;

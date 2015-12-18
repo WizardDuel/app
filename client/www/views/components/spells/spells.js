@@ -52,10 +52,8 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   $scope.self = socket.id
 
   $scope.attacks = Magic.spellList.attacks;
-  $scope.enhancers = Magic.spellList.counters;
-  $scope.counters = Magic.spellList.enhancers;
-  // set counterspells to disabled
-  //avatar.disableCounterSpells()
+  $scope.counters = Magic.spellList.counters;
+  $scope.enhancers = Magic.spellList.enhancers;
 
   $scope.initializeSpell = function (spell) {
     if (spell.role !== 'enhancer') {
@@ -70,7 +68,8 @@ function SpellsCtrl($scope, $timeout, socketIO) {
       // Inspect spell
       $scope.spell = spell
     } else {
-      var enhanceSpell = Magic.castEnhancer(spell);
+      console.log('enhancer')
+      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
       socket.emit(E.ENHANCE, enhanceSpell);
     }
 

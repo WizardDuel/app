@@ -26,6 +26,7 @@ angular.module('wizardApp', [
         ATTACK: 'Attack',
         MANA_REGEN: 'Mana Regen',
         ENHANCE: 'Enhance',
+        UPDATE: 'Update'
       }
     };
   });

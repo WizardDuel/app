@@ -21,7 +21,7 @@ var Magic = {
   },
   castEnhancer: function(spell, target) {
     var effect = {
-      target: target
+      target: target,
       name: spell.name,
       effect: spell.type,
       power: spell.power,
@@ -43,7 +43,7 @@ var Magic = {
     ],
     enhancers: [
       {name: 'Heal', icon: 'ion-heart', type: 'recover-health', target: 'caster', role: 'enhancer', afinity: 'basic', cost: 5, power: 5},
-      {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff-health', target: 'caster', role:'enhance', afinity:'basic', cost: 5, duration: 15},
+      {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff-health', target: 'caster', role:'enhancer', afinity:'basic', cost: 5, duration:20},
     ]
   }
 };
