@@ -29577,7 +29577,7 @@
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
+
 	module.exports = __webpack_require__(18);
 
 
@@ -29585,7 +29585,7 @@
 /* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
+
 	/**
 	 * Module dependencies.
 	 */
@@ -29789,7 +29789,7 @@
 /* 21 */
 /***/ function(module, exports) {
 
-	
+
 	/**
 	 * Expose `debug()` as the module.
 	 */
@@ -29932,7 +29932,7 @@
 /* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
+
 	/**
 	 * Module dependencies.
 	 */
@@ -30338,7 +30338,7 @@
 /* 23 */
 /***/ function(module, exports) {
 
-	
+
 	/**
 	 * Expose `debug()` as the module.
 	 */
@@ -30488,7 +30488,7 @@
 
 	  // Detect the `define` function exposed by asynchronous module loaders. The
 	  // strict `define` check is necessary for compatibility with `r.js`.
-	  var isLoader = "function" === "function" && __webpack_require__(25);
+	  var isLoader = "function" === "function" && __webpack_require__(23);
 
 	  // Detect native implementations.
 	  var nativeJSON = typeof JSON == "object" && JSON;
@@ -31345,7 +31345,7 @@
 
 
 /***/ },
-/* 25 */
+/* 23 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -31353,7 +31353,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 26 */
+/* 24 */
 /***/ function(module, exports) {
 
 	module.exports = Array.isArray || function (arr) {
@@ -31362,10 +31362,10 @@
 
 
 /***/ },
-/* 27 */
+/* 25 */
 /***/ function(module, exports) {
 
-	
+
 	/**
 	 * Expose `Emitter`.
 	 */
@@ -31532,7 +31532,7 @@
 
 
 /***/ },
-/* 28 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/*global Blob,File*/
@@ -31541,8 +31541,8 @@
 	 * Module requirements
 	 */
 
-	var isArray = __webpack_require__(26);
-	var isBuf = __webpack_require__(29);
+	var isArray = __webpack_require__(24);
+	var isBuf = __webpack_require__(27);
 
 	/**
 	 * Replaces every Buffer | ArrayBuffer in packet with a numbered placeholder.
@@ -31680,7 +31680,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 29 */
+/* 27 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -31700,10 +31700,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 30 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
+
 	/**
 	 * Module dependencies.
 	 */
@@ -32209,19 +32209,19 @@
 
 
 /***/ },
-/* 31 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
-	module.exports =  __webpack_require__(32);
+
+	module.exports =  __webpack_require__(30);
 
 
 /***/ },
-/* 32 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
-	module.exports = __webpack_require__(33);
+
+	module.exports = __webpack_require__(31);
 
 	/**
 	 * Exports parser
@@ -32229,11 +32229,11 @@
 	 * @api public
 	 *
 	 */
-	module.exports.parser = __webpack_require__(41);
+	module.exports.parser = __webpack_require__(39);
 
 
 /***/ },
-/* 33 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
@@ -32362,9 +32362,9 @@
 	 */
 
 	Socket.Socket = Socket;
-	Socket.Transport = __webpack_require__(40);
-	Socket.transports = __webpack_require__(34);
-	Socket.parser = __webpack_require__(41);
+	Socket.Transport = __webpack_require__(38);
+	Socket.transports = __webpack_require__(32);
+	Socket.parser = __webpack_require__(39);
 
 	/**
 	 * Creates transport of the given type.
@@ -32945,7 +32945,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 34 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
@@ -33005,11 +33005,11 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 35 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// browser shim for xmlhttprequest module
-	var hasCORS = __webpack_require__(36);
+	var hasCORS = __webpack_require__(34);
 
 	module.exports = function(opts) {
 	  var xdomain = opts.xdomain;
@@ -33047,15 +33047,15 @@
 
 
 /***/ },
-/* 36 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
+
 	/**
 	 * Module dependencies.
 	 */
 
-	var global = __webpack_require__(37);
+	var global = __webpack_require__(35);
 
 	/**
 	 * Module exports.
@@ -33076,10 +33076,10 @@
 
 
 /***/ },
-/* 37 */
+/* 35 */
 /***/ function(module, exports) {
 
-	
+
 	/**
 	 * Returns `this`. Execute this without a "context" (i.e. without it being
 	 * attached to an object of the left-hand side), and `this` points to the
@@ -33090,7 +33090,7 @@
 
 
 /***/ },
-/* 38 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
@@ -33481,7 +33481,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 39 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -33505,7 +33505,7 @@
 	 */
 
 	var hasXHR2 = (function() {
-	  var XMLHttpRequest = __webpack_require__(35);
+	  var XMLHttpRequest = __webpack_require__(33);
 	  var xhr = new XMLHttpRequest({ xdomain: false });
 	  return null != xhr.responseType;
 	})();
@@ -33732,15 +33732,15 @@
 
 
 /***/ },
-/* 40 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Module dependencies.
 	 */
 
-	var parser = __webpack_require__(41);
-	var Emitter = __webpack_require__(27);
+	var parser = __webpack_require__(39);
+	var Emitter = __webpack_require__(25);
 
 	/**
 	 * Module exports.
@@ -33897,7 +33897,7 @@
 
 
 /***/ },
-/* 41 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/**
@@ -34498,10 +34498,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 42 */
+/* 40 */
 /***/ function(module, exports) {
 
-	
+
 	/**
 	 * Gets the keys for an object.
 	 *
@@ -34523,7 +34523,7 @@
 
 
 /***/ },
-/* 43 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -34588,7 +34588,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 44 */
+/* 42 */
 /***/ function(module, exports) {
 
 	/**
@@ -35136,7 +35136,7 @@
 /* 51 */
 /***/ function(module, exports) {
 
-	
+
 	module.exports = function(a, b){
 	  var fn = function(){};
 	  fn.prototype = b.prototype;
@@ -35148,7 +35148,7 @@
 /* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
+
 	/**
 	 * This is the web browser implementation of `debug()`.
 	 *
@@ -35301,7 +35301,7 @@
 /* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
+
 	/**
 	 * This is the common logic for both the Node.js and web browser
 	 * implementations of `debug()`.
@@ -35759,7 +35759,7 @@
 	  this.script = script;
 
 	  var isUAgecko = 'undefined' != typeof navigator && /gecko/i.test(navigator.userAgent);
-	  
+
 	  if (isUAgecko) {
 	    setTimeout(function () {
 	      var iframe = document.createElement('iframe');
@@ -36105,7 +36105,7 @@
 /* 57 */
 /***/ function(module, exports) {
 
-	
+
 	/**
 	 * Module dependencies.
 	 */
@@ -36154,7 +36154,7 @@
 /* 58 */
 /***/ function(module, exports) {
 
-	
+
 	var indexOf = [].indexOf;
 
 	module.exports = function(arr, obj){
@@ -36252,7 +36252,7 @@
 /* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
+
 	/**
 	 * Module dependencies.
 	 */
@@ -36662,7 +36662,7 @@
 /* 63 */
 /***/ function(module, exports) {
 
-	
+
 	/**
 	 * Module exports.
 	 */
@@ -36721,7 +36721,7 @@
 /* 65 */
 /***/ function(module, exports) {
 
-	
+
 	/**
 	 * HOP ref.
 	 */
@@ -36810,7 +36810,7 @@
 /* 66 */
 /***/ function(module, exports) {
 
-	
+
 	/**
 	 * Expose `Backoff`.
 	 */
