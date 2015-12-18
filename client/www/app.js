@@ -6,9 +6,9 @@ var angular = require('angular');
 var io = require('socket.io-client');
 
 angular.module('wizardApp', [
-  require('./views/user-profile/profile.js'),
+  require('./views/user-profile/profile.js')
 ])
-.factory('socketIO', function() {
+  .factory('socketIO', function() {
     return {
       socket: io.connect('http://localhost:3000'),
       E: {

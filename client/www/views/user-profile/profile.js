@@ -1,6 +1,6 @@
 module.exports = angular.module('wizardApp.profile', [
   require('angular-route'),
-  require('../home/home.js'),
+  require('../home/home'),
   require('../components/spells/spells')
 ])
   .config(['$routeProvider', function($routeProvider) {
@@ -16,26 +16,26 @@ module.exports = angular.module('wizardApp.profile', [
 
   .name;
 
-function ProfileCtrl($scope, $location, $timeout, $interval){
-  $scope.wins = 5;    //Database Call Needed
-  $scope.losses = 5;  //Database Call Needed
+function ProfileCtrl($scope, $location, $timeout, $interval) {
+  $scope.wins = 5;    // Database Call Needed
+  $scope.losses = 5;  // Database Call Needed
   $scope.winPercent = (100 * $scope.wins) / ($scope.wins + $scope.losses);
   $scope.book = [];
 
   $scope.games = [
-    { opponent: 'Bob', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'},
-    { opponent: 'Bob', result: 'Victory', spellbook: 'Fire Spells', damageDealt: 124, favoriteSpell: 'fireball'},
-    { opponent: 'Henry', result: 'Victory', spellbook: 'Water Spells', damageDealt: 100, favoriteSpell: 'fireball'},
-    { opponent: 'Bob', result: 'Loss', spellbook: 'Earth/Fire Spells', damageDealt: 186, favoriteSpell: 'Lava Torrent'},
-    { opponent: 'Maria', result: 'Victory', spellbook: 'Spirt/Wind', damageDealt: 101, favoriteSpell: 'Vortex'},
-    { opponent: 'Norm', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'}
+    {opponent: 'Bob', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'},
+    {opponent: 'Bob', result: 'Victory', spellbook: 'Fire Spells', damageDealt: 124, favoriteSpell: 'fireball'},
+    {opponent: 'Henry', result: 'Victory', spellbook: 'Water Spells', damageDealt: 100, favoriteSpell: 'fireball'},
+    {opponent: 'Bob', result: 'Loss', spellbook: 'Earth/Fire Spells', damageDealt: 186, favoriteSpell: 'Lava Torrent'},
+    {opponent: 'Maria', result: 'Victory', spellbook: 'Spirt/Wind', damageDealt: 101, favoriteSpell: 'Vortex'},
+    {opponent: 'Norm', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'}
   ];
 
-  //Database Call Needed
+  // Database Call Needed
   $scope.spells = [
-    { inSpellBook: false, name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
-    { inSpellBook: false, name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
-    { inSpellBook: false, name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
+    {inSpellBook: false, name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe'},
+    {inSpellBook: false, name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'},
+    {inSpellBook: false, name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'}
   ];
 
   $scope.range = function(n) {
@@ -50,7 +50,7 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
     });
   };
 
-  $scope.speed = 1; //ms
+  $scope.speed = 1; // ms
   $scope.maxRange = 100;
   $scope.meterStarted = false;
   $scope.counter = $scope.maxRange / 2;
@@ -60,20 +60,19 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
   var decrement = false;
   var intervalPromise;
 
-
   function changeIndexClass() {
     $('#section-id-' + index).addClass('active-meter');
     $('#section-id-' + last).removeClass('active-meter');
     last = index;
 
-    if(index === $scope.maxRange) decrement = true;
-    if(index === 0) decrement = false;
+    if (index === $scope.maxRange) decrement = true;
+    if (index === 0) decrement = false;
 
-    if(decrement) index--;
+    if (decrement) index--;
     else index++;
   }
 
-  function stopMeter(){
+  function stopMeter() {
     $interval.cancel(intervalPromise);
     $scope.power = index;
     $scope.meterStarted = false;
@@ -81,10 +80,10 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
     console.log($scope.power);
   }
 
-  $scope.meterClick = function(){
+  $scope.meterClick = function() {
     console.log('clicked');
 
-    if(!$scope.meterStarted) {
+    if (!$scope.meterStarted) {
       $scope.meterStarted = true;
       intervalPromise = $interval(changeIndexClass, $scope.speed);
     } else {

@@ -1,14 +1,12 @@
 /* globals angular */
 
-module.exports = angular.module('wizardApp.foe', [
-
-  ])
+module.exports = angular.module('wizardApp.foe', [])
   .directive('foe', function() {
     return {
       restrict: 'E',
       replace: true,
       scope: {
-        enemy: '=',
+        enemy: '='
       },
       templateUrl: './views/components/foe/foe.html',
       controller: 'FoeCtrl'
@@ -16,6 +14,7 @@ module.exports = angular.module('wizardApp.foe', [
   })
 
   .controller('FoeCtrl', ['$scope', '$timeout', 'socketIO', FoeCtrl])
+
   .name;
 
 function FoeCtrl($scope, $timeout, socketIO) {
