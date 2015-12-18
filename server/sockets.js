@@ -1,28 +1,26 @@
 module.exports = function(io) {
   var Battle = require('./lib/Battle');
-  var E = require('./lib/events.js');
+  var E = require('./lib/events');
   var _ = require('lodash');
 
   // Battle State
   var openBattles = [];
 
-
   io.on('connection', function(socket) {
     var battle = null;
 
-    function regenerateMana(){
+    function regenerateMana() {
       battle.manaRegen(function() {
         io.to(battle.id).emit(E.MANA_REGEN, battle.wizStats());
       });
     }
 
     socket.once(E.DUEL, function() {
-
       if (openBattles.length > 0) {
         battle = openBattles.pop();
         battle.addCombatant(socket);
         battle.setFoesForDuel();
-        console.log('begin: ', battle.wizStats())
+        console.log('begin: ', battle.wizStats());
         io.to(battle.id).emit(E.BEGIN, {condition: 'Battle', wizStats: battle.wizStats()});
       } else {
         battle = new Battle(socket);
@@ -31,8 +29,8 @@ module.exports = function(io) {
       }
     });
 
-    socket.on(E.READY, function(socket){
-      if(++battle.readyCount === battle.sockets.length){
+    socket.on(E.READY, function(socket) {
+      if (++battle.readyCount === battle.sockets.length) {
         io.to(battle.id).emit(E.START);
         setInterval(regenerateMana, 7000);
       }
@@ -41,7 +39,6 @@ module.exports = function(io) {
     socket.on(E.ATTACK_PU, function(attackData) {
       attackData.casterId = socket.id;
       battle.startAttack(attackData);
-
       socket.to(battle.id).broadcast.emit(E.ATTACK_PU, attackData);
     });
 
@@ -54,19 +51,19 @@ module.exports = function(io) {
     });
 
     socket.on(E.ATTACK, function(data) {
-      setTimeout(function(){
+      setTimeout(function() {
         var resolution = battle.resolveAttack(data);
         if (resolution.condition === 'Victory') {
           clearInterval(regenerateMana);
           battle.sockets.map(function(sock) {
             var msg = null;
             if (sock.id === resolution.winner) {
-               msg = 'you win!'
+               msg = 'you win!';
             } else {
-              msg = 'you lose :('
+              msg = 'you lose :(';
             }
             io.sockets.connected[sock.id].emit('End of battle', msg);
-          })
+          });
         } else {
           io.to(battle.id).emit(E.RESOLVE_ATTACK, resolution);
           console.log('=============================');
@@ -75,10 +72,10 @@ module.exports = function(io) {
     });
 
     socket.on('disconnect', function() {
-      console.log('disconnect')
+      console.log('disconnect');
       if (battle) {
         io.to(battle.id).emit('End of battle', 'opponent disconnected');
-        if (_.includes(_.pluck(openBattles, 'id'), battle.id) ){
+        if (_.includes(_.pluck(openBattles, 'id'), battle.id)) {
           openBattles = openBattles.filter(function(btl) {
             return btl.id !== battle.id;
           });
@@ -87,7 +84,7 @@ module.exports = function(io) {
       io.emit('disconnect');
     });
 
-    socket.on('error', function(err){
+    socket.on('error', function(err) {
       console.log(err);
     });
   });
