@@ -19,13 +19,16 @@ var Magic = {
     };
     return spell;
   },
-  castEnhancer: function(spell) {
+  castEnhancer: function(spell, target) {
     var effect = {
-      vital: spell.type;
-      power: spell.power;
-      sideEffects: spell.sideEffects;
-      cost: spell.cost;
+      target: target
+      name: spell.name,
+      effect: spell.type,
+      power: spell.power,
+      sideEffects: spell.sideEffects,
+      cost: spell.cost,
     }
+    return effect
   },
   spellList: {
     attacks: [

@@ -70,7 +70,8 @@
 	        DEFEND: 'Defend',
 	        WIZ_ID: 'Wizard Id',
 	        ATTACK: 'Attack',
-	        MANA_REGEN: 'Mana Regen'
+	        MANA_REGEN: 'Mana Regen',
+	        ENHANCE: 'Enhance',
 	      }
 	    };
 	  });

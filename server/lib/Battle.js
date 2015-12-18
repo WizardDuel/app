@@ -19,6 +19,9 @@ Battle.prototype.setFoesForDuel = function() {
   if (this.sockets.length !== 2) throw new Error('Invalid number of combatants');
   this.sockets[1].foeId = this.sockets[0].id;
   this.sockets[0].foeId = this.sockets[1].id;
+  this.sockets.map(function(sock) {
+    sock.conditions = [];
+  });
   //return [this.sockets[0], this.sockets[1]]
 };
 
@@ -172,5 +175,21 @@ Battle.prototype.manaRegen = function(callback) {
   });
   callback();
 };
+
+Battle.prototype.resolveEnhance = function(spell) {
+  switch (spell.effect) {
+    case 'recover-health':
+      this[spell.target] += spell.power
+      break;
+    case 'buff-health':
+      this[spell.target].conditions.push({
+        vital:'health',
+        duration:spell.power,
+        time: new Date().getTime(),
+      })
+    break;
+  }
+  return this.wizStats();
+}
 
 module.exports = Battle;
