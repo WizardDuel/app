@@ -15,16 +15,28 @@ module.exports = angular.module('wizardApp.spells', [
     };
   })
 
-  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
-
-  .directive('spinner', function() {
+  .directive('powerBar', function() {
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: './views/components/spells/spinner.html',
+      templateUrl: './views/components/spells/powerBar.html',
       controller: 'SpellsCtrl'
     };
   })
+
+  .directive('spellPanel', function() {
+    return {
+      restrict: 'E',
+      replace: true,
+      scope: {
+        spellList: '=list'
+      },
+      templateUrl: './views/components/spells/spellPanel.html',
+      controller: 'SpellsCtrl'
+    }
+  })
+
+  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
 
   .name;
 
@@ -34,7 +46,9 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   var socket = socketIO.socket;
   $scope.castingSpell = false; // shows powerbar when true
   // gain access to the world
+  var avatars = socket.avatars
   var avatar = socket.avatars[socket.id]
+  $scope.self = socket.id
   // set counterspells to disabled
   avatar.disableCounterSpells()
 
@@ -87,6 +101,18 @@ function SpellsCtrl($scope, $timeout, socketIO) {
     avatars[data.casterId].addClass('purple');
     setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
   });
+
+  $scope.AttackSpells = [
+    { name: 'Magic Missile', type: 'Attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
+    {name: 'Water Coffin', type: 'Attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
+    {name: 'Wind Swords', type: 'Attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
+  ]
+  $scope.nonAttackSpells  = [
+    {name: 'Heal', icon: 'ion-heart', type: 'recovery', target: 'caster', role: 'heal', afinity: 'basic', cost: 5, power: 5},
+    {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff', target: 'caster', role:'buff', afinity:'basic', cost: 5, duration: 15},
+    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe', role: 'perry', afinity: 'basic', cost: 5 },
+    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
+  ]
 
 } // Spells controller
 

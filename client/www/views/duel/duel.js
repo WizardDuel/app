@@ -26,20 +26,10 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
   ]
 
-  wizard1 = Math.floor(Math.random() * wizardPhotos.length);
   wizard2 = Math.floor(Math.random() * wizardPhotos.length);
-
-  if (wizard1 === wizard2) {
-    if (wizard1 === 0) {
-      wizard2 = 1;
-    } else {
-      wizard2 = wizard1 - 1;
-    }
-  }
 
   $scope.foe = '';
   $scope.wizards = [
-    { user: 'Self', avatar: '../../assets/imgs/' + wizardPhotos[wizard1], id: socket.id },
     { user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard2], id: socket.getFoeId() }
   ];
 
