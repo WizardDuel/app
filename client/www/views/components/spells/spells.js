@@ -77,7 +77,9 @@ function SpellsCtrl($scope, $timeout, socketIO) {
 
       case 'Attack':
           var attackSpell = magic.castSpell(attackId);
-          socket.emit(E.ATTACK, attackSpell)
+          socket.emit(E.ATTACK, attackSpell);
+          document.getElementById(socket.id + '-castSpellMessage').innerHTML = '\'' + spell.name + '\' spell has been cast';
+          setTimeout(function() { document.getElementById(socket.id + '-castSpellMessage').innerHTML = '' }, 1500);
         break;
     }
   };
@@ -85,7 +87,7 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   socket.on(E.ATTACK_PU, function(data) {
     if (data.targetId === socket.id) avatar.enableCounterSpells()
     avatars[data.casterId].addClass('purple');
-    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
+    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 1500)
   });
 
 } // Spells controller
