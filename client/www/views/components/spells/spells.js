@@ -1,4 +1,5 @@
 /* globals angular */
+var Magic = require('./Magic');
 
 module.exports = angular.module('wizardApp.spells', [
 
@@ -49,53 +50,59 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   var avatars = socket.avatars
   var avatar = socket.avatars[socket.id]
   $scope.self = socket.id
-  // set counterspells to disabled
-  avatar.disableCounterSpells()
+
+  $scope.attacks = Magic.spellList.attacks;
+  $scope.counters = Magic.spellList.counters;
+  $scope.enhancers = Magic.spellList.enhancers;
 
   $scope.initializeSpell = function (spell) {
-    avatar.disableAttackSpells();
-    avatar.disableCounterSpells();
-    if (spell.type === 'Attack') { // initialize the attack cycle
-      spell = socket.attackWith(spell);
+    if (spell.role !== 'enhancer') {
+      avatar.disableAttackSpells();
+      avatar.disableCounterSpells();
+      if (spell.type === 'attack') { // initialize the attack cycle
+        spell = socket.attackWith(spell);
+      }
+      spell.initTime = new Date().getTime()
+      $scope.castingSpell = true;
+      socket.castingSpell = true;
+      // Inspect spell
+      $scope.spell = spell
+      console.log(spell)
+    } else {
+      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
+      socket.emit(E.ENHANCE, enhanceSpell);
     }
-    spell.initTime = new Date().getTime()
-    $scope.castingSpell = true;
-    // Inspect spell
-    $scope.spell = spell
+
   };
 
   $scope.finalizeSpell = function(spell) {
     spell.finalTime = new Date().getTime();
     $scope.castingSpell = false;
+    socket.castingSpell = false;
     $scope.castSpell(spell);
   };
 
   $scope.castSpell = function(spell) {
-    var attackId = spell.attackId;
-    var attack = {
-      attackId: attackId,
-      spellName: spell.name
-    };
-
     switch (spell.type) {
-      case 'Recover':
-        break;
-      case 'Defend':
-        break;
-      case 'Perry':
-          var defensiveSpell = magic.castSpell(attackId)
+      case 'perry':
+          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId)
           socket.emit(E.PERRY, defensiveSpell);
+          avatar.resetSpells(socket)
+          socket.incomingSpell = null;
+          avatar.flashMessage('-'+spell.cost+' mana')
         break;
-      case 'Repost':
-          var repostSpell = magic.castSpell(attackId)
+      case 'repost':
+          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId)
           socket.emit(E.REPOST, repostSpell);
+          avatar.resetSpells(socket)
+          socket.incomingSpell = null
+          avatar.flashMessage('-'+spell.cost+' mana')
         break;
 
-      case 'Attack':
-          var attackSpell = magic.castSpell(attack);
+      case 'attack':
+          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name});
           socket.emit(E.ATTACK, attackSpell);
-          document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';
-          setTimeout(function() { document.getElementById(socket.id + '-spell-message').innerHTML = '' }, 1500);
+          avatar.flashMessage('-'+spell.cost+' mana')
         break;
     }
   };
@@ -106,39 +113,6 @@ function SpellsCtrl($scope, $timeout, socketIO) {
     setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 1500)
   });
 
-  $scope.AttackSpells = [
-    { name: 'Magic Missile', type: 'Attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
-    {name: 'Water Coffin', type: 'Attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
-    {name: 'Wind Swords', type: 'Attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
-  ]
-  $scope.nonAttackSpells  = [
-    {name: 'Heal', icon: 'ion-heart', type: 'recovery', target: 'caster', role: 'heal', afinity: 'basic', cost: 5, power: 5},
-    {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff', target: 'caster', role:'buff', afinity:'basic', cost: 5, duration: 15},
-    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe', role: 'perry', afinity: 'basic', cost: 5 },
-    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
-  ]
+
 
 } // Spells controller
-
-var magic = {
-  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
-  setCrit: function() {
-    var roll = Math.floor(Math.random() * 20 + 1);
-    var crit = null;
-    if (roll > 17) return 1;
-    if (roll < 3) return -1;
-    return 0;
-  },
-  setTime: function() {return new Date().getTime();},
-
-  castSpell: function(attack, power, crit, timeShift) {
-    var spell = {
-      attackId: attack.attackId,
-      power: power ? power : this.setPower(),
-      crit: crit !== null ? crit : this.setCrit(),
-      time: this.setTime() + timeShift,
-      spellName: attack.spellName
-    };
-    return spell;
-  },
-};

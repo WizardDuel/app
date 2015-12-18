@@ -12,7 +12,9 @@ var Events = {
   DEFEND:'Defend',
   WIZ_ID:'Wizard Id',
   ATTACK:'Attack',
-  MANA_REGEN: 'Mana Regen'
+  MANA_REGEN: 'Mana Regen',
+  ENHANCE: 'Enhance',
+  UPDATE: 'Update',
 };
 
 module.exports = Events;
