@@ -5,13 +5,18 @@ function Battle(socket) {
   this.sockets = [];
   this.addCombatant(socket);
   this.attacks = {};
+  this.readyCount = 0;
 }
 
 Battle.prototype.addCombatant = function(socket) {
   this[socket.id] = socket;
   socket.join(this.id);
+  socket.conditions = [];
   this.sockets.push(socket);
   socket.health = socket.mana = 100;
+  socket.spendMana = function(amount) {
+    this.mana -= amount;
+  }
 };
 
 Battle.prototype.setFoesForDuel = function() {
@@ -45,6 +50,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
   // get spells
   var resolution = {};
   var attack = this.attacks[attackSpell.attackId];
+  console.log(attack)
   if (attack.counterSpell) var counterSpell = attack.counterSpell.spell;
 
   if (counterSpell && counterSpell.time < attackSpell.time) {
@@ -58,7 +64,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
         break;
     }
   } else {
-    resolution = {targetId: attack.targetId, damage:attackSpell.power, casterId: attack.casterId};
+    resolution = {targetId: attack.targetId, spellName: attackSpell.spellName, damage: attackSpell.power, casterId: attack.casterId};
   }
   return this.applyResolution(resolution)
 };
@@ -66,6 +72,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
 Battle.prototype.resolvePerry = function(attack, counterSpell, attackSpell) {
   return {
     targetId: attack.targetId,
+    spellName: attackSpell.spellName,
     damage: this.resolveCrit(attackSpell, counterSpell),
     msg: 'Attack perried!',
     counterCasterId: attack.targetId,
@@ -114,6 +121,7 @@ Battle.prototype.resolveRepost = function(attack, counterSpell, attackSpell){
   ];
   var response = {
     targetId: attack.targetId,
+    spellName: attackSpell.spellName,
     damage: 0,
     msg: msg[0]
   }
@@ -149,9 +157,9 @@ Battle.prototype.applyResolution = function(resolution) {
   console.log('health: ' + this.sockets[0].health + ' -- ' + this.sockets[1].health)
   if (this.sockets[0].health <= 0 || this.sockets[1].health <= 0) {
     var winner = this.sockets.filter(function(sk) {return sk.health > 0})[0]
-    return {condition:'Victory', wizStats:this.wizStats(), winner:winner}
+    return {condition:'Victory', wizStats:this.wizStats(), winner:winner, targetId: resolution.targetId, casterId: resolution.casterId, spellName: resolution.spellName}
   } else {
-    return {condition: 'Battle', wizStats:this.wizStats()}
+    return {condition: 'Battle', wizStats:this.wizStats(), targetId: resolution.targetId, casterId: resolution.casterId, spellName: resolution.spellName}
   }
 }
 
@@ -161,6 +169,34 @@ Battle.prototype.wizStats = function() {
     obj[sock.id] = {health: sock.health, mana: sock.mana}
   });
   return obj;
+}
+
+Battle.prototype.manaRegen = function(callback) {
+  this.sockets.map(function(wiz) {
+    if(wiz.mana < 100) wiz.mana += 5;
+    if(wiz.mana >= 100) wiz.mana = 100;
+  });
+  callback();
+};
+
+Battle.prototype.resolveEnhance = function(spell) {
+  var msg = {};
+  this[spell.casterId].spendMana(spell.cost)
+  switch (spell.effect) {
+    case 'recover-health':
+      this[spell.target].health += spell.power
+      if (this[spell.target].health >= 100) this[spell.target].health = 100;
+      msg = {target:spell.target, body:'recovered ' + spell.power + 'health!'}
+      break;
+    case 'buff-health':
+      this[spell.target].conditions.push({
+        vital:'health',
+        duration: spell.duration,
+        time: new Date().getTime(),
+      })
+    break;
+  }
+  return {wizStats:this.wizStats(), msg:msg}
 }
 
 module.exports = Battle;

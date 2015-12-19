@@ -1,4 +1,5 @@
 var path = require('path');
+var webpack = require('webpack')
 
 module.exports = {
   entry: {
@@ -10,14 +11,20 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './www/build'),
     filename: 'bundle.js',
-    contentBase: './www/'
+    contentBase: './www/',
+    publicPath: '/build/'
   },
   sassLoader: {
     includePaths: [
-      './assets/scss'
+      './assets/scss', './assets/scss/mixins'
    ]
   },
-
+  plugins: [
+      new webpack.ProvidePlugin({
+         $: "jquery",
+         jQuery: "jquery"
+     })
+  ],
   module: {
     loaders: [
         {
@@ -26,7 +33,8 @@ module.exports = {
         },
         {
             test: /\.scss$/,
-            loader: 'style!css?sourceMap!sass?sourceMap'
+            // loader: 'style!css?sourceMap!sass?sourceMap'
+            loader: 'style!css!sass'
         },
         {
           test:/\.css$/,
@@ -39,6 +47,17 @@ module.exports = {
         {
           test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
           loader: 'file-loader'
+        },
+        {
+          test: /vendor\/.+\.(jsx|js)$/,
+          loader: 'imports?jQuery=jquery,$=jquery,this=>window'
+        },
+        {
+          test: /\.(jpe?g|png|gif|svg)$/i,
+          loaders: [
+              'file?hash=sha512&digest=hex&name=[hash].[ext]',
+              'image-webpack?bypassOnDebug&optimizationLevel=7&interlaced=false'
+          ]
         }
       ]
     },

@@ -1,3 +1,6 @@
+var enableWorldUpdates = require('./enableWorldUpdates');
+var wizardPhotos = require('../../assets/imgs/wizardPhotos')
+
 module.exports = angular.module('wizardApp.duel', [
   require('angular-route'),
   require('../components/spells/spells.js'),
@@ -12,79 +15,68 @@ module.exports = angular.module('wizardApp.duel', [
       });
   }])
 
-  .controller('DuelCtrl', ['$scope', 'socketIO', '$location', '$window',DuelCtrl])
+  .controller('DuelCtrl', ['$scope', 'socketIO', '$location', '$window', '$timeout', DuelCtrl])
   .name;
 
-function DuelCtrl($scope, socketIO, $location, $window) {
+function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
+  //initialize refs to dom els and socket references
   var socket = socketIO.socket;
   var E = socketIO.E;
+  socket.attacking = false;
 
-  $scope.spells = [
-    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry' },
-    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost' },
-    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack' }
-  ];
-
-  $scope.wizards = [
-    { user: 'Self', avatar: '../../assets/imgs/evil_wizard.png', id: socket.id },
-    { user: 'Opponent', avatar: '../../assets/imgs/DC_wizard.png', id: socket.getFoeId() }
-  ];
-
-
-  var foe = {id:socket.getFoeId()};
-  var self = {id: socket.id};
-  [self, foe].map(function(wiz) {
-    console.log('createWiz')
-    console.log(wiz)
-    console.log(wiz.id)
-    wiz.getAvatar = function(){
-      return document.getElementById(this.id);
-    }
-    wiz.getHealth = function(){
-      return document.getElementById(this.id+'-health');
-    }
-    wiz.getMana = function(){
-      return document.getElementById(this.id+'-mana');
-    }
-    wiz.addClass = function(cname){
-      this.getAvatar().classList.add(cname)
-    }
-    wiz.removeClass = function(cname) {
-      this.getAvatar().classList.remove(cname)
-    }
-    wiz.setHealth = function(health) {
-      this.getHealth().style.width = health +'%';
-    }
-    wiz.setMana = function(mana) {
-      this.getMana().style.width = mana+'%';
-    }
-    console.log('output')
-    console.log(wiz)
-    return wiz
-  });
-
-  var avatars = {};
+  var foe = { id: socket.getFoeId(), foeId: socket.id };
+  var self = { id: socket.id, foeId: foe.id };
+  [self, foe].map(function(wiz) { enableWorldUpdates(wiz) })
+  var avatars = {}
   avatars[foe.id] = foe;
   avatars[self.id] = self;
+  socket.avatars = avatars
+
+   // Socket events
+   angular.element(document).ready(function(){
+     socket.emit(E.READY);
+   });
+
+   socket.on('Start', function(){
+     $scope.counter = 3;
+     $scope.countdown();
+   });
+
+   socket.on(E.UPDATE, function(data) {
+     var wizStats = data.wizStats;
+     for (wiz in wizStats) {
+       avatars[wiz].setHealth(wizStats[wiz].health);
+       avatars[wiz].setMana(wizStats[wiz].mana);
+     }
+   })
+
+   socket.on(E.MANA_REGEN, function(data) {
+     for (var wiz in data) {
+       avatars[wiz].setMana(data[wiz].mana);
+     }
+   });
 
   socket.on(E.ATTACK_PU, function(data) {
-    console.log('received attack')
-    console.log(data.casterId)
-    console.log(avatars)
+    socket.incomingSpell = data;
     avatars[data.casterId].addClass('purple');
     setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
   });
-  socket.on(E.RESOLVE_ATTACK, function(solution) {
+
+  socket.on(E.RESOLVE_ATTACK, function(resolution) {
+    // spell reset
+    self.resetSpells(socket);
     // update world based on solution
-    for (wiz in solution.wizStats) {
-      // console.log(wiz)
-      // console.log(avatars[wiz])
-      avatars[wiz].setHealth(solution.wizStats[wiz].health)
-      avatars[wiz].setMana(solution.wizStats[wiz].mana)
+    for (wiz in resolution.wizStats) {
+      var stats = resolution.wizStats[wiz];
+      // send message
+      var hDelta = avatars[wiz].getVital('health', true) - stats.health
+      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health')
+      // set vitals for combatants
+      avatars[wiz].setVital('health', stats.health)
+      avatars[wiz].setMana(stats.mana);
     }
-    console.log('received solution:')
-    console.log(solution)
   });
+
   socket.on('End of battle', function(msg) {
     alert(msg)
     $scope.$apply(function() {
@@ -92,4 +84,26 @@ function DuelCtrl($scope, socketIO, $location, $window) {
       $window.location.reload();
     });
   })
+
+  $scope.wizards = [
+    {user: 'Opponent',
+    avatar: '../../assets/imgs/' + wizardPhotos[Math.floor(Math.random() * wizardPhotos.length)],
+    id: socket.getFoeId()
+  }];
+
+  $scope.countdown = function() {
+    if($scope.counter === 0){
+      $timeout.cancel(stopped);
+      $scope.counter = "Duel!";
+      $timeout(function() {
+        $('.overlay').removeClass('overlay');
+        $('.start-timer').hide();
+      }, 1200);
+    } else {
+      stopped = $timeout(function() {
+       $scope.counter--;
+       $scope.countdown();
+      }, 1000);
+    }
+  };
 }

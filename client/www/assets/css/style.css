@@ -1,6 +1,11 @@
 .red{
   background-color: red;
 }
+.duel {
+  overflow: hidden;
+}
+
+
 
 .purple {
   background-color: purple;
