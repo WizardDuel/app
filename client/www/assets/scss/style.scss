@@ -15,11 +15,11 @@
   font-family: $main-font;
 }
 
-.background-image {
-  background: url('../imgs/oldpaperbackground.jpg') no-repeat center center;
-  min-height:100%;
-  background-size:cover;
-}
+// .background-image {
+//   background: url('../imgs/oldpaperbackground.jpg') no-repeat center center;
+//   min-height:100%;
+//   background-size:cover;
+// }
 
 /* add from style.css */
 
@@ -46,16 +46,7 @@
 #power-vessle {
   min-height: 80px
 }
-#powerbar {
-  width: 122px;
-}
 
-#powerbar button{
-  line-height: 1;
-  max-heigth: 100px;
-  font-size: small;
-  border-radius: 25px;
-}
 
 .red{
   background-color: red;

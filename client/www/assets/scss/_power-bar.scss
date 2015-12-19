@@ -1,64 +1,40 @@
 /* meter*/
-.spinner {
-  width: 250px;
-  height: 100px;
-}
+$max: 100;
 
-.section {
-  display: inline-block;
-  width: 2.5px;
-  hieght: 100px;
-  background-color: #222;
-  color: #222;
-}
+@for $i from 0 through $max {
 
-@for $i from 0 through 100 {
-
-  #section-id-#{$i} {
-    @if $i < 15 {
-
-      @include text-background(#FF3840)
-    }
-
-    @else if $i < 30 {
-      @include text-background(#FE5328)
-    }
-
-    @else if $i < 45 {
-      @include text-background(#FE993A)
-    }
-
-    @else if $i < 60 {
-      @include text-background(#FDBC3B)
-    }
-
-    @else if $i < 60 {
-      @include text-background(#FDDE3C)
-    }
-
-    @else if $i < 73 {
-      @include text-background(#FAFD3C)
-    }
-
-    @else if $i < 88{
-      @include text-background(#D8FC3D)
-    }
-
-    @else if $i < 93 {
-      @include text-background(#B6FC3E)
-    }
-
-    @else if $i < 97 {
-      @include text-background(#D8FC3D)
-    }
-
-    @else {
-      @include text-background(#FAFD3C)
-    }
+  #section-id-#{$i}{
+    position: absolute;
+    top: #{$i}px;
+    bottom: #{$i}px;
+    left: #{$i}px;
+    right: #{$i}px;
+    background-color: rgb(255 - (($max - $i) * 2), ($max - $i) * 2, $i*($max/4));
+    // background-color: rgb(255 - $i , 150 * ($i - 2), $i*3);
+    border-radius: 100%;
   }
 }
 
-.active-meter {
-  background-color: #000 !important;
-  color: #000 !important;
+// .section {
+//   background-color: 
+// }
+
+#powerbar {
+  position: relative;
+  height: 200px;
+  width: 200px;
+  background-color: none;
+}
+
+.crit {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 7px;
+  right: 7px;
+  border-radius: 100%;
+  background-color: rgba(0, 0, 0, 0);
+  border: 2px solid #222;
+  border-radius: 100%;
+  z-index: 99999;
 }

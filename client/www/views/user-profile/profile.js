@@ -38,10 +38,6 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
     { inSpellBook: false, name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
   ];
 
-  $scope.range = function(n) {
-    return new Array(n);
-  };
-
   $scope.playNow = function() {
     $location.path('/waiting');
 
