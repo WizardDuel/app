@@ -1,5 +1,6 @@
 // var powerBar = require('../power-bar/powerBar.js');
 /* globals angular */
+var Magic = require('./Magic');
 
 module.exports = angular.module('wizardApp.spells', [
   ])
@@ -23,7 +24,7 @@ module.exports = angular.module('wizardApp.spells', [
       },
       templateUrl: './views/components/spells/spellPanel.html',
       controller: 'SpellsCtrl'
-    }
+    };
   })
   .directive('powerBar', function() {
     return {
@@ -43,10 +44,12 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
   var E = socketIO.E;
   var socket = socketIO.socket;
   $scope.castingSpell = false; // shows powerbar when true
+
   // gain access to the world
   var avatars = socket.avatars;
   var avatar = socket.avatars[socket.id];
   $scope.self = socket.id;
+
   $scope.spellPower = 0;
   $scope.crit = false;
   $scope.maxRange = 100;
@@ -65,34 +68,40 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
     $scope.stopMeter();
   });
 
-  // set counterspells to disabled
-  avatar.disableCounterSpells();
+  $scope.attacks = Magic.spellList.attacks;
+  $scope.counters = Magic.spellList.counters;
+  $scope.enhancers = Magic.spellList.enhancers;
 
   $scope.initializeSpell = function (spell) {
     crit = false;
-    avatar.disableAttackSpells();
-    avatar.disableCounterSpells();
 
-    if (spell.type === 'Attack') { // initialize the attack cycle
-      spell = socket.attackWith(spell);
+    if (spell.role !== 'enhancer') {
+      avatar.disableAttackSpells();
+      avatar.disableCounterSpells();
+      if (spell.type === 'attack') { // initialize the attack cycle
+        spell = socket.attackWith(spell);
+      }
+      spell.initTime = new Date().getTime();
+      $scope.castingSpell = true;
+      intervalPromise = $interval(changeIndexClass, speed);
+      socket.castingSpell = true;
+      // Inspect spell
+      $scope.spell = spell;
+      console.log(spell);
+    } else {
+      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
+      socket.emit(E.ENHANCE, enhanceSpell);
     }
-
-    spell.initTime = new Date().getTime();
-    intervalPromise = $interval(changeIndexClass, speed);
-    $scope.castingSpell = true;
-
-    // Inspect spell
-    $scope.spell = spell;
   };
 
   $scope.finalizeSpell = function(spell) {
     spell.finalTime = new Date().getTime();
     $scope.castingSpell = false;
+    socket.castingSpell = false;
     $scope.castSpell(spell);
   };
 
   $scope.castSpell = function(spell) {
-    console.log($scope.spellPower)
     var attackId = spell.attackId;
     var attack = {
       attackId: attackId,
@@ -100,24 +109,25 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
     };
 
     switch (spell.type) {
-      case 'Recover':
-        break;
-      case 'Defend':
-        break;
-      case 'Perry':
-          var defensiveSpell = magic.castSpell(attackId)
+      case 'perry':
+          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId);
           socket.emit(E.PERRY, defensiveSpell);
+          avatar.resetSpells(socket);
+          socket.incomingSpell = null;
+          avatar.flashMessage('-'+spell.cost+' mana');
         break;
-      case 'Repost':
-          var repostSpell = magic.castSpell(attackId)
+      case 'repost':
+          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId);
           socket.emit(E.REPOST, repostSpell);
+          avatar.resetSpells(socket);
+          socket.incomingSpell = null;
+          avatar.flashMessage('-'+spell.cost+' mana');
         break;
 
-      case 'Attack':
-          var attackSpell = magic.castSpell(attack);
+      case 'attack':
+          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name});
           socket.emit(E.ATTACK, attackSpell);
-          document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';
-          setTimeout(function() { document.getElementById(socket.id + '-spell-message').innerHTML = '' }, 1500);
+          avatar.flashMessage('-'+spell.cost+' mana');
         break;
     }
   };
@@ -125,7 +135,7 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
   socket.on(E.ATTACK_PU, function(data) {
     if (data.targetId === socket.id) avatar.enableCounterSpells();
     avatars[data.casterId].addClass('purple');
-    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 1500);
+    setTimeout(function(){ avatars[data.casterId].removeClass('purple'); }, 1500);
   });
 
   $scope.AttackSpells = [
@@ -173,10 +183,10 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
   }
 
   $scope.stopMeter = function(){
-    $scope.spellPower = getPower()
+    $scope.spellPower = getPower();
     $interval.cancel(intervalPromise);
     $scope.finalizeSpell($scope.spell);
-  }
+  };
 
   var magic = {
     setPower: function() { return $scope.spellPower; }, //get power from powerBar
@@ -193,5 +203,5 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
       };
       return spell;
     },
-  }
+  };
 }

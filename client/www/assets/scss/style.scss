@@ -9,6 +9,7 @@
 /* directive imports */
 @import "start-timer";
 @import "power-bar";
+@import "wizard";
 
 
 .application-settings {
@@ -33,9 +34,9 @@
   min-width: 366px;
 }
 .spell-panel {
-  min-width: 122px
-  
+  min-width: 122px;
 }
+
 .btn-spell {
   width: 60px;
   height: 80px;
@@ -46,7 +47,6 @@
 #power-vessle {
   min-height: 80px
 }
-
 
 .red{
   background-color: red;
@@ -97,20 +97,7 @@ $black: #222;
   height: 99999px;
 }
 
-.avatar-container {
-  position: relative;
-}
 
-.avatar-overlay {
-  visibility: hidden;
-  position: absolute;
-  top: 250px;
-  background-color: $black;
-  color: ivory;
-  text-align: center;
-  width: 50%;
-  opacity: 0.75;
-}
 
 .spell-message {
   display: inline-block;

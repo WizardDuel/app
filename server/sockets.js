@@ -74,6 +74,11 @@ module.exports = function(io) {
       }, 100);
     });
 
+    socket.on(E.ENHANCE, function(spell) {
+      var updates = battle.resolveEnhance(spell)
+      io.to(battle.id).emit(E.UPDATE, updates)
+    });
+
     socket.on('disconnect', function() {
       console.log('disconnect')
       if (battle) {

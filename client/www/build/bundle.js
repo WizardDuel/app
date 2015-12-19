@@ -70,7 +70,9 @@
 	        DEFEND: 'Defend',
 	        WIZ_ID: 'Wizard Id',
 	        ATTACK: 'Attack',
-	        MANA_REGEN: 'Mana Regen'
+	        MANA_REGEN: 'Mana Regen',
+	        ENHANCE: 'Enhance',
+	        UPDATE: 'Update'
 	      }
 	    };
 	  });
@@ -531,7 +533,7 @@
 
 
 	// module
-	exports.push([module.id, "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\n/* view imports */\nheader {\n  height: 65px;\n  background-color: #c2b280;\n  position: fixed; }\n\ndiv.content-from-header.extra-specificity {\n  margin-top: 75px; }\n\n.game {\n  display: block;\n  background-color: tan;\n  hieght: 100%;\n  width: 200px;\n  border: solid 3px brown; }\n\n.stat-item {\n  display: block; }\n\n/* directive imports */\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n/* meter*/\n#section-id-0 {\n  position: absolute;\n  top: 0px;\n  bottom: 0px;\n  left: 0px;\n  right: 0px;\n  background-color: #37c800;\n  border-radius: 100%; }\n\n#section-id-1 {\n  position: absolute;\n  top: 1px;\n  bottom: 1px;\n  left: 1px;\n  right: 1px;\n  background-color: #39c619;\n  border-radius: 100%; }\n\n#section-id-2 {\n  position: absolute;\n  top: 2px;\n  bottom: 2px;\n  left: 2px;\n  right: 2px;\n  background-color: #3bc432;\n  border-radius: 100%; }\n\n#section-id-3 {\n  position: absolute;\n  top: 3px;\n  bottom: 3px;\n  left: 3px;\n  right: 3px;\n  background-color: #3dc24b;\n  border-radius: 100%; }\n\n#section-id-4 {\n  position: absolute;\n  top: 4px;\n  bottom: 4px;\n  left: 4px;\n  right: 4px;\n  background-color: #3fc064;\n  border-radius: 100%; }\n\n#section-id-5 {\n  position: absolute;\n  top: 5px;\n  bottom: 5px;\n  left: 5px;\n  right: 5px;\n  background-color: #41be7d;\n  border-radius: 100%; }\n\n#section-id-6 {\n  position: absolute;\n  top: 6px;\n  bottom: 6px;\n  left: 6px;\n  right: 6px;\n  background-color: #43bc96;\n  border-radius: 100%; }\n\n#section-id-7 {\n  position: absolute;\n  top: 7px;\n  bottom: 7px;\n  left: 7px;\n  right: 7px;\n  background-color: #45baaf;\n  border-radius: 100%; }\n\n#section-id-8 {\n  position: absolute;\n  top: 8px;\n  bottom: 8px;\n  left: 8px;\n  right: 8px;\n  background-color: #47b8c8;\n  border-radius: 100%; }\n\n#section-id-9 {\n  position: absolute;\n  top: 9px;\n  bottom: 9px;\n  left: 9px;\n  right: 9px;\n  background-color: #49b6e1;\n  border-radius: 100%; }\n\n#section-id-10 {\n  position: absolute;\n  top: 10px;\n  bottom: 10px;\n  left: 10px;\n  right: 10px;\n  background-color: #4bb4fa;\n  border-radius: 100%; }\n\n#section-id-11 {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 11px;\n  right: 11px;\n  background-color: #4db2ff;\n  border-radius: 100%; }\n\n#section-id-12 {\n  position: absolute;\n  top: 12px;\n  bottom: 12px;\n  left: 12px;\n  right: 12px;\n  background-color: #4fb0ff;\n  border-radius: 100%; }\n\n#section-id-13 {\n  position: absolute;\n  top: 13px;\n  bottom: 13px;\n  left: 13px;\n  right: 13px;\n  background-color: #51aeff;\n  border-radius: 100%; }\n\n#section-id-14 {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 14px;\n  right: 14px;\n  background-color: #53acff;\n  border-radius: 100%; }\n\n#section-id-15 {\n  position: absolute;\n  top: 15px;\n  bottom: 15px;\n  left: 15px;\n  right: 15px;\n  background-color: #55aaff;\n  border-radius: 100%; }\n\n#section-id-16 {\n  position: absolute;\n  top: 16px;\n  bottom: 16px;\n  left: 16px;\n  right: 16px;\n  background-color: #57a8ff;\n  border-radius: 100%; }\n\n#section-id-17 {\n  position: absolute;\n  top: 17px;\n  bottom: 17px;\n  left: 17px;\n  right: 17px;\n  background-color: #59a6ff;\n  border-radius: 100%; }\n\n#section-id-18 {\n  position: absolute;\n  top: 18px;\n  bottom: 18px;\n  left: 18px;\n  right: 18px;\n  background-color: #5ba4ff;\n  border-radius: 100%; }\n\n#section-id-19 {\n  position: absolute;\n  top: 19px;\n  bottom: 19px;\n  left: 19px;\n  right: 19px;\n  background-color: #5da2ff;\n  border-radius: 100%; }\n\n#section-id-20 {\n  position: absolute;\n  top: 20px;\n  bottom: 20px;\n  left: 20px;\n  right: 20px;\n  background-color: #5fa0ff;\n  border-radius: 100%; }\n\n#section-id-21 {\n  position: absolute;\n  top: 21px;\n  bottom: 21px;\n  left: 21px;\n  right: 21px;\n  background-color: #619eff;\n  border-radius: 100%; }\n\n#section-id-22 {\n  position: absolute;\n  top: 22px;\n  bottom: 22px;\n  left: 22px;\n  right: 22px;\n  background-color: #639cff;\n  border-radius: 100%; }\n\n#section-id-23 {\n  position: absolute;\n  top: 23px;\n  bottom: 23px;\n  left: 23px;\n  right: 23px;\n  background-color: #659aff;\n  border-radius: 100%; }\n\n#section-id-24 {\n  position: absolute;\n  top: 24px;\n  bottom: 24px;\n  left: 24px;\n  right: 24px;\n  background-color: #6798ff;\n  border-radius: 100%; }\n\n#section-id-25 {\n  position: absolute;\n  top: 25px;\n  bottom: 25px;\n  left: 25px;\n  right: 25px;\n  background-color: #6996ff;\n  border-radius: 100%; }\n\n#section-id-26 {\n  position: absolute;\n  top: 26px;\n  bottom: 26px;\n  left: 26px;\n  right: 26px;\n  background-color: #6b94ff;\n  border-radius: 100%; }\n\n#section-id-27 {\n  position: absolute;\n  top: 27px;\n  bottom: 27px;\n  left: 27px;\n  right: 27px;\n  background-color: #6d92ff;\n  border-radius: 100%; }\n\n#section-id-28 {\n  position: absolute;\n  top: 28px;\n  bottom: 28px;\n  left: 28px;\n  right: 28px;\n  background-color: #6f90ff;\n  border-radius: 100%; }\n\n#section-id-29 {\n  position: absolute;\n  top: 29px;\n  bottom: 29px;\n  left: 29px;\n  right: 29px;\n  background-color: #718eff;\n  border-radius: 100%; }\n\n#section-id-30 {\n  position: absolute;\n  top: 30px;\n  bottom: 30px;\n  left: 30px;\n  right: 30px;\n  background-color: #738cff;\n  border-radius: 100%; }\n\n#section-id-31 {\n  position: absolute;\n  top: 31px;\n  bottom: 31px;\n  left: 31px;\n  right: 31px;\n  background-color: #758aff;\n  border-radius: 100%; }\n\n#section-id-32 {\n  position: absolute;\n  top: 32px;\n  bottom: 32px;\n  left: 32px;\n  right: 32px;\n  background-color: #7788ff;\n  border-radius: 100%; }\n\n#section-id-33 {\n  position: absolute;\n  top: 33px;\n  bottom: 33px;\n  left: 33px;\n  right: 33px;\n  background-color: #7986ff;\n  border-radius: 100%; }\n\n#section-id-34 {\n  position: absolute;\n  top: 34px;\n  bottom: 34px;\n  left: 34px;\n  right: 34px;\n  background-color: #7b84ff;\n  border-radius: 100%; }\n\n#section-id-35 {\n  position: absolute;\n  top: 35px;\n  bottom: 35px;\n  left: 35px;\n  right: 35px;\n  background-color: #7d82ff;\n  border-radius: 100%; }\n\n#section-id-36 {\n  position: absolute;\n  top: 36px;\n  bottom: 36px;\n  left: 36px;\n  right: 36px;\n  background-color: #7f80ff;\n  border-radius: 100%; }\n\n#section-id-37 {\n  position: absolute;\n  top: 37px;\n  bottom: 37px;\n  left: 37px;\n  right: 37px;\n  background-color: #817eff;\n  border-radius: 100%; }\n\n#section-id-38 {\n  position: absolute;\n  top: 38px;\n  bottom: 38px;\n  left: 38px;\n  right: 38px;\n  background-color: #837cff;\n  border-radius: 100%; }\n\n#section-id-39 {\n  position: absolute;\n  top: 39px;\n  bottom: 39px;\n  left: 39px;\n  right: 39px;\n  background-color: #857aff;\n  border-radius: 100%; }\n\n#section-id-40 {\n  position: absolute;\n  top: 40px;\n  bottom: 40px;\n  left: 40px;\n  right: 40px;\n  background-color: #8778ff;\n  border-radius: 100%; }\n\n#section-id-41 {\n  position: absolute;\n  top: 41px;\n  bottom: 41px;\n  left: 41px;\n  right: 41px;\n  background-color: #8976ff;\n  border-radius: 100%; }\n\n#section-id-42 {\n  position: absolute;\n  top: 42px;\n  bottom: 42px;\n  left: 42px;\n  right: 42px;\n  background-color: #8b74ff;\n  border-radius: 100%; }\n\n#section-id-43 {\n  position: absolute;\n  top: 43px;\n  bottom: 43px;\n  left: 43px;\n  right: 43px;\n  background-color: #8d72ff;\n  border-radius: 100%; }\n\n#section-id-44 {\n  position: absolute;\n  top: 44px;\n  bottom: 44px;\n  left: 44px;\n  right: 44px;\n  background-color: #8f70ff;\n  border-radius: 100%; }\n\n#section-id-45 {\n  position: absolute;\n  top: 45px;\n  bottom: 45px;\n  left: 45px;\n  right: 45px;\n  background-color: #916eff;\n  border-radius: 100%; }\n\n#section-id-46 {\n  position: absolute;\n  top: 46px;\n  bottom: 46px;\n  left: 46px;\n  right: 46px;\n  background-color: #936cff;\n  border-radius: 100%; }\n\n#section-id-47 {\n  position: absolute;\n  top: 47px;\n  bottom: 47px;\n  left: 47px;\n  right: 47px;\n  background-color: #956aff;\n  border-radius: 100%; }\n\n#section-id-48 {\n  position: absolute;\n  top: 48px;\n  bottom: 48px;\n  left: 48px;\n  right: 48px;\n  background-color: #9768ff;\n  border-radius: 100%; }\n\n#section-id-49 {\n  position: absolute;\n  top: 49px;\n  bottom: 49px;\n  left: 49px;\n  right: 49px;\n  background-color: #9966ff;\n  border-radius: 100%; }\n\n#section-id-50 {\n  position: absolute;\n  top: 50px;\n  bottom: 50px;\n  left: 50px;\n  right: 50px;\n  background-color: #9b64ff;\n  border-radius: 100%; }\n\n#section-id-51 {\n  position: absolute;\n  top: 51px;\n  bottom: 51px;\n  left: 51px;\n  right: 51px;\n  background-color: #9d62ff;\n  border-radius: 100%; }\n\n#section-id-52 {\n  position: absolute;\n  top: 52px;\n  bottom: 52px;\n  left: 52px;\n  right: 52px;\n  background-color: #9f60ff;\n  border-radius: 100%; }\n\n#section-id-53 {\n  position: absolute;\n  top: 53px;\n  bottom: 53px;\n  left: 53px;\n  right: 53px;\n  background-color: #a15eff;\n  border-radius: 100%; }\n\n#section-id-54 {\n  position: absolute;\n  top: 54px;\n  bottom: 54px;\n  left: 54px;\n  right: 54px;\n  background-color: #a35cff;\n  border-radius: 100%; }\n\n#section-id-55 {\n  position: absolute;\n  top: 55px;\n  bottom: 55px;\n  left: 55px;\n  right: 55px;\n  background-color: #a55aff;\n  border-radius: 100%; }\n\n#section-id-56 {\n  position: absolute;\n  top: 56px;\n  bottom: 56px;\n  left: 56px;\n  right: 56px;\n  background-color: #a758ff;\n  border-radius: 100%; }\n\n#section-id-57 {\n  position: absolute;\n  top: 57px;\n  bottom: 57px;\n  left: 57px;\n  right: 57px;\n  background-color: #a956ff;\n  border-radius: 100%; }\n\n#section-id-58 {\n  position: absolute;\n  top: 58px;\n  bottom: 58px;\n  left: 58px;\n  right: 58px;\n  background-color: #ab54ff;\n  border-radius: 100%; }\n\n#section-id-59 {\n  position: absolute;\n  top: 59px;\n  bottom: 59px;\n  left: 59px;\n  right: 59px;\n  background-color: #ad52ff;\n  border-radius: 100%; }\n\n#section-id-60 {\n  position: absolute;\n  top: 60px;\n  bottom: 60px;\n  left: 60px;\n  right: 60px;\n  background-color: #af50ff;\n  border-radius: 100%; }\n\n#section-id-61 {\n  position: absolute;\n  top: 61px;\n  bottom: 61px;\n  left: 61px;\n  right: 61px;\n  background-color: #b14eff;\n  border-radius: 100%; }\n\n#section-id-62 {\n  position: absolute;\n  top: 62px;\n  bottom: 62px;\n  left: 62px;\n  right: 62px;\n  background-color: #b34cff;\n  border-radius: 100%; }\n\n#section-id-63 {\n  position: absolute;\n  top: 63px;\n  bottom: 63px;\n  left: 63px;\n  right: 63px;\n  background-color: #b54aff;\n  border-radius: 100%; }\n\n#section-id-64 {\n  position: absolute;\n  top: 64px;\n  bottom: 64px;\n  left: 64px;\n  right: 64px;\n  background-color: #b748ff;\n  border-radius: 100%; }\n\n#section-id-65 {\n  position: absolute;\n  top: 65px;\n  bottom: 65px;\n  left: 65px;\n  right: 65px;\n  background-color: #b946ff;\n  border-radius: 100%; }\n\n#section-id-66 {\n  position: absolute;\n  top: 66px;\n  bottom: 66px;\n  left: 66px;\n  right: 66px;\n  background-color: #bb44ff;\n  border-radius: 100%; }\n\n#section-id-67 {\n  position: absolute;\n  top: 67px;\n  bottom: 67px;\n  left: 67px;\n  right: 67px;\n  background-color: #bd42ff;\n  border-radius: 100%; }\n\n#section-id-68 {\n  position: absolute;\n  top: 68px;\n  bottom: 68px;\n  left: 68px;\n  right: 68px;\n  background-color: #bf40ff;\n  border-radius: 100%; }\n\n#section-id-69 {\n  position: absolute;\n  top: 69px;\n  bottom: 69px;\n  left: 69px;\n  right: 69px;\n  background-color: #c13eff;\n  border-radius: 100%; }\n\n#section-id-70 {\n  position: absolute;\n  top: 70px;\n  bottom: 70px;\n  left: 70px;\n  right: 70px;\n  background-color: #c33cff;\n  border-radius: 100%; }\n\n#section-id-71 {\n  position: absolute;\n  top: 71px;\n  bottom: 71px;\n  left: 71px;\n  right: 71px;\n  background-color: #c53aff;\n  border-radius: 100%; }\n\n#section-id-72 {\n  position: absolute;\n  top: 72px;\n  bottom: 72px;\n  left: 72px;\n  right: 72px;\n  background-color: #c738ff;\n  border-radius: 100%; }\n\n#section-id-73 {\n  position: absolute;\n  top: 73px;\n  bottom: 73px;\n  left: 73px;\n  right: 73px;\n  background-color: #c936ff;\n  border-radius: 100%; }\n\n#section-id-74 {\n  position: absolute;\n  top: 74px;\n  bottom: 74px;\n  left: 74px;\n  right: 74px;\n  background-color: #cb34ff;\n  border-radius: 100%; }\n\n#section-id-75 {\n  position: absolute;\n  top: 75px;\n  bottom: 75px;\n  left: 75px;\n  right: 75px;\n  background-color: #cd32ff;\n  border-radius: 100%; }\n\n#section-id-76 {\n  position: absolute;\n  top: 76px;\n  bottom: 76px;\n  left: 76px;\n  right: 76px;\n  background-color: #cf30ff;\n  border-radius: 100%; }\n\n#section-id-77 {\n  position: absolute;\n  top: 77px;\n  bottom: 77px;\n  left: 77px;\n  right: 77px;\n  background-color: #d12eff;\n  border-radius: 100%; }\n\n#section-id-78 {\n  position: absolute;\n  top: 78px;\n  bottom: 78px;\n  left: 78px;\n  right: 78px;\n  background-color: #d32cff;\n  border-radius: 100%; }\n\n#section-id-79 {\n  position: absolute;\n  top: 79px;\n  bottom: 79px;\n  left: 79px;\n  right: 79px;\n  background-color: #d52aff;\n  border-radius: 100%; }\n\n#section-id-80 {\n  position: absolute;\n  top: 80px;\n  bottom: 80px;\n  left: 80px;\n  right: 80px;\n  background-color: #d728ff;\n  border-radius: 100%; }\n\n#section-id-81 {\n  position: absolute;\n  top: 81px;\n  bottom: 81px;\n  left: 81px;\n  right: 81px;\n  background-color: #d926ff;\n  border-radius: 100%; }\n\n#section-id-82 {\n  position: absolute;\n  top: 82px;\n  bottom: 82px;\n  left: 82px;\n  right: 82px;\n  background-color: #db24ff;\n  border-radius: 100%; }\n\n#section-id-83 {\n  position: absolute;\n  top: 83px;\n  bottom: 83px;\n  left: 83px;\n  right: 83px;\n  background-color: #dd22ff;\n  border-radius: 100%; }\n\n#section-id-84 {\n  position: absolute;\n  top: 84px;\n  bottom: 84px;\n  left: 84px;\n  right: 84px;\n  background-color: #df20ff;\n  border-radius: 100%; }\n\n#section-id-85 {\n  position: absolute;\n  top: 85px;\n  bottom: 85px;\n  left: 85px;\n  right: 85px;\n  background-color: #e11eff;\n  border-radius: 100%; }\n\n#section-id-86 {\n  position: absolute;\n  top: 86px;\n  bottom: 86px;\n  left: 86px;\n  right: 86px;\n  background-color: #e31cff;\n  border-radius: 100%; }\n\n#section-id-87 {\n  position: absolute;\n  top: 87px;\n  bottom: 87px;\n  left: 87px;\n  right: 87px;\n  background-color: #e51aff;\n  border-radius: 100%; }\n\n#section-id-88 {\n  position: absolute;\n  top: 88px;\n  bottom: 88px;\n  left: 88px;\n  right: 88px;\n  background-color: #e718ff;\n  border-radius: 100%; }\n\n#section-id-89 {\n  position: absolute;\n  top: 89px;\n  bottom: 89px;\n  left: 89px;\n  right: 89px;\n  background-color: #e916ff;\n  border-radius: 100%; }\n\n#section-id-90 {\n  position: absolute;\n  top: 90px;\n  bottom: 90px;\n  left: 90px;\n  right: 90px;\n  background-color: #eb14ff;\n  border-radius: 100%; }\n\n#section-id-91 {\n  position: absolute;\n  top: 91px;\n  bottom: 91px;\n  left: 91px;\n  right: 91px;\n  background-color: #ed12ff;\n  border-radius: 100%; }\n\n#section-id-92 {\n  position: absolute;\n  top: 92px;\n  bottom: 92px;\n  left: 92px;\n  right: 92px;\n  background-color: #ef10ff;\n  border-radius: 100%; }\n\n#section-id-93 {\n  position: absolute;\n  top: 93px;\n  bottom: 93px;\n  left: 93px;\n  right: 93px;\n  background-color: #f10eff;\n  border-radius: 100%; }\n\n#section-id-94 {\n  position: absolute;\n  top: 94px;\n  bottom: 94px;\n  left: 94px;\n  right: 94px;\n  background-color: #f30cff;\n  border-radius: 100%; }\n\n#section-id-95 {\n  position: absolute;\n  top: 95px;\n  bottom: 95px;\n  left: 95px;\n  right: 95px;\n  background-color: #f50aff;\n  border-radius: 100%; }\n\n#section-id-96 {\n  position: absolute;\n  top: 96px;\n  bottom: 96px;\n  left: 96px;\n  right: 96px;\n  background-color: #f708ff;\n  border-radius: 100%; }\n\n#section-id-97 {\n  position: absolute;\n  top: 97px;\n  bottom: 97px;\n  left: 97px;\n  right: 97px;\n  background-color: #f906ff;\n  border-radius: 100%; }\n\n#section-id-98 {\n  position: absolute;\n  top: 98px;\n  bottom: 98px;\n  left: 98px;\n  right: 98px;\n  background-color: #fb04ff;\n  border-radius: 100%; }\n\n#section-id-99 {\n  position: absolute;\n  top: 99px;\n  bottom: 99px;\n  left: 99px;\n  right: 99px;\n  background-color: #fd02ff;\n  border-radius: 100%; }\n\n#section-id-100 {\n  position: absolute;\n  top: 100px;\n  bottom: 100px;\n  left: 100px;\n  right: 100px;\n  background-color: magenta;\n  border-radius: 100%; }\n\n#powerbar {\n  position: relative;\n  height: 200px;\n  width: 200px;\n  background-color: none; }\n\n.crit {\n  position: absolute;\n  top: 7px;\n  bottom: 7px;\n  left: 7px;\n  right: 7px;\n  border-radius: 100%;\n  background-color: transparent;\n  border: 2px solid #222;\n  border-radius: 100%;\n  z-index: 99999; }\n\n.application-settings {\n  font-family: Galindo; }\n\n/* add from style.css */\n#status-bars {\n  min-width: 120px;\n  max-width: 200px;\n  min-height: 50px;\n  padding: 0; }\n\n#spells {\n  min-width: 366px; }\n\n.spell-panel {\n  min-width: 122px; }\n\n.btn-spell {\n  width: 60px;\n  height: 80px;\n  margin-bottom: 2px;\n  font-size: x-small;\n  line-height: 1; }\n\n#power-vessle {\n  min-height: 80px; }\n\n.red {\n  background-color: red; }\n\n.status-bar {\n  margin-bottom: 5px;\n  border-radius: 2px; }\n\n.purple {\n  background-color: purple; }\n\n.container {\n  margin-top: 200px; }\n\n.health-bar {\n  background: #FF5656;\n  display: block;\n  height: 1em; }\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em; }\n\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n.avatar-container {\n  position: relative; }\n\n.avatar-overlay {\n  visibility: hidden;\n  position: absolute;\n  top: 250px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.spell-message {\n  display: inline-block;\n  height: 1rem; }\n", ""]);
+	exports.push([module.id, "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\n/* view imports */\nheader {\n  height: 65px;\n  background-color: #c2b280;\n  position: fixed; }\n\ndiv.content-from-header.extra-specificity {\n  margin-top: 75px; }\n\n.game {\n  display: block;\n  background-color: tan;\n  hieght: 100%;\n  width: 200px;\n  border: solid 3px brown; }\n\n.stat-item {\n  display: block; }\n\n/* directive imports */\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n/* meter*/\n#section-id-0 {\n  position: absolute;\n  top: 0px;\n  bottom: 0px;\n  left: 0px;\n  right: 0px;\n  background-color: #37c800;\n  border-radius: 100%; }\n\n#section-id-1 {\n  position: absolute;\n  top: 1px;\n  bottom: 1px;\n  left: 1px;\n  right: 1px;\n  background-color: #39c619;\n  border-radius: 100%; }\n\n#section-id-2 {\n  position: absolute;\n  top: 2px;\n  bottom: 2px;\n  left: 2px;\n  right: 2px;\n  background-color: #3bc432;\n  border-radius: 100%; }\n\n#section-id-3 {\n  position: absolute;\n  top: 3px;\n  bottom: 3px;\n  left: 3px;\n  right: 3px;\n  background-color: #3dc24b;\n  border-radius: 100%; }\n\n#section-id-4 {\n  position: absolute;\n  top: 4px;\n  bottom: 4px;\n  left: 4px;\n  right: 4px;\n  background-color: #3fc064;\n  border-radius: 100%; }\n\n#section-id-5 {\n  position: absolute;\n  top: 5px;\n  bottom: 5px;\n  left: 5px;\n  right: 5px;\n  background-color: #41be7d;\n  border-radius: 100%; }\n\n#section-id-6 {\n  position: absolute;\n  top: 6px;\n  bottom: 6px;\n  left: 6px;\n  right: 6px;\n  background-color: #43bc96;\n  border-radius: 100%; }\n\n#section-id-7 {\n  position: absolute;\n  top: 7px;\n  bottom: 7px;\n  left: 7px;\n  right: 7px;\n  background-color: #45baaf;\n  border-radius: 100%; }\n\n#section-id-8 {\n  position: absolute;\n  top: 8px;\n  bottom: 8px;\n  left: 8px;\n  right: 8px;\n  background-color: #47b8c8;\n  border-radius: 100%; }\n\n#section-id-9 {\n  position: absolute;\n  top: 9px;\n  bottom: 9px;\n  left: 9px;\n  right: 9px;\n  background-color: #49b6e1;\n  border-radius: 100%; }\n\n#section-id-10 {\n  position: absolute;\n  top: 10px;\n  bottom: 10px;\n  left: 10px;\n  right: 10px;\n  background-color: #4bb4fa;\n  border-radius: 100%; }\n\n#section-id-11 {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 11px;\n  right: 11px;\n  background-color: #4db2ff;\n  border-radius: 100%; }\n\n#section-id-12 {\n  position: absolute;\n  top: 12px;\n  bottom: 12px;\n  left: 12px;\n  right: 12px;\n  background-color: #4fb0ff;\n  border-radius: 100%; }\n\n#section-id-13 {\n  position: absolute;\n  top: 13px;\n  bottom: 13px;\n  left: 13px;\n  right: 13px;\n  background-color: #51aeff;\n  border-radius: 100%; }\n\n#section-id-14 {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 14px;\n  right: 14px;\n  background-color: #53acff;\n  border-radius: 100%; }\n\n#section-id-15 {\n  position: absolute;\n  top: 15px;\n  bottom: 15px;\n  left: 15px;\n  right: 15px;\n  background-color: #55aaff;\n  border-radius: 100%; }\n\n#section-id-16 {\n  position: absolute;\n  top: 16px;\n  bottom: 16px;\n  left: 16px;\n  right: 16px;\n  background-color: #57a8ff;\n  border-radius: 100%; }\n\n#section-id-17 {\n  position: absolute;\n  top: 17px;\n  bottom: 17px;\n  left: 17px;\n  right: 17px;\n  background-color: #59a6ff;\n  border-radius: 100%; }\n\n#section-id-18 {\n  position: absolute;\n  top: 18px;\n  bottom: 18px;\n  left: 18px;\n  right: 18px;\n  background-color: #5ba4ff;\n  border-radius: 100%; }\n\n#section-id-19 {\n  position: absolute;\n  top: 19px;\n  bottom: 19px;\n  left: 19px;\n  right: 19px;\n  background-color: #5da2ff;\n  border-radius: 100%; }\n\n#section-id-20 {\n  position: absolute;\n  top: 20px;\n  bottom: 20px;\n  left: 20px;\n  right: 20px;\n  background-color: #5fa0ff;\n  border-radius: 100%; }\n\n#section-id-21 {\n  position: absolute;\n  top: 21px;\n  bottom: 21px;\n  left: 21px;\n  right: 21px;\n  background-color: #619eff;\n  border-radius: 100%; }\n\n#section-id-22 {\n  position: absolute;\n  top: 22px;\n  bottom: 22px;\n  left: 22px;\n  right: 22px;\n  background-color: #639cff;\n  border-radius: 100%; }\n\n#section-id-23 {\n  position: absolute;\n  top: 23px;\n  bottom: 23px;\n  left: 23px;\n  right: 23px;\n  background-color: #659aff;\n  border-radius: 100%; }\n\n#section-id-24 {\n  position: absolute;\n  top: 24px;\n  bottom: 24px;\n  left: 24px;\n  right: 24px;\n  background-color: #6798ff;\n  border-radius: 100%; }\n\n#section-id-25 {\n  position: absolute;\n  top: 25px;\n  bottom: 25px;\n  left: 25px;\n  right: 25px;\n  background-color: #6996ff;\n  border-radius: 100%; }\n\n#section-id-26 {\n  position: absolute;\n  top: 26px;\n  bottom: 26px;\n  left: 26px;\n  right: 26px;\n  background-color: #6b94ff;\n  border-radius: 100%; }\n\n#section-id-27 {\n  position: absolute;\n  top: 27px;\n  bottom: 27px;\n  left: 27px;\n  right: 27px;\n  background-color: #6d92ff;\n  border-radius: 100%; }\n\n#section-id-28 {\n  position: absolute;\n  top: 28px;\n  bottom: 28px;\n  left: 28px;\n  right: 28px;\n  background-color: #6f90ff;\n  border-radius: 100%; }\n\n#section-id-29 {\n  position: absolute;\n  top: 29px;\n  bottom: 29px;\n  left: 29px;\n  right: 29px;\n  background-color: #718eff;\n  border-radius: 100%; }\n\n#section-id-30 {\n  position: absolute;\n  top: 30px;\n  bottom: 30px;\n  left: 30px;\n  right: 30px;\n  background-color: #738cff;\n  border-radius: 100%; }\n\n#section-id-31 {\n  position: absolute;\n  top: 31px;\n  bottom: 31px;\n  left: 31px;\n  right: 31px;\n  background-color: #758aff;\n  border-radius: 100%; }\n\n#section-id-32 {\n  position: absolute;\n  top: 32px;\n  bottom: 32px;\n  left: 32px;\n  right: 32px;\n  background-color: #7788ff;\n  border-radius: 100%; }\n\n#section-id-33 {\n  position: absolute;\n  top: 33px;\n  bottom: 33px;\n  left: 33px;\n  right: 33px;\n  background-color: #7986ff;\n  border-radius: 100%; }\n\n#section-id-34 {\n  position: absolute;\n  top: 34px;\n  bottom: 34px;\n  left: 34px;\n  right: 34px;\n  background-color: #7b84ff;\n  border-radius: 100%; }\n\n#section-id-35 {\n  position: absolute;\n  top: 35px;\n  bottom: 35px;\n  left: 35px;\n  right: 35px;\n  background-color: #7d82ff;\n  border-radius: 100%; }\n\n#section-id-36 {\n  position: absolute;\n  top: 36px;\n  bottom: 36px;\n  left: 36px;\n  right: 36px;\n  background-color: #7f80ff;\n  border-radius: 100%; }\n\n#section-id-37 {\n  position: absolute;\n  top: 37px;\n  bottom: 37px;\n  left: 37px;\n  right: 37px;\n  background-color: #817eff;\n  border-radius: 100%; }\n\n#section-id-38 {\n  position: absolute;\n  top: 38px;\n  bottom: 38px;\n  left: 38px;\n  right: 38px;\n  background-color: #837cff;\n  border-radius: 100%; }\n\n#section-id-39 {\n  position: absolute;\n  top: 39px;\n  bottom: 39px;\n  left: 39px;\n  right: 39px;\n  background-color: #857aff;\n  border-radius: 100%; }\n\n#section-id-40 {\n  position: absolute;\n  top: 40px;\n  bottom: 40px;\n  left: 40px;\n  right: 40px;\n  background-color: #8778ff;\n  border-radius: 100%; }\n\n#section-id-41 {\n  position: absolute;\n  top: 41px;\n  bottom: 41px;\n  left: 41px;\n  right: 41px;\n  background-color: #8976ff;\n  border-radius: 100%; }\n\n#section-id-42 {\n  position: absolute;\n  top: 42px;\n  bottom: 42px;\n  left: 42px;\n  right: 42px;\n  background-color: #8b74ff;\n  border-radius: 100%; }\n\n#section-id-43 {\n  position: absolute;\n  top: 43px;\n  bottom: 43px;\n  left: 43px;\n  right: 43px;\n  background-color: #8d72ff;\n  border-radius: 100%; }\n\n#section-id-44 {\n  position: absolute;\n  top: 44px;\n  bottom: 44px;\n  left: 44px;\n  right: 44px;\n  background-color: #8f70ff;\n  border-radius: 100%; }\n\n#section-id-45 {\n  position: absolute;\n  top: 45px;\n  bottom: 45px;\n  left: 45px;\n  right: 45px;\n  background-color: #916eff;\n  border-radius: 100%; }\n\n#section-id-46 {\n  position: absolute;\n  top: 46px;\n  bottom: 46px;\n  left: 46px;\n  right: 46px;\n  background-color: #936cff;\n  border-radius: 100%; }\n\n#section-id-47 {\n  position: absolute;\n  top: 47px;\n  bottom: 47px;\n  left: 47px;\n  right: 47px;\n  background-color: #956aff;\n  border-radius: 100%; }\n\n#section-id-48 {\n  position: absolute;\n  top: 48px;\n  bottom: 48px;\n  left: 48px;\n  right: 48px;\n  background-color: #9768ff;\n  border-radius: 100%; }\n\n#section-id-49 {\n  position: absolute;\n  top: 49px;\n  bottom: 49px;\n  left: 49px;\n  right: 49px;\n  background-color: #9966ff;\n  border-radius: 100%; }\n\n#section-id-50 {\n  position: absolute;\n  top: 50px;\n  bottom: 50px;\n  left: 50px;\n  right: 50px;\n  background-color: #9b64ff;\n  border-radius: 100%; }\n\n#section-id-51 {\n  position: absolute;\n  top: 51px;\n  bottom: 51px;\n  left: 51px;\n  right: 51px;\n  background-color: #9d62ff;\n  border-radius: 100%; }\n\n#section-id-52 {\n  position: absolute;\n  top: 52px;\n  bottom: 52px;\n  left: 52px;\n  right: 52px;\n  background-color: #9f60ff;\n  border-radius: 100%; }\n\n#section-id-53 {\n  position: absolute;\n  top: 53px;\n  bottom: 53px;\n  left: 53px;\n  right: 53px;\n  background-color: #a15eff;\n  border-radius: 100%; }\n\n#section-id-54 {\n  position: absolute;\n  top: 54px;\n  bottom: 54px;\n  left: 54px;\n  right: 54px;\n  background-color: #a35cff;\n  border-radius: 100%; }\n\n#section-id-55 {\n  position: absolute;\n  top: 55px;\n  bottom: 55px;\n  left: 55px;\n  right: 55px;\n  background-color: #a55aff;\n  border-radius: 100%; }\n\n#section-id-56 {\n  position: absolute;\n  top: 56px;\n  bottom: 56px;\n  left: 56px;\n  right: 56px;\n  background-color: #a758ff;\n  border-radius: 100%; }\n\n#section-id-57 {\n  position: absolute;\n  top: 57px;\n  bottom: 57px;\n  left: 57px;\n  right: 57px;\n  background-color: #a956ff;\n  border-radius: 100%; }\n\n#section-id-58 {\n  position: absolute;\n  top: 58px;\n  bottom: 58px;\n  left: 58px;\n  right: 58px;\n  background-color: #ab54ff;\n  border-radius: 100%; }\n\n#section-id-59 {\n  position: absolute;\n  top: 59px;\n  bottom: 59px;\n  left: 59px;\n  right: 59px;\n  background-color: #ad52ff;\n  border-radius: 100%; }\n\n#section-id-60 {\n  position: absolute;\n  top: 60px;\n  bottom: 60px;\n  left: 60px;\n  right: 60px;\n  background-color: #af50ff;\n  border-radius: 100%; }\n\n#section-id-61 {\n  position: absolute;\n  top: 61px;\n  bottom: 61px;\n  left: 61px;\n  right: 61px;\n  background-color: #b14eff;\n  border-radius: 100%; }\n\n#section-id-62 {\n  position: absolute;\n  top: 62px;\n  bottom: 62px;\n  left: 62px;\n  right: 62px;\n  background-color: #b34cff;\n  border-radius: 100%; }\n\n#section-id-63 {\n  position: absolute;\n  top: 63px;\n  bottom: 63px;\n  left: 63px;\n  right: 63px;\n  background-color: #b54aff;\n  border-radius: 100%; }\n\n#section-id-64 {\n  position: absolute;\n  top: 64px;\n  bottom: 64px;\n  left: 64px;\n  right: 64px;\n  background-color: #b748ff;\n  border-radius: 100%; }\n\n#section-id-65 {\n  position: absolute;\n  top: 65px;\n  bottom: 65px;\n  left: 65px;\n  right: 65px;\n  background-color: #b946ff;\n  border-radius: 100%; }\n\n#section-id-66 {\n  position: absolute;\n  top: 66px;\n  bottom: 66px;\n  left: 66px;\n  right: 66px;\n  background-color: #bb44ff;\n  border-radius: 100%; }\n\n#section-id-67 {\n  position: absolute;\n  top: 67px;\n  bottom: 67px;\n  left: 67px;\n  right: 67px;\n  background-color: #bd42ff;\n  border-radius: 100%; }\n\n#section-id-68 {\n  position: absolute;\n  top: 68px;\n  bottom: 68px;\n  left: 68px;\n  right: 68px;\n  background-color: #bf40ff;\n  border-radius: 100%; }\n\n#section-id-69 {\n  position: absolute;\n  top: 69px;\n  bottom: 69px;\n  left: 69px;\n  right: 69px;\n  background-color: #c13eff;\n  border-radius: 100%; }\n\n#section-id-70 {\n  position: absolute;\n  top: 70px;\n  bottom: 70px;\n  left: 70px;\n  right: 70px;\n  background-color: #c33cff;\n  border-radius: 100%; }\n\n#section-id-71 {\n  position: absolute;\n  top: 71px;\n  bottom: 71px;\n  left: 71px;\n  right: 71px;\n  background-color: #c53aff;\n  border-radius: 100%; }\n\n#section-id-72 {\n  position: absolute;\n  top: 72px;\n  bottom: 72px;\n  left: 72px;\n  right: 72px;\n  background-color: #c738ff;\n  border-radius: 100%; }\n\n#section-id-73 {\n  position: absolute;\n  top: 73px;\n  bottom: 73px;\n  left: 73px;\n  right: 73px;\n  background-color: #c936ff;\n  border-radius: 100%; }\n\n#section-id-74 {\n  position: absolute;\n  top: 74px;\n  bottom: 74px;\n  left: 74px;\n  right: 74px;\n  background-color: #cb34ff;\n  border-radius: 100%; }\n\n#section-id-75 {\n  position: absolute;\n  top: 75px;\n  bottom: 75px;\n  left: 75px;\n  right: 75px;\n  background-color: #cd32ff;\n  border-radius: 100%; }\n\n#section-id-76 {\n  position: absolute;\n  top: 76px;\n  bottom: 76px;\n  left: 76px;\n  right: 76px;\n  background-color: #cf30ff;\n  border-radius: 100%; }\n\n#section-id-77 {\n  position: absolute;\n  top: 77px;\n  bottom: 77px;\n  left: 77px;\n  right: 77px;\n  background-color: #d12eff;\n  border-radius: 100%; }\n\n#section-id-78 {\n  position: absolute;\n  top: 78px;\n  bottom: 78px;\n  left: 78px;\n  right: 78px;\n  background-color: #d32cff;\n  border-radius: 100%; }\n\n#section-id-79 {\n  position: absolute;\n  top: 79px;\n  bottom: 79px;\n  left: 79px;\n  right: 79px;\n  background-color: #d52aff;\n  border-radius: 100%; }\n\n#section-id-80 {\n  position: absolute;\n  top: 80px;\n  bottom: 80px;\n  left: 80px;\n  right: 80px;\n  background-color: #d728ff;\n  border-radius: 100%; }\n\n#section-id-81 {\n  position: absolute;\n  top: 81px;\n  bottom: 81px;\n  left: 81px;\n  right: 81px;\n  background-color: #d926ff;\n  border-radius: 100%; }\n\n#section-id-82 {\n  position: absolute;\n  top: 82px;\n  bottom: 82px;\n  left: 82px;\n  right: 82px;\n  background-color: #db24ff;\n  border-radius: 100%; }\n\n#section-id-83 {\n  position: absolute;\n  top: 83px;\n  bottom: 83px;\n  left: 83px;\n  right: 83px;\n  background-color: #dd22ff;\n  border-radius: 100%; }\n\n#section-id-84 {\n  position: absolute;\n  top: 84px;\n  bottom: 84px;\n  left: 84px;\n  right: 84px;\n  background-color: #df20ff;\n  border-radius: 100%; }\n\n#section-id-85 {\n  position: absolute;\n  top: 85px;\n  bottom: 85px;\n  left: 85px;\n  right: 85px;\n  background-color: #e11eff;\n  border-radius: 100%; }\n\n#section-id-86 {\n  position: absolute;\n  top: 86px;\n  bottom: 86px;\n  left: 86px;\n  right: 86px;\n  background-color: #e31cff;\n  border-radius: 100%; }\n\n#section-id-87 {\n  position: absolute;\n  top: 87px;\n  bottom: 87px;\n  left: 87px;\n  right: 87px;\n  background-color: #e51aff;\n  border-radius: 100%; }\n\n#section-id-88 {\n  position: absolute;\n  top: 88px;\n  bottom: 88px;\n  left: 88px;\n  right: 88px;\n  background-color: #e718ff;\n  border-radius: 100%; }\n\n#section-id-89 {\n  position: absolute;\n  top: 89px;\n  bottom: 89px;\n  left: 89px;\n  right: 89px;\n  background-color: #e916ff;\n  border-radius: 100%; }\n\n#section-id-90 {\n  position: absolute;\n  top: 90px;\n  bottom: 90px;\n  left: 90px;\n  right: 90px;\n  background-color: #eb14ff;\n  border-radius: 100%; }\n\n#section-id-91 {\n  position: absolute;\n  top: 91px;\n  bottom: 91px;\n  left: 91px;\n  right: 91px;\n  background-color: #ed12ff;\n  border-radius: 100%; }\n\n#section-id-92 {\n  position: absolute;\n  top: 92px;\n  bottom: 92px;\n  left: 92px;\n  right: 92px;\n  background-color: #ef10ff;\n  border-radius: 100%; }\n\n#section-id-93 {\n  position: absolute;\n  top: 93px;\n  bottom: 93px;\n  left: 93px;\n  right: 93px;\n  background-color: #f10eff;\n  border-radius: 100%; }\n\n#section-id-94 {\n  position: absolute;\n  top: 94px;\n  bottom: 94px;\n  left: 94px;\n  right: 94px;\n  background-color: #f30cff;\n  border-radius: 100%; }\n\n#section-id-95 {\n  position: absolute;\n  top: 95px;\n  bottom: 95px;\n  left: 95px;\n  right: 95px;\n  background-color: #f50aff;\n  border-radius: 100%; }\n\n#section-id-96 {\n  position: absolute;\n  top: 96px;\n  bottom: 96px;\n  left: 96px;\n  right: 96px;\n  background-color: #f708ff;\n  border-radius: 100%; }\n\n#section-id-97 {\n  position: absolute;\n  top: 97px;\n  bottom: 97px;\n  left: 97px;\n  right: 97px;\n  background-color: #f906ff;\n  border-radius: 100%; }\n\n#section-id-98 {\n  position: absolute;\n  top: 98px;\n  bottom: 98px;\n  left: 98px;\n  right: 98px;\n  background-color: #fb04ff;\n  border-radius: 100%; }\n\n#section-id-99 {\n  position: absolute;\n  top: 99px;\n  bottom: 99px;\n  left: 99px;\n  right: 99px;\n  background-color: #fd02ff;\n  border-radius: 100%; }\n\n#section-id-100 {\n  position: absolute;\n  top: 100px;\n  bottom: 100px;\n  left: 100px;\n  right: 100px;\n  background-color: magenta;\n  border-radius: 100%; }\n\n#powerbar {\n  position: relative;\n  height: 200px;\n  width: 200px;\n  background-color: none; }\n\n.crit {\n  position: absolute;\n  top: 7px;\n  bottom: 7px;\n  left: 7px;\n  right: 7px;\n  border-radius: 100%;\n  background-color: transparent;\n  border: 2px solid #222;\n  border-radius: 100%;\n  z-index: 99999; }\n\n.enemy {\n  margin-bottom: 10%; }\n\n.avatar-container {\n  position: relative; }\n\n.avatar-overlay {\n  visibility: hidden;\n  position: absolute;\n  top: 250px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.foe {\n  visibility: hidden;\n  position: absolute;\n  top: 100px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.application-settings {\n  font-family: Galindo; }\n\n/* add from style.css */\n#status-bars {\n  min-width: 120px;\n  max-width: 200px;\n  min-height: 50px;\n  padding: 0; }\n\n#spells {\n  min-width: 366px; }\n\n.spell-panel {\n  min-width: 122px; }\n\n.btn-spell {\n  width: 60px;\n  height: 80px;\n  margin-bottom: 2px;\n  font-size: x-small;\n  line-height: 1; }\n\n#power-vessle {\n  min-height: 80px; }\n\n.red {\n  background-color: red; }\n\n.status-bar {\n  margin-bottom: 5px;\n  border-radius: 2px; }\n\n.purple {\n  background-color: purple; }\n\n.container {\n  margin-top: 200px; }\n\n.health-bar {\n  background: #FF5656;\n  display: block;\n  height: 1em; }\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em; }\n\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n.spell-message {\n  display: inline-block;\n  height: 1rem; }\n", ""]);
 
 	// exports
 
@@ -37886,7 +37888,10 @@
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($) {module.exports = angular.module('wizardApp.duel', [
+	/* WEBPACK VAR INJECTION */(function($) {var enableWorldUpdates = __webpack_require__(77);
+	var wizardPhotos = __webpack_require__(78)
+
+	module.exports = angular.module('wizardApp.duel', [
 	  __webpack_require__(67),
 	  __webpack_require__(72),
 	  __webpack_require__(73),
@@ -37904,188 +37909,94 @@
 	  .name;
 
 	function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
+	  //initialize refs to dom els and socket references
 	  var socket = socketIO.socket;
 	  var E = socketIO.E;
 	  socket.attacking = false;
 
-	  $scope.spells = [
-	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
-	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
-	    { name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
-	  ]
-
-	  wizard2 = Math.floor(Math.random() * wizardPhotos.length);
-
-	  $scope.foe = '';
-	  $scope.wizards = [
-	    { user: 'Opponent', avatar: '../../assets/imgs/' + wizardPhotos[wizard2], id: socket.getFoeId() }
-	  ];
-
-	  var foe = {
-	    id: socket.getFoeId(),
-	    foeId: socket.id
-	  };
-	  var self = {
-	    id: socket.id,
-	    foeId: foe.id
-	  };
-
-	  [self, foe].map(function(wiz) {
-
-	    wiz.getAvatar = function(){
-	      return document.getElementById(this.id);
-	    }
-	    wiz.getHealth = function(){
-	      return document.getElementById(this.id+'-health');
-	    }
-	    wiz.getMana = function(){
-	      return document.getElementById(this.id+'-mana');
-	    }
-	    wiz.addClass = function(cname){
-	      this.getAvatar().classList.add(cname)
-	    }
-	    wiz.removeClass = function(cname) {
-	      this.getAvatar().classList.remove(cname)
-	    }
-	    wiz.setHealth = function(health) {
-	      this.getHealth().style.width = health +'%';
-	    }
-	    wiz.setMana = function(mana) {
-	      this.getMana().style.width = mana+'%';
-	    }
-
-	    wiz.enableCounterSpells = function() {
-	      var buttons = document.getElementsByClassName('btn-spell')
-	      for (var i = 0; i < buttons.length; i++ ){
-	        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-	          buttons[i].removeAttribute('disabled')
-	        }
-	      }
-	    }
-	    wiz.disableCounterSpells = function() {
-	      var buttons = document.getElementsByClassName('btn-spell')
-	      for (var i = 0; i < buttons.length; i++ ){
-	        if (buttons[i].getAttribute('data-spell-type') !== 'Attack') {
-	          buttons[i].setAttribute('disabled', 'disabled')
-	        }
-	      }
-	    }
-	    wiz.enableAttackSpells = function() {
-	      var buttons = document.getElementsByClassName('btn-spell')
-	      for (var i = 0; i < buttons.length; i++ ){
-	        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-	          buttons[i].removeAttribute('disabled')
-	        }
-	      }
-	    }
-	    wiz.disableAttackSpells = function() {
-	      var buttons = document.getElementsByClassName('btn-spell')
-	      for (var i = 0; i < buttons.length; i++ ){
-	        if (buttons[i].getAttribute('data-spell-type') === 'Attack') {
-	          buttons[i].setAttribute('disabled', 'disabled')
-	        }
-	      }
-	    }
-	    wiz.displayAttackResolutionMessage = function(resolution) {
-	      function updateView(wizId) {
-	        document.getElementById(wizId + '-wizard-message').innerHTML = resolution.spellName + ' (Damage: #)';
-	        document.getElementById(wizId + '-avatar-overlay').style.visibility = 'visible';
-	        setTimeout(function() {
-	          document.getElementById(wizId + '-avatar-overlay').style.visibility = 'hidden';
-	          document.getElementById(wizId + '-wizard-message').innerHTML = '';
-	        }, 1500);
-	      }
-	      switch (this.id) {
-	        case resolution.casterId:
-	          updateView(this.foeId);
-	          break;
-
-	        case resolution.targetId:
-	          updateView(this.id);
-	          break;
-	      }
-	    }
-	    return wiz
-	  });
-
-
-	  var avatars = socket.avatars = {};
+	  var foe = { id: socket.getFoeId(), foeId: socket.id };
+	  var self = { id: socket.id, foeId: foe.id };
+	  [self, foe].map(function(wiz) { enableWorldUpdates(wiz); });
+	  var avatars = {};
 	  avatars[foe.id] = foe;
 	  avatars[self.id] = self;
+	  socket.avatars = avatars;
+
+	   // Socket events
+	   angular.element(document).ready(function(){
+	     socket.emit(E.READY);
+	   });
+
+	   socket.on('Start', function(){
+	     $scope.counter = 3;
+	     $scope.countdown();
+	   });
+
+	   socket.on(E.UPDATE, function(data) {
+	     var wizStats = data.wizStats;
+	     for (var wiz in wizStats) {
+	       avatars[wiz].setHealth(wizStats[wiz].health);
+	       avatars[wiz].setMana(wizStats[wiz].mana);
+	     }
+	   });
+
+	   socket.on(E.MANA_REGEN, function(data) {
+	     for (var wiz in data) {
+	       avatars[wiz].setMana(data[wiz].mana);
+	     }
+	   });
 
 	  socket.on(E.ATTACK_PU, function(data) {
-	    // console.log('received attack')
-	    // console.log(data.casterId)
-	    // console.log(avatars)
+	    socket.incomingSpell = data;
 	    avatars[data.casterId].addClass('purple');
-	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
+	    setTimeout(function(){ avatars[data.casterId].removeClass('purple'); }, 500);
 	  });
 
 	  socket.on(E.RESOLVE_ATTACK, function(resolution) {
+	    // spell reset
+	    self.resetSpells(socket);
 	    // update world based on solution
-	    for (wiz in resolution.wizStats) {
-	      avatars[wiz].setHealth(resolution.wizStats[wiz].health);
-	      avatars[wiz].setMana(resolution.wizStats[wiz].mana);
-	      avatars[wiz].displayAttackResolutionMessage(resolution);
+	    for (var wiz in resolution.wizStats) {
+	      var stats = resolution.wizStats[wiz];
+	      // send message
+	      var hDelta = avatars[wiz].getVital('health', true) - stats.health;
+	      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health');
+	      // set vitals for combatants
+	      avatars[wiz].setVital('health', stats.health);
+	      avatars[wiz].setMana(stats.mana);
 	    }
-
-	    // Allow access to spells
-	    self.enableAttackSpells();
-	    self.disableCounterSpells();
-	  });
-
-	  socket.on(E.MANA_REGEN, function(data) {
-	    for (var wiz in data) {
-	      avatars[wiz].setMana(data[wiz].mana);
-	    }
-	  });
-
-	  angular.element(document).ready(function(){
-	    socket.emit(E.READY);
-	  });
-
-	  socket.on('Start', function(){
-	    $scope.counter = 3;
-	    console.log('started')
-
-	    $scope.countdown = function() {
-	      if($scope.counter === 0){
-	        $timeout.cancel(stopped);
-	        $scope.counter = "Duel!";
-	        $timeout(function() {
-	          $('.overlay').removeClass('overlay');
-	          $('.start-timer').hide();
-	        }, 1200);
-	      } else {
-	        stopped = $timeout(function() {
-	         $scope.counter--;
-	         $scope.countdown();
-	        }, 1000);
-	      }
-	    };
-
-	    $scope.countdown();
 	  });
 
 	  socket.on('End of battle', function(msg) {
-	    alert(msg)
+	    alert(msg);
 	    $scope.$apply(function() {
 	      $location.path('/');
 	      $window.location.reload();
 	    });
-	  })
+	  });
+
+	  $scope.wizards = [
+	    {user: 'Opponent',
+	    avatar: '../../assets/imgs/' + wizardPhotos[Math.floor(Math.random() * wizardPhotos.length)],
+	    id: socket.getFoeId()
+	  }];
+
+	  $scope.countdown = function() {
+	    if($scope.counter === 0){
+	      $timeout.cancel(stopped);
+	      $scope.counter = "Duel!";
+	      $timeout(function() {
+	        $('.overlay').removeClass('overlay');
+	        $('.start-timer').hide();
+	      }, 1200);
+	    } else {
+	      stopped = $timeout(function() {
+	       $scope.counter--;
+	       $scope.countdown();
+	      }, 1000);
+	    }
+	  };
 	}
-	var wizardPhotos = [
-	  'walking_wizard.gif',
-	  'simpsons_wizard.jpg',
-	  'wizard_by_adam_brown.jpg',
-	  'cartman_wizard.png',
-	  'character_wizard.png',
-	  'DC_wizard.png',
-	  'eggplant_wizard_uprising.png',
-	  'evil_wizard.png',
-	  'merlin_the_wizard.png',
-	]
 
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(71)))
 
@@ -47311,6 +47222,7 @@
 
 	/* WEBPACK VAR INJECTION */(function($) {// var powerBar = require('../power-bar/powerBar.js');
 	/* globals angular */
+	var Magic = __webpack_require__(79);
 
 	module.exports = angular.module('wizardApp.spells', [
 	  ])
@@ -47334,7 +47246,7 @@
 	      },
 	      templateUrl: './views/components/spells/spellPanel.html',
 	      controller: 'SpellsCtrl'
-	    }
+	    };
 	  })
 	  .directive('powerBar', function() {
 	    return {
@@ -47354,10 +47266,12 @@
 	  var E = socketIO.E;
 	  var socket = socketIO.socket;
 	  $scope.castingSpell = false; // shows powerbar when true
+
 	  // gain access to the world
 	  var avatars = socket.avatars;
 	  var avatar = socket.avatars[socket.id];
 	  $scope.self = socket.id;
+
 	  $scope.spellPower = 0;
 	  $scope.crit = false;
 	  $scope.maxRange = 100;
@@ -47376,34 +47290,40 @@
 	    $scope.stopMeter();
 	  });
 
-	  // set counterspells to disabled
-	  avatar.disableCounterSpells();
+	  $scope.attacks = Magic.spellList.attacks;
+	  $scope.counters = Magic.spellList.counters;
+	  $scope.enhancers = Magic.spellList.enhancers;
 
 	  $scope.initializeSpell = function (spell) {
 	    crit = false;
-	    avatar.disableAttackSpells();
-	    avatar.disableCounterSpells();
 
-	    if (spell.type === 'Attack') { // initialize the attack cycle
-	      spell = socket.attackWith(spell);
+	    if (spell.role !== 'enhancer') {
+	      avatar.disableAttackSpells();
+	      avatar.disableCounterSpells();
+	      if (spell.type === 'attack') { // initialize the attack cycle
+	        spell = socket.attackWith(spell);
+	      }
+	      spell.initTime = new Date().getTime();
+	      $scope.castingSpell = true;
+	      intervalPromise = $interval(changeIndexClass, speed);
+	      socket.castingSpell = true;
+	      // Inspect spell
+	      $scope.spell = spell;
+	      console.log(spell);
+	    } else {
+	      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
+	      socket.emit(E.ENHANCE, enhanceSpell);
 	    }
-
-	    spell.initTime = new Date().getTime();
-	    intervalPromise = $interval(changeIndexClass, speed);
-	    $scope.castingSpell = true;
-
-	    // Inspect spell
-	    $scope.spell = spell;
 	  };
 
 	  $scope.finalizeSpell = function(spell) {
 	    spell.finalTime = new Date().getTime();
 	    $scope.castingSpell = false;
+	    socket.castingSpell = false;
 	    $scope.castSpell(spell);
 	  };
 
 	  $scope.castSpell = function(spell) {
-	    console.log($scope.spellPower)
 	    var attackId = spell.attackId;
 	    var attack = {
 	      attackId: attackId,
@@ -47411,24 +47331,25 @@
 	    };
 
 	    switch (spell.type) {
-	      case 'Recover':
-	        break;
-	      case 'Defend':
-	        break;
-	      case 'Perry':
-	          var defensiveSpell = magic.castSpell(attackId)
+	      case 'perry':
+	          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId);
 	          socket.emit(E.PERRY, defensiveSpell);
+	          avatar.resetSpells(socket);
+	          socket.incomingSpell = null;
+	          avatar.flashMessage('-'+spell.cost+' mana');
 	        break;
-	      case 'Repost':
-	          var repostSpell = magic.castSpell(attackId)
+	      case 'repost':
+	          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId);
 	          socket.emit(E.REPOST, repostSpell);
+	          avatar.resetSpells(socket);
+	          socket.incomingSpell = null;
+	          avatar.flashMessage('-'+spell.cost+' mana');
 	        break;
 
-	      case 'Attack':
-	          var attackSpell = magic.castSpell(attack);
+	      case 'attack':
+	          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name});
 	          socket.emit(E.ATTACK, attackSpell);
-	          document.getElementById(socket.id + '-spell-message').innerHTML = '-# mana';
-	          setTimeout(function() { document.getElementById(socket.id + '-spell-message').innerHTML = '' }, 1500);
+	          avatar.flashMessage('-'+spell.cost+' mana');
 	        break;
 	    }
 	  };
@@ -47436,7 +47357,7 @@
 	  socket.on(E.ATTACK_PU, function(data) {
 	    if (data.targetId === socket.id) avatar.enableCounterSpells();
 	    avatars[data.casterId].addClass('purple');
-	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 1500);
+	    setTimeout(function(){ avatars[data.casterId].removeClass('purple'); }, 1500);
 	  });
 
 	  $scope.AttackSpells = [
@@ -47484,10 +47405,10 @@
 	  }
 
 	  $scope.stopMeter = function(){
-	    $scope.spellPower = getPower()
+	    $scope.spellPower = getPower();
 	    $interval.cancel(intervalPromise);
 	    $scope.finalizeSpell($scope.spell);
-	  }
+	  };
 
 	  var magic = {
 	    setPower: function() { return $scope.spellPower; }, //get power from powerBar
@@ -47504,9 +47425,8 @@
 	      };
 	      return spell;
 	    },
-	  }
+	  };
 	}
-
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(71)))
 
 /***/ },
@@ -47563,6 +47483,162 @@
 	  $scope.health = socket.health;
 	  $scope.mana = socket.mana;
 	}
+
+
+/***/ },
+/* 75 */,
+/* 76 */,
+/* 77 */
+/***/ function(module, exports) {
+
+	function enableWorldUpdates(wiz){
+	  wiz.getAvatar = function(){
+	    return document.getElementById(this.id);
+	  }
+	  wiz.toggleClass = function(className) {
+	    var avatar = this.getAvatar();
+	    if (avatar.classList.indexOf(className) !== -1) {
+	      avatar.classList.add(className)
+	    } else {
+	      avatar.classList.remove(className)
+	    }
+	  }
+	  // set and get vitals
+	  wiz.getVital = function(vital, actual) {
+	    var el = document.getElementById(this.id+ '-' + vital);
+	    if (actual) return el.style.width.split('%')[0];
+	    return el;
+	  }
+	  wiz.setVital = function(vital, value) {
+	    this.getVital(vital).style.width = value +'%';
+	  }
+	  // spell access
+	  wiz.enableSpellsBy = function(spellAttr, value) {
+	    var spells = document.getElementsByClassName('btn-spell')
+	    for (var i = 0; i < spells.length; i++ ){
+	      var spell = spells[i];
+	      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
+	        spell.removeAttribute('disabled')
+	      }
+	    }
+	  }
+	  wiz.disableSpellsBy = function(spellAttr, value) {
+	    var spells = document.getElementsByClassName('btn-spell')
+	    for (var i = 0; i < spells.length; i++ ){
+	      var spell = spells[i]
+	      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
+	        spell.setAttribute('disabled', 'disabled')
+	      }
+	    }
+	  }
+	  wiz.resetSpells = function(socket) {
+	    if (!socket.castingSpell) {
+	      this.enableSpellsBy('type', 'attack');
+	      this.enableSpellsBy('role', 'enhancer')
+	      this.disableSpellsBy('role', 'counter')
+	    }
+	  }
+	  // messages
+	  wiz.getMessageEl = function() {
+	    return document.getElementById(this.id + '-wizard-message')
+	  }
+	  wiz.updateMessage = function(el, msg) {
+	    el.innerHTML = msg;
+	  }
+	  wiz.setAvatarOverlayVisibility = function(visibility) {
+	    var el = document.getElementById(this.id + '-avatar-overlay')
+	    el.style.visibility = visibility;
+	  }
+	  wiz.flashMessage = function(msg) {
+	    // write message to element
+	    var messageEl = this.getMessageEl();
+	    this.updateMessage(messageEl, msg)
+	    // show message
+	    this.setAvatarOverlayVisibility('visible')
+	    var ths = this;
+	    setTimeout(function() {
+	      ths.setAvatarOverlayVisibility('hidden')
+	      ths.updateMessage(messageEl, '')
+	    }, 1500)
+	  }
+	  return wiz
+	}
+	module.exports = enableWorldUpdates;
+
+
+/***/ },
+/* 78 */
+/***/ function(module, exports) {
+
+	var wizardPhotos = [
+	  'walking_wizard.gif',
+	  'simpsons_wizard.jpg',
+	  'wizard_by_adam_brown.jpg',
+	  'cartman_wizard.png',
+	  'character_wizard.png',
+	  'DC_wizard.png',
+	  'eggplant_wizard_uprising.png',
+	  'evil_wizard.png',
+	  'merlin_the_wizard.png',
+	]
+	module.exports = wizardPhotos;
+
+
+/***/ },
+/* 79 */
+/***/ function(module, exports) {
+
+	var Magic = {
+	  setPower: function() {return Math.floor(Math.random() * 10 + 1);},
+	  setCrit: function() {
+	    var roll = Math.floor(Math.random() * 20 + 1);
+	    var crit = null;
+	    if (roll > 17) return 1;
+	    if (roll < 3) return -1;
+	    return 0;
+	  },
+	  setTime: function() {return new Date().getTime();},
+
+	  castSpell: function(attack, power, crit, timeShift) {
+	    var spell = {
+	      attackId: attack.attackId,
+	      power: power ? power : this.setPower(),
+	      crit: crit !== null ? crit : this.setCrit(),
+	      time: this.setTime() + timeShift,
+	      spellName: attack.spellName
+	    };
+	    return spell;
+	  },
+	  castEnhancer: function(spell, target) {
+	    var effect = {
+	      casterId: target,
+	      target: target,
+	      name: spell.name,
+	      effect: spell.type,
+	      power: spell.power,
+	      sideEffects: spell.sideEffects,
+	      cost: spell.cost,
+	    }
+	    return effect
+	  },
+	  spellList: {
+	    attacks: [
+	      { name: 'Magic Missile', type: 'attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
+	      {name: 'Water Coffin', type: 'attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
+	      {name: 'Wind Swords', type: 'attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
+	    ],
+	    counters: [
+	      { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'perry', target: 'foe', role: 'counter', afinity: 'basic', cost: 5 },
+	      { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'repost', target: 'foe', role: 'counter', afinity: 'basic', cost: 6 },
+	    ],
+	    enhancers: [
+	      {name: 'Heal', icon: 'ion-heart', type: 'recover-health', target: 'caster', role: 'enhancer', afinity: 'basic', cost: 5, power: 5},
+	      {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff-health', target: 'caster', role:'enhancer', afinity:'basic', cost: 5, duration:20},
+	    ]
+	  }
+	};
+
+	module.exports = Magic;
 
 
 /***/ }
