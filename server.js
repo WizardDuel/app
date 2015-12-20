@@ -37,11 +37,12 @@ var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/passport_test');
 
 
+
 //App Routing
-app.get('/', function(req, res) {
-  console.log('did we get here?');
-  res.sendFile(path.resolve(__dirname, './client/www/landing.html'));
-});
+// app.get('/', function(req, res) {
+//   console.log('did we get here?');
+//   res.sendFile(path.resolve(__dirname, './client/www/landing.html'));
+// });
 
 app.use(express.static(__dirname + '/client/www'));
 

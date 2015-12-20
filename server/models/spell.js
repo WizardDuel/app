@@ -1,10 +1,12 @@
 var mongoose = require('mongoose');
 
 var Spell = new mongoose.Schema({
+  name: String,
   type: String,
-  attack: Number,
-  defense: Number,
-  name: String
+  role: String,
+  affinity: String,
+  target: String,
+  cost: Number
 });
 
 module.exports = mongoose.model('Spell', Spell);

@@ -4,13 +4,14 @@ require('./assets/scss/style.scss');
 
 var angular = require('angular');
 var io = require('socket.io-client');
+var rootUrl = 'http://localhost:3000';
 
 angular.module('wizardApp', [
   require('./views/user-profile/profile.js'),
 ])
 .factory('socketIO', function() {
     return {
-      socket: io.connect('http://localhost:3000'),
+      socket: io.connect(rootUrl),
       E: {
         DUEL: 'Duel',
         BEGIN: 'Begin',                     //Loads Duel View
@@ -29,19 +30,19 @@ angular.module('wizardApp', [
         UPDATE: 'Update'
       }
     };
-  })
-  .service('ajax', function(){
-    this.ajaxGet = function(uri) {
-          return $http.get(uri)
-            .then(function(result) {
-              return result.data;
-            });
-          };
+})
+.service('ajaxService', function($http){
+  this.get = function(uri) {
+        return $http.get(rootUrl + uri)
+          .then(function(result) {
+            return result.data;
+          });
+        };
 
-    this.ajaxPost = function(uri) {
-          return $http.post(uri)
-            .then(function(result) {
-              return result.data;
-            });
-          };
-  });
+  this.post = function(uri) {
+        return $http.post(rootUrl + uri)
+          .then(function(result) {
+            return result.data;
+          });
+        };
+});
