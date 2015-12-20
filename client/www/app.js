@@ -29,4 +29,19 @@ angular.module('wizardApp', [
         UPDATE: 'Update'
       }
     };
+  })
+  .service('ajax', function(){
+    this.ajaxGet = function(uri) {
+          return $http.get(uri)
+            .then(function(result) {
+              return result.data;
+            });
+          };
+
+    this.ajaxPost = function(uri) {
+          return $http.post(uri)
+            .then(function(result) {
+              return result.data;
+            });
+          };
   });
