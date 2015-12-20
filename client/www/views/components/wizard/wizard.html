@@ -19,15 +19,22 @@
           <span id="{{wizard.id}}-spell-message" class="spell-message"></span>
         </div>
       </div>
+
       <div class="row">
         <div class="col">
           <h3>{{ wizard.user }}</h3>
         </div>
       </div>
       <div class="row">
-        <div class="col" class="avatar-container">
-          <img style="max-width: 75%; width: auto; height:auto" src="{{ wizard.avatar }}" alt="Avatar for {{ wizard.user }}" />
-
+        <div class="col">
+          <div class="holder">
+            <div class="avatar-container">
+              <img style="max-width: 75%; width: auto; height:auto" src="{{ wizard.avatar }}" alt="Avatar for {{ wizard.user }}" />
+            </div>
+            <div id="box-holder">
+              <div class="box"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

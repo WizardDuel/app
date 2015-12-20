@@ -57,8 +57,8 @@ function SpellsCtrl($scope, $timeout, socketIO) {
 
   $scope.initializeSpell = function (spell) {
     if (spell.role !== 'enhancer') {
-      avatar.disableAttackSpells();
-      avatar.disableCounterSpells();
+      avatar.disableSpellsBy('role', 'attack');
+      avatar.disableSpellsBy('role', 'counter');
       if (spell.type === 'attack') { // initialize the attack cycle
         spell = socket.attackWith(spell);
       }
@@ -94,8 +94,9 @@ function SpellsCtrl($scope, $timeout, socketIO) {
       case 'repost':
           var repostSpell = Magic.castSpell(socket.incomingSpell.attackId)
           socket.emit(E.REPOST, repostSpell);
-          avatar.resetSpells(socket)
+
           socket.incomingSpell = null
+          avatar.resetSpells(socket)
           avatar.flashMessage('-'+spell.cost+' mana')
         break;
 
@@ -108,9 +109,9 @@ function SpellsCtrl($scope, $timeout, socketIO) {
   };
 
   socket.on(E.ATTACK_PU, function(data) {
-    if (data.targetId === socket.id) avatar.enableCounterSpells()
-    avatars[data.casterId].addClass('purple');
-    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 1500)
+    socket.incomingSpell = data;
+    avatar.enableSpellsBy('role', 'counter')
+    avatar.showSpideySense();
   });
 
 

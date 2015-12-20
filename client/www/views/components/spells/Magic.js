@@ -9,7 +9,7 @@ var Magic = {
   },
   setTime: function() {return new Date().getTime();},
 
-  castSpell: function(attack, power, crit, timeShift) {
+    castSpell: function(attack, power, crit, timeShift) {
     var spell = {
       attackId: attack.attackId,
       power: power ? power : this.setPower(),

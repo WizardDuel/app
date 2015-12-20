@@ -533,7 +533,7 @@
 
 
 	// module
-	exports.push([module.id, "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\n/* view imports */\nheader {\n  height: 65px;\n  background-color: #c2b280;\n  position: fixed; }\n\ndiv.content-from-header.extra-specificity {\n  margin-top: 75px; }\n\n.game {\n  display: block;\n  background-color: tan;\n  hieght: 100%;\n  width: 200px;\n  border: solid 3px brown; }\n\n.stat-item {\n  display: block; }\n\n/* directive imports */\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n/* meter*/\n.spinner {\n  width: 250px;\n  height: 100px; }\n\n.section {\n  display: inline-block;\n  width: 2.5px;\n  hieght: 100px;\n  background-color: #222;\n  color: #222; }\n\n#section-id-0 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-1 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-2 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-3 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-4 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-5 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-6 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-7 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-8 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-9 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-10 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-11 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-12 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-13 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-14 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-15 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-16 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-17 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-18 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-19 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-20 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-21 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-22 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-23 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-24 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-25 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-26 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-27 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-28 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-29 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-30 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-31 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-32 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-33 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-34 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-35 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-36 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-37 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-38 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-39 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-40 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-41 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-42 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-43 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-44 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-45 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-46 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-47 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-48 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-49 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-50 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-51 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-52 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-53 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-54 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-55 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-56 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-57 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-58 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-59 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-60 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-61 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-62 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-63 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-64 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-65 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-66 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-67 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-68 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-69 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-70 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-71 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-72 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-73 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-74 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-75 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-76 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-77 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-78 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-79 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-80 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-81 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-82 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-83 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-84 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-85 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-86 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-87 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-88 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-89 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-90 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-91 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-92 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-93 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-94 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-95 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-96 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-97 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-98 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-99 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-100 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n.active-meter {\n  background-color: #000 !important;\n  color: #000 !important; }\n\n.enemy {\n  margin-bottom: 10%; }\n\n.avatar-container {\n  position: relative; }\n\n.avatar-overlay {\n  visibility: hidden;\n  position: absolute;\n  top: 250px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.foe {\n  visibility: hidden;\n  position: absolute;\n  top: 100px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.application-settings {\n  font-family: Galindo; }\n\n.background-image {\n  background: url(" + __webpack_require__(14) + ") no-repeat center center;\n  min-height: 100%;\n  background-size: auto; }\n\n/* add from style.css */\n#status-bars {\n  min-width: 120px;\n  max-width: 200px;\n  min-height: 50px;\n  padding: 0; }\n\n#spells {\n  min-width: 366px; }\n\n.spell-panel {\n  min-width: 122px; }\n\n.btn-spell {\n  width: 60px;\n  height: 80px;\n  margin-bottom: 2px;\n  font-size: x-small;\n  line-height: 1; }\n\n#power-vessle {\n  min-height: 80px; }\n\n#powerbar {\n  width: 122px; }\n\n#powerbar button {\n  line-height: 1;\n  max-heigth: 100px;\n  font-size: small;\n  border-radius: 25px; }\n\n.red {\n  background-color: red; }\n\n.status-bar {\n  margin-bottom: 5px;\n  border-radius: 2px; }\n\n.purple {\n  background-color: purple; }\n\n.container {\n  margin-top: 200px; }\n\n.health-bar {\n  background: #FF5656;\n  display: block;\n  height: 1em; }\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em; }\n\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n.spell-message {\n  display: inline-block;\n  height: 1rem; }\n", ""]);
+	exports.push([module.id, "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\n/* view imports */\nheader {\n  height: 65px;\n  background-color: #c2b280;\n  position: fixed; }\n\ndiv.content-from-header.extra-specificity {\n  margin-top: 75px; }\n\n.game {\n  display: block;\n  background-color: tan;\n  hieght: 100%;\n  width: 200px;\n  border: solid 3px brown; }\n\n.stat-item {\n  display: block; }\n\n/* directive imports */\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 7pt;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n/* meter*/\n.spinner {\n  width: 250px;\n  height: 100px; }\n\n.section {\n  display: inline-block;\n  width: 2.5px;\n  hieght: 100px;\n  background-color: #222;\n  color: #222; }\n\n#section-id-0 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-1 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-2 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-3 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-4 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-5 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-6 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-7 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-8 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-9 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-10 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-11 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-12 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-13 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-14 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-15 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-16 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-17 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-18 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-19 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-20 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-21 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-22 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-23 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-24 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-25 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-26 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-27 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-28 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-29 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-30 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-31 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-32 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-33 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-34 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-35 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-36 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-37 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-38 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-39 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-40 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-41 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-42 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-43 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-44 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-45 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-46 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-47 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-48 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-49 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-50 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-51 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-52 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-53 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-54 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-55 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-56 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-57 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-58 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-59 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-60 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-61 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-62 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-63 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-64 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-65 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-66 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-67 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-68 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-69 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-70 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-71 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-72 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-73 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-74 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-75 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-76 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-77 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-78 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-79 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-80 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-81 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-82 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-83 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-84 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-85 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-86 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-87 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-88 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-89 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-90 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-91 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-92 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-93 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-94 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-95 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-96 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-97 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-98 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-99 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-100 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n.active-meter {\n  background-color: #000 !important;\n  color: #000 !important; }\n\n.enemy {\n  margin-bottom: 10%; }\n\n.avatar-container {\n  position: absolute;\n  z-index: 99999;\n  max-width: 175px; }\n\n#box-holder {\n  position: relative;\n  max-width: 200px;\n  display: none; }\n\n.box {\n  position: absolute;\n  display: block;\n  width: 100px;\n  height: 100px;\n  background-image: url(" + __webpack_require__(79) + ");\n  background-size: contain; }\n\n.box {\n  -webkit-animation-name: pulsate;\n  -webkit-animation-duration: 1.5s;\n  -webkit-animation-iteration-count: infinite;\n  -webkit-animation-timing-function: linear; }\n\n@-webkit-keyframes pulsate {\n  0% {\n    margin-left: 50px;\n    margin-top: 50px;\n    width: 0px;\n    height: 0px;\n    -webkit-transform: rotate(0deg);\n    background-size: contain; }\n  50% {\n    margin-left: 0px;\n    margin-top: 0px;\n    width: 150px;\n    height: 150px;\n    background-size: contain;\n    -webkit-transform: rotate(180deg); }\n  100% {\n    margin-left: 50px;\n    margin-top: 50px;\n    width: 0px;\n    height: 0px;\n    -webkit-transform: rotate(0deg);\n    background-size: contain; } }\n\n.avatar-overlay {\n  visibility: hidden;\n  position: absolute;\n  top: 250px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.foe {\n  visibility: hidden;\n  position: absolute;\n  top: 100px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.application-settings {\n  font-family: Galindo; }\n\n.background-image {\n  background: url(" + __webpack_require__(14) + ") no-repeat center center;\n  min-height: 100%;\n  background-size: auto; }\n\n/* add from style.css */\n#status-bars {\n  min-width: 120px;\n  max-width: 200px;\n  min-height: 50px;\n  padding: 0; }\n\n#spells {\n  min-width: 366px; }\n\n.spell-panel {\n  min-width: 122px; }\n\n.btn-spell {\n  width: 60px;\n  height: 80px;\n  margin-bottom: 2px;\n  font-size: x-small;\n  line-height: 1; }\n\n#power-vessle {\n  min-height: 80px; }\n\n#powerbar {\n  width: 122px; }\n\n#powerbar button {\n  line-height: 1;\n  max-heigth: 100px;\n  font-size: small;\n  border-radius: 25px; }\n\n.red {\n  background-color: red; }\n\n.status-bar {\n  margin-bottom: 5px;\n  border-radius: 2px; }\n\n.purple {\n  background-color: purple; }\n\n.container {\n  margin-top: 200px; }\n\n.health-bar {\n  background: #FF5656;\n  display: block;\n  height: 1em; }\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em; }\n\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n.spacer {\n  min-height: 150px; }\n\n.spell-message {\n  display: inline-block;\n  height: 1rem; }\n", ""]);
 
 	// exports
 
@@ -36906,7 +36906,7 @@
 	/* WEBPACK VAR INJECTION */(function($) {module.exports = angular.module('wizardApp.profile', [
 	  __webpack_require__(69),
 	  __webpack_require__(71),
-	  __webpack_require__(73)
+	  __webpack_require__(75)
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -47294,13 +47294,13 @@
 /* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($) {var enableWorldUpdates = __webpack_require__(77);
-	var wizardPhotos = __webpack_require__(80)
+	/* WEBPACK VAR INJECTION */(function($) {var enableWorldUpdates = __webpack_require__(73);
+	var wizardPhotos = __webpack_require__(74)
 
 	module.exports = angular.module('wizardApp.duel', [
 	  __webpack_require__(69),
-	  __webpack_require__(73),
-	  __webpack_require__(74),
+	  __webpack_require__(75),
+	  __webpack_require__(77),
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -47341,25 +47341,21 @@
 	   socket.on(E.UPDATE, function(data) {
 	     var wizStats = data.wizStats;
 	     for (wiz in wizStats) {
-	       avatars[wiz].setHealth(wizStats[wiz].health);
-	       avatars[wiz].setMana(wizStats[wiz].mana);
+	       avatars[wiz].setVital('health', wizStats[wiz].health);
+	       avatars[wiz].setVital('mana', wizStats[wiz].mana);
 	     }
 	   })
 
 	   socket.on(E.MANA_REGEN, function(data) {
+	     console.log(data)
 	     for (var wiz in data) {
-	       avatars[wiz].setMana(data[wiz].mana);
+	       avatars[wiz].setVital('mana', data[wiz].mana);
 	     }
 	   });
 
-	  socket.on(E.ATTACK_PU, function(data) {
-	    socket.incomingSpell = data;
-	    avatars[data.casterId].addClass('purple');
-	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 500)
-	  });
-
 	  socket.on(E.RESOLVE_ATTACK, function(resolution) {
 	    // spell reset
+	    self.hideSpideySense()
 	    self.resetSpells(socket);
 	    // update world based on solution
 	    for (wiz in resolution.wizStats) {
@@ -47369,7 +47365,7 @@
 	      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health')
 	      // set vitals for combatants
 	      avatars[wiz].setVital('health', stats.health)
-	      avatars[wiz].setMana(stats.mana);
+	      avatars[wiz].setVital('mana', stats.mana);
 	    }
 	  });
 
@@ -47408,199 +47404,34 @@
 
 /***/ },
 /* 73 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* globals angular */
-	var Magic = __webpack_require__(79);
-
-	module.exports = angular.module('wizardApp.spells', [
-
-	  ])
-	  .directive('spells', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        spells: '=',
-	      },
-	      templateUrl: './views/components/spells/spells.html',
-	      controller: 'SpellsCtrl'
-	    };
-	  })
-
-	  .directive('powerBar', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      templateUrl: './views/components/spells/powerBar.html',
-	      controller: 'SpellsCtrl'
-	    };
-	  })
-
-	  .directive('spellPanel', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        spellList: '=list'
-	      },
-	      templateUrl: './views/components/spells/spellPanel.html',
-	      controller: 'SpellsCtrl'
-	    }
-	  })
-
-	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
-
-	  .name;
-
-	function SpellsCtrl($scope, $timeout, socketIO) {
-	  // set initial values for magic casting
-	  var E = socketIO.E;
-	  var socket = socketIO.socket;
-	  $scope.castingSpell = false; // shows powerbar when true
-	  // gain access to the world
-	  var avatars = socket.avatars
-	  var avatar = socket.avatars[socket.id]
-	  $scope.self = socket.id
-
-	  $scope.attacks = Magic.spellList.attacks;
-	  $scope.counters = Magic.spellList.counters;
-	  $scope.enhancers = Magic.spellList.enhancers;
-
-	  $scope.initializeSpell = function (spell) {
-	    if (spell.role !== 'enhancer') {
-	      avatar.disableAttackSpells();
-	      avatar.disableCounterSpells();
-	      if (spell.type === 'attack') { // initialize the attack cycle
-	        spell = socket.attackWith(spell);
-	      }
-	      spell.initTime = new Date().getTime()
-	      $scope.castingSpell = true;
-	      socket.castingSpell = true;
-	      // Inspect spell
-	      $scope.spell = spell
-	      console.log(spell)
-	    } else {
-	      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
-	      socket.emit(E.ENHANCE, enhanceSpell);
-	    }
-
-	  };
-
-	  $scope.finalizeSpell = function(spell) {
-	    spell.finalTime = new Date().getTime();
-	    $scope.castingSpell = false;
-	    socket.castingSpell = false;
-	    $scope.castSpell(spell);
-	  };
-
-	  $scope.castSpell = function(spell) {
-	    switch (spell.type) {
-	      case 'perry':
-	          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId)
-	          socket.emit(E.PERRY, defensiveSpell);
-	          avatar.resetSpells(socket)
-	          socket.incomingSpell = null;
-	          avatar.flashMessage('-'+spell.cost+' mana')
-	        break;
-	      case 'repost':
-	          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId)
-	          socket.emit(E.REPOST, repostSpell);
-	          avatar.resetSpells(socket)
-	          socket.incomingSpell = null
-	          avatar.flashMessage('-'+spell.cost+' mana')
-	        break;
-
-	      case 'attack':
-	          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name});
-	          socket.emit(E.ATTACK, attackSpell);
-	          avatar.flashMessage('-'+spell.cost+' mana')
-	        break;
-	    }
-	  };
-
-	  socket.on(E.ATTACK_PU, function(data) {
-	    if (data.targetId === socket.id) avatar.enableCounterSpells()
-	    avatars[data.casterId].addClass('purple');
-	    setTimeout(function(){ avatars[data.casterId].removeClass('purple') }, 1500)
-	  });
-
-
-
-	} // Spells controller
-
-
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.wizards', [
-	  __webpack_require__(75)
-	  ])
-	  .directive('wizards', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        wizards: '='
-	      },
-	      templateUrl: './views/components/wizards/wizards.html',
-	      controller: 'WizardsCtrl'
-	    };
-	  })
-
-	  .controller('WizardsCtrl', ['$scope', WizardsCtrl])
-
-	  .name;
-
-	function WizardsCtrl($scope) {
-
-	}
-
-
-/***/ },
-/* 75 */
-/***/ function(module, exports) {
-
-	module.exports = angular.module('wizardApp.wizard', [])
-	  .directive('wizard', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        wizard: '='
-	      },
-	      templateUrl: './views/components/wizard/wizard.html',
-	      controller: 'WizardCtrl'
-	    };
-	  })
-	  .controller('WizardCtrl', ['$scope', 'socketIO', WizardCtrl])
-	  .name;
-
-	function WizardCtrl($scope, socketIO) {
-	  var socket = socketIO.socket;
-	  $scope.health = socket.health;
-	  $scope.mana = socket.mana;
-	}
-
-
-/***/ },
-/* 76 */,
-/* 77 */
 /***/ function(module, exports) {
 
 	function enableWorldUpdates(wiz){
 	  wiz.getAvatar = function(){
 	    return document.getElementById(this.id);
 	  }
+	  wiz.showSpideySense = function() {
+	    var spideySense = document.getElementById('box-holder')
+	    spideySense.style.display = 'block';
+	  }
+	  wiz.hideSpideySense = function() {
+	    document.getElementById('box-holder').style.display = 'none';
+	  }
 	  wiz.toggleClass = function(className) {
 	    var avatar = this.getAvatar();
-	    if (avatar.classList.indexOf(className) !== -1) {
+	    classList = [];
+	    for (var i = 0; i < avatar.classList.length; i++){
+	      classList.push(avatar.classList[i])
+	    }
+	    console.log(classList.indexOf(className))
+	    if (classList.indexOf(className) === -1) {
+	      console.log('adding class name', className)
 	      avatar.classList.add(className)
+	      console.log(avatar.classList)
 	    } else {
+	      console.log('remove class name', className)
 	      avatar.classList.remove(className)
+	      console.log(avatar.classList)
 	    }
 	  }
 	  // set and get vitals
@@ -47667,8 +47498,150 @@
 
 
 /***/ },
-/* 78 */,
-/* 79 */
+/* 74 */
+/***/ function(module, exports) {
+
+	var wizardPhotos = [
+	  //'walking_wizard.gif',
+	  //'simpsons_wizard.jpg',
+	  //'wizard_by_adam_brown.jpg',
+	  'cartman_wizard.png',
+	  'character_wizard.png',
+	  //'DC_wizard.png',
+	  'eggplant_wizard_uprising.png',
+	  'evil_wizard.png',
+	  'merlin_the_wizard.png',
+	]
+	module.exports = wizardPhotos;
+
+
+/***/ },
+/* 75 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* globals angular */
+	var Magic = __webpack_require__(76);
+
+	module.exports = angular.module('wizardApp.spells', [
+
+	  ])
+	  .directive('spells', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        spells: '=',
+	      },
+	      templateUrl: './views/components/spells/spells.html',
+	      controller: 'SpellsCtrl'
+	    };
+	  })
+
+	  .directive('powerBar', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      templateUrl: './views/components/spells/powerBar.html',
+	      controller: 'SpellsCtrl'
+	    };
+	  })
+
+	  .directive('spellPanel', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        spellList: '=list'
+	      },
+	      templateUrl: './views/components/spells/spellPanel.html',
+	      controller: 'SpellsCtrl'
+	    }
+	  })
+
+	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+
+	  .name;
+
+	function SpellsCtrl($scope, $timeout, socketIO) {
+	  // set initial values for magic casting
+	  var E = socketIO.E;
+	  var socket = socketIO.socket;
+	  $scope.castingSpell = false; // shows powerbar when true
+	  // gain access to the world
+	  var avatars = socket.avatars
+	  var avatar = socket.avatars[socket.id]
+	  $scope.self = socket.id
+
+	  $scope.attacks = Magic.spellList.attacks;
+	  $scope.counters = Magic.spellList.counters;
+	  $scope.enhancers = Magic.spellList.enhancers;
+
+	  $scope.initializeSpell = function (spell) {
+	    if (spell.role !== 'enhancer') {
+	      avatar.disableSpellsBy('role', 'attack');
+	      avatar.disableSpellsBy('role', 'counter');
+	      if (spell.type === 'attack') { // initialize the attack cycle
+	        spell = socket.attackWith(spell);
+	      }
+	      spell.initTime = new Date().getTime()
+	      $scope.castingSpell = true;
+	      socket.castingSpell = true;
+	      // Inspect spell
+	      $scope.spell = spell
+	      console.log(spell)
+	    } else {
+	      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
+	      socket.emit(E.ENHANCE, enhanceSpell);
+	    }
+
+	  };
+
+	  $scope.finalizeSpell = function(spell) {
+	    spell.finalTime = new Date().getTime();
+	    $scope.castingSpell = false;
+	    socket.castingSpell = false;
+	    $scope.castSpell(spell);
+	  };
+
+	  $scope.castSpell = function(spell) {
+	    switch (spell.type) {
+	      case 'perry':
+	          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId)
+	          socket.emit(E.PERRY, defensiveSpell);
+	          avatar.resetSpells(socket)
+	          socket.incomingSpell = null;
+	          avatar.flashMessage('-'+spell.cost+' mana')
+	        break;
+	      case 'repost':
+	          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId)
+	          socket.emit(E.REPOST, repostSpell);
+
+	          socket.incomingSpell = null
+	          avatar.resetSpells(socket)
+	          avatar.flashMessage('-'+spell.cost+' mana')
+	        break;
+
+	      case 'attack':
+	          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name});
+	          socket.emit(E.ATTACK, attackSpell);
+	          avatar.flashMessage('-'+spell.cost+' mana')
+	        break;
+	    }
+	  };
+
+	  socket.on(E.ATTACK_PU, function(data) {
+	    socket.incomingSpell = data;
+	    avatar.enableSpellsBy('role', 'counter')
+	    avatar.showSpideySense();
+	  });
+
+
+
+	} // Spells controller
+
+
+/***/ },
+/* 76 */
 /***/ function(module, exports) {
 
 	var Magic = {
@@ -47682,7 +47655,7 @@
 	  },
 	  setTime: function() {return new Date().getTime();},
 
-	  castSpell: function(attack, power, crit, timeShift) {
+	    castSpell: function(attack, power, crit, timeShift) {
 	    var spell = {
 	      attackId: attack.attackId,
 	      power: power ? power : this.setPower(),
@@ -47725,22 +47698,66 @@
 
 
 /***/ },
-/* 80 */
+/* 77 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* globals angular */
+
+	module.exports = angular.module('wizardApp.wizards', [
+	  __webpack_require__(78)
+	  ])
+	  .directive('wizards', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        wizards: '='
+	      },
+	      templateUrl: './views/components/wizards/wizards.html',
+	      controller: 'WizardsCtrl'
+	    };
+	  })
+
+	  .controller('WizardsCtrl', ['$scope', WizardsCtrl])
+
+	  .name;
+
+	function WizardsCtrl($scope) {
+
+	}
+
+
+/***/ },
+/* 78 */
 /***/ function(module, exports) {
 
-	var wizardPhotos = [
-	  'walking_wizard.gif',
-	  'simpsons_wizard.jpg',
-	  'wizard_by_adam_brown.jpg',
-	  'cartman_wizard.png',
-	  'character_wizard.png',
-	  'DC_wizard.png',
-	  'eggplant_wizard_uprising.png',
-	  'evil_wizard.png',
-	  'merlin_the_wizard.png',
-	]
-	module.exports = wizardPhotos;
+	module.exports = angular.module('wizardApp.wizard', [])
+	  .directive('wizard', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        wizard: '='
+	      },
+	      templateUrl: './views/components/wizard/wizard.html',
+	      controller: 'WizardCtrl'
+	    };
+	  })
+	  .controller('WizardCtrl', ['$scope', 'socketIO', WizardCtrl])
+	  .name;
 
+	function WizardCtrl($scope, socketIO) {
+	  var socket = socketIO.socket;
+	  $scope.health = socket.health;
+	  $scope.mana = socket.mana;
+	}
+
+
+/***/ },
+/* 79 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "2080c725ccc4edb0f1ae22c9e4aa181e.png";
 
 /***/ }
 /******/ ]);
