@@ -3,8 +3,9 @@ module.exports = angular.module('wizardApp.profile', [
   require('../home/home.js'),
   require('../components/spells/spells')
 ])
-  .config(['$routeProvider', function($routeProvider) {
-    $routeProvider
+  .config(['$routeProvider', function($routeProvider, $httpProvider, $q, $location) {
+
+  $routeProvider
       .when('/profile', {
         controller: 'ProfileCtrl',
         controllerAs: 'home',

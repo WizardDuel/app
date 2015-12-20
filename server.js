@@ -36,7 +36,11 @@ passport.deserializeUser(Account.deserializeUser());
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/passport_test');
 
-
+var auth = function(req, res, next){
+  if(!req.isAuthenticated()){
+    res.send(401);
+  } else  next();
+};
 
 //App Routing
 // app.get('/', function(req, res) {
@@ -53,7 +57,7 @@ app.get('/play', function(req, res) {
 });
 
 var userRoutes = require('./server/routes/userRoutes.js');
-app.use('/user', userRoutes);
+app.use('/user', auth, userRoutes);
 
 var spellRoutes = require('./server/routes/spellRoutes.js');
 app.use('/spells', spellRoutes);
