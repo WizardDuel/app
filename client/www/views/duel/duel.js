@@ -44,26 +44,28 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
    socket.on(E.UPDATE, function(data) {
      var wizStats = data.wizStats;
-     for (var wiz in wizStats) {
-       avatars[wiz].setHealth(wizStats[wiz].health);
-       avatars[wiz].setMana(wizStats[wiz].mana);
+     for (wiz in wizStats) {
+       avatars[wiz].setVital('health', wizStats[wiz].health);
+       avatars[wiz].setVital('mana', wizStats[wiz].mana);
      }
    });
 
    socket.on(E.MANA_REGEN, function(data) {
+     console.log(data)
      for (var wiz in data) {
-       avatars[wiz].setMana(data[wiz].mana);
+       avatars[wiz].setVital('mana', data[wiz].mana);
      }
    });
 
-  socket.on(E.ATTACK_PU, function(data) {
-    socket.incomingSpell = data;
-    avatars[data.casterId].addClass('purple');
-    setTimeout(function(){ avatars[data.casterId].removeClass('purple'); }, 500);
-  });
+  // socket.on(E.ATTACK_PU, function(data) {
+  //   socket.incomingSpell = data;
+  //   avatars[data.casterId].addClass('purple');
+  //   setTimeout(function(){ avatars[data.casterId].removeClass('purple'); }, 500);
+  // });
 
   socket.on(E.RESOLVE_ATTACK, function(resolution) {
     // spell reset
+    self.hideSpideySense()
     self.resetSpells(socket);
     // update world based on solution
     for (var wiz in resolution.wizStats) {
@@ -72,8 +74,9 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
       var hDelta = avatars[wiz].getVital('health', true) - stats.health;
       if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health');
       // set vitals for combatants
-      avatars[wiz].setVital('health', stats.health);
-      avatars[wiz].setMana(stats.mana);
+
+      avatars[wiz].setVital('health', stats.health)
+      avatars[wiz].setVital('mana', stats.mana);
     }
   });
 
