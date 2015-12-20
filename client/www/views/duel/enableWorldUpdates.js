@@ -2,12 +2,28 @@ function enableWorldUpdates(wiz){
   wiz.getAvatar = function(){
     return document.getElementById(this.id);
   }
+  wiz.showSpideySense = function() {
+    var spideySense = document.getElementById('box-holder')
+    spideySense.style.display = 'block';
+  }
+  wiz.hideSpideySense = function() {
+    document.getElementById('box-holder').style.display = 'none';
+  }
   wiz.toggleClass = function(className) {
     var avatar = this.getAvatar();
-    if (avatar.classList.indexOf(className) !== -1) {
+    classList = [];
+    for (var i = 0; i < avatar.classList.length; i++){
+      classList.push(avatar.classList[i])
+    }
+    console.log(classList.indexOf(className))
+    if (classList.indexOf(className) === -1) {
+      console.log('adding class name', className)
       avatar.classList.add(className)
+      console.log(avatar.classList)
     } else {
+      console.log('remove class name', className)
       avatar.classList.remove(className)
+      console.log(avatar.classList)
     }
   }
   // set and get vitals
