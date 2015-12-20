@@ -5,10 +5,14 @@ module.exports = angular.module('wizardApp.profile', [
 ])
   .config(['$routeProvider', function($routeProvider) {
     $routeProvider
-      .when('/', {
+      .when('/profile', {
         controller: 'ProfileCtrl',
         controllerAs: 'home',
         templateUrl: './views/user-profile/profile.html'
+      })
+      .when('login', {
+        url: '/login',
+        templateUrl: '../../templates/login.html'
       });
   }])
 
