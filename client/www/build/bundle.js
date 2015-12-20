@@ -36766,7 +36766,7 @@
 	module.exports = angular.module('wizardApp.profile', [
 	  __webpack_require__(67),
 	  __webpack_require__(69),
-	  __webpack_require__(72)
+	  __webpack_require__(74)
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -37888,13 +37888,13 @@
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($) {var enableWorldUpdates = __webpack_require__(77);
-	var wizardPhotos = __webpack_require__(78)
+	/* WEBPACK VAR INJECTION */(function($) {var enableWorldUpdates = __webpack_require__(72);
+	var wizardPhotos = __webpack_require__(73)
 
 	module.exports = angular.module('wizardApp.duel', [
 	  __webpack_require__(67),
-	  __webpack_require__(72),
-	  __webpack_require__(73),
+	  __webpack_require__(74),
+	  __webpack_require__(76),
 	])
 	  .config(['$routeProvider', function($routeProvider) {
 	    $routeProvider
@@ -47218,11 +47218,108 @@
 
 /***/ },
 /* 72 */
+/***/ function(module, exports) {
+
+	function enableWorldUpdates(wiz){
+	  wiz.getAvatar = function(){
+	    return document.getElementById(this.id);
+	  }
+	  wiz.toggleClass = function(className) {
+	    var avatar = this.getAvatar();
+	    if (avatar.classList.indexOf(className) !== -1) {
+	      avatar.classList.add(className)
+	    } else {
+	      avatar.classList.remove(className)
+	    }
+	  }
+	  // set and get vitals
+	  wiz.getVital = function(vital, actual) {
+	    var el = document.getElementById(this.id+ '-' + vital);
+	    if (actual) return el.style.width.split('%')[0];
+	    return el;
+	  }
+	  wiz.setVital = function(vital, value) {
+	    this.getVital(vital).style.width = value +'%';
+	  }
+	  // spell access
+	  wiz.enableSpellsBy = function(spellAttr, value) {
+	    var spells = document.getElementsByClassName('btn-spell')
+	    for (var i = 0; i < spells.length; i++ ){
+	      var spell = spells[i];
+	      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
+	        spell.removeAttribute('disabled')
+	      }
+	    }
+	  }
+	  wiz.disableSpellsBy = function(spellAttr, value) {
+	    var spells = document.getElementsByClassName('btn-spell')
+	    for (var i = 0; i < spells.length; i++ ){
+	      var spell = spells[i]
+	      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
+	        spell.setAttribute('disabled', 'disabled')
+	      }
+	    }
+	  }
+	  wiz.resetSpells = function(socket) {
+	    if (!socket.castingSpell) {
+	      this.enableSpellsBy('type', 'attack');
+	      this.enableSpellsBy('role', 'enhancer')
+	      this.disableSpellsBy('role', 'counter')
+	    }
+	  }
+	  // messages
+	  wiz.getMessageEl = function() {
+	    return document.getElementById(this.id + '-wizard-message')
+	  }
+	  wiz.updateMessage = function(el, msg) {
+	    el.innerHTML = msg;
+	  }
+	  wiz.setAvatarOverlayVisibility = function(visibility) {
+	    var el = document.getElementById(this.id + '-avatar-overlay')
+	    el.style.visibility = visibility;
+	  }
+	  wiz.flashMessage = function(msg) {
+	    // write message to element
+	    var messageEl = this.getMessageEl();
+	    this.updateMessage(messageEl, msg)
+	    // show message
+	    this.setAvatarOverlayVisibility('visible')
+	    var ths = this;
+	    setTimeout(function() {
+	      ths.setAvatarOverlayVisibility('hidden')
+	      ths.updateMessage(messageEl, '')
+	    }, 1500)
+	  }
+	  return wiz
+	}
+	module.exports = enableWorldUpdates;
+
+
+/***/ },
+/* 73 */
+/***/ function(module, exports) {
+
+	var wizardPhotos = [
+	  'walking_wizard.gif',
+	  'simpsons_wizard.jpg',
+	  'wizard_by_adam_brown.jpg',
+	  'cartman_wizard.png',
+	  'character_wizard.png',
+	  'DC_wizard.png',
+	  'eggplant_wizard_uprising.png',
+	  'evil_wizard.png',
+	  'merlin_the_wizard.png',
+	]
+	module.exports = wizardPhotos;
+
+
+/***/ },
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {// var powerBar = require('../power-bar/powerBar.js');
 	/* globals angular */
-	var Magic = __webpack_require__(79);
+	var Magic = __webpack_require__(75);
 
 	module.exports = angular.module('wizardApp.spells', [
 	  ])
@@ -47430,162 +47527,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(71)))
 
 /***/ },
-/* 73 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* globals angular */
-
-	module.exports = angular.module('wizardApp.wizards', [
-	  __webpack_require__(74)
-	  ])
-	  .directive('wizards', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        wizards: '='
-	      },
-	      templateUrl: './views/components/wizards/wizards.html',
-	      controller: 'WizardsCtrl'
-	    };
-	  })
-
-	  .controller('WizardsCtrl', ['$scope', WizardsCtrl])
-
-	  .name;
-
-	function WizardsCtrl($scope) {
-
-	}
-
-
-/***/ },
-/* 74 */
-/***/ function(module, exports) {
-
-	module.exports = angular.module('wizardApp.wizard', [])
-	  .directive('wizard', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      scope: {
-	        wizard: '='
-	      },
-	      templateUrl: './views/components/wizard/wizard.html',
-	      controller: 'WizardCtrl'
-	    };
-	  })
-	  .controller('WizardCtrl', ['$scope', 'socketIO', WizardCtrl])
-	  .name;
-
-	function WizardCtrl($scope, socketIO) {
-	  var socket = socketIO.socket;
-	  $scope.health = socket.health;
-	  $scope.mana = socket.mana;
-	}
-
-
-/***/ },
-/* 75 */,
-/* 76 */,
-/* 77 */
-/***/ function(module, exports) {
-
-	function enableWorldUpdates(wiz){
-	  wiz.getAvatar = function(){
-	    return document.getElementById(this.id);
-	  }
-	  wiz.toggleClass = function(className) {
-	    var avatar = this.getAvatar();
-	    if (avatar.classList.indexOf(className) !== -1) {
-	      avatar.classList.add(className)
-	    } else {
-	      avatar.classList.remove(className)
-	    }
-	  }
-	  // set and get vitals
-	  wiz.getVital = function(vital, actual) {
-	    var el = document.getElementById(this.id+ '-' + vital);
-	    if (actual) return el.style.width.split('%')[0];
-	    return el;
-	  }
-	  wiz.setVital = function(vital, value) {
-	    this.getVital(vital).style.width = value +'%';
-	  }
-	  // spell access
-	  wiz.enableSpellsBy = function(spellAttr, value) {
-	    var spells = document.getElementsByClassName('btn-spell')
-	    for (var i = 0; i < spells.length; i++ ){
-	      var spell = spells[i];
-	      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
-	        spell.removeAttribute('disabled')
-	      }
-	    }
-	  }
-	  wiz.disableSpellsBy = function(spellAttr, value) {
-	    var spells = document.getElementsByClassName('btn-spell')
-	    for (var i = 0; i < spells.length; i++ ){
-	      var spell = spells[i]
-	      if (spell.getAttribute('data-spell-' + spellAttr) === value) {
-	        spell.setAttribute('disabled', 'disabled')
-	      }
-	    }
-	  }
-	  wiz.resetSpells = function(socket) {
-	    if (!socket.castingSpell) {
-	      this.enableSpellsBy('type', 'attack');
-	      this.enableSpellsBy('role', 'enhancer')
-	      this.disableSpellsBy('role', 'counter')
-	    }
-	  }
-	  // messages
-	  wiz.getMessageEl = function() {
-	    return document.getElementById(this.id + '-wizard-message')
-	  }
-	  wiz.updateMessage = function(el, msg) {
-	    el.innerHTML = msg;
-	  }
-	  wiz.setAvatarOverlayVisibility = function(visibility) {
-	    var el = document.getElementById(this.id + '-avatar-overlay')
-	    el.style.visibility = visibility;
-	  }
-	  wiz.flashMessage = function(msg) {
-	    // write message to element
-	    var messageEl = this.getMessageEl();
-	    this.updateMessage(messageEl, msg)
-	    // show message
-	    this.setAvatarOverlayVisibility('visible')
-	    var ths = this;
-	    setTimeout(function() {
-	      ths.setAvatarOverlayVisibility('hidden')
-	      ths.updateMessage(messageEl, '')
-	    }, 1500)
-	  }
-	  return wiz
-	}
-	module.exports = enableWorldUpdates;
-
-
-/***/ },
-/* 78 */
-/***/ function(module, exports) {
-
-	var wizardPhotos = [
-	  'walking_wizard.gif',
-	  'simpsons_wizard.jpg',
-	  'wizard_by_adam_brown.jpg',
-	  'cartman_wizard.png',
-	  'character_wizard.png',
-	  'DC_wizard.png',
-	  'eggplant_wizard_uprising.png',
-	  'evil_wizard.png',
-	  'merlin_the_wizard.png',
-	]
-	module.exports = wizardPhotos;
-
-
-/***/ },
-/* 79 */
+/* 75 */
 /***/ function(module, exports) {
 
 	var Magic = {
@@ -47639,6 +47581,62 @@
 	};
 
 	module.exports = Magic;
+
+
+/***/ },
+/* 76 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* globals angular */
+
+	module.exports = angular.module('wizardApp.wizards', [
+	  __webpack_require__(77)
+	  ])
+	  .directive('wizards', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        wizards: '='
+	      },
+	      templateUrl: './views/components/wizards/wizards.html',
+	      controller: 'WizardsCtrl'
+	    };
+	  })
+
+	  .controller('WizardsCtrl', ['$scope', WizardsCtrl])
+
+	  .name;
+
+	function WizardsCtrl($scope) {
+
+	}
+
+
+/***/ },
+/* 77 */
+/***/ function(module, exports) {
+
+	module.exports = angular.module('wizardApp.wizard', [])
+	  .directive('wizard', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      scope: {
+	        wizard: '='
+	      },
+	      templateUrl: './views/components/wizard/wizard.html',
+	      controller: 'WizardCtrl'
+	    };
+	  })
+	  .controller('WizardCtrl', ['$scope', 'socketIO', WizardCtrl])
+	  .name;
+
+	function WizardCtrl($scope, socketIO) {
+	  var socket = socketIO.socket;
+	  $scope.health = socket.health;
+	  $scope.mana = socket.mana;
+	}
 
 
 /***/ }
