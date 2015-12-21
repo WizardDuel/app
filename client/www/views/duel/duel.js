@@ -73,7 +73,15 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
     }
   });
 
-  socket.on('End of battle', function(msg) {
+  socket.on('End of battle', function() {
+    
+    $scope.$apply(function() {
+      $location.path('/');
+      $window.location.reload();
+    });
+  })
+
+  socket.on('disconnect', function(msg) {
     alert(msg)
     $scope.$apply(function() {
       $location.path('/');
