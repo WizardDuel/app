@@ -1,58 +1,63 @@
-<div id="spells" class="row">
-  <div class="col">
-    <div class="row">
-      <div id="{{self}}-avatar-overlay" class="avatar-overlay">
-        <span id="{{self}}-wizard-message" class="wizard-message"></span>
-        <span id="{{self}}-spell-message" class="spell-message"></span>
+<div class="card">
+
+
+  <div id="spells" class="row">
+    <div class="col">
+      <div class="row">
+        <div id="{{self}}-avatar-overlay" class="avatar-overlay">
+          <span id="{{self}}-wizard-message" class="wizard-message"></span>
+          <span id="{{self}}-spell-message" class="spell-message"></span>
+        </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col">
-        <div class="spell-panel">
-            <button
-              ng-repeat="spell in enhancers" ng-click="initializeSpell(spell)"
-              class="button btn-spell button-outline button-optimistic"
+      <div class="row">
+        <div class="col">
+          <div class="spell-panel">
+              <button
+                ng-repeat="spell in enhancers" ng-click="initializeSpell(spell)"
+                class="button btn-spell button-outline button-optimistic"
+                data-spell-type="{{spell.type}}"
+                data-spell-role="{{spell.role}}"
+                data-spell-cost="{{spell.cost}}">
+                {{ spell.name }}
+              </button>
+              <button
+              ng-repeat="spell in counters" ng-click="initializeSpell(spell)"
+              class="button btn-spell {{spell.stylesToAdd}}"
               data-spell-type="{{spell.type}}"
               data-spell-role="{{spell.role}}"
-              data-spell-cost="{{spell.cost}}">
+              data-spell-cost="{{spell.cost}}"
+              disabled>
               {{ spell.name }}
             </button>
-            <button
-            ng-repeat="spell in counters" ng-click="initializeSpell(spell)"
-            class="button btn-spell {{spell.stylesToAdd}}"
-            data-spell-type="{{spell.type}}"
-            data-spell-role="{{spell.role}}"
-            data-spell-cost="{{spell.cost}}"
-            disabled>
-            {{ spell.name }}
-          </button>
-        </div>
-      </div>
-      <div class="col">
-        <div class="row">
-          <div id="power-vessle">
-            <power-bar></power-bar>
           </div>
         </div>
-        <div class="row">
-          <div id="status-bars" class='col'>
-            <span id="{{self}}-health" class="health-bar status-bar" style="width:{{health}}%"></span>
-            <span id="{{self}}-mana" class="mana-bar status-bar" style="width:{{mana}}%"></span>
+        <div class="col">
+          <div class="row">
+            <div id="power-vessle">
+              <power-bar></power-bar>
+            </div>
+          </div>
+          <div class="row">
+            <div id="status-bars" class='col'>
+              <span id="{{self}}-health" class="health-bar status-bar" style="width:{{health}}%"></span>
+              <span id="{{self}}-mana" class="mana-bar status-bar" style="width:{{mana}}%"></span>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col">
-        <div class="spell-panel">
-            <button
-            ng-repeat="spell in attacks" ng-click="initializeSpell(spell)"
-            class="button btn-spell button-assertive"
-            data-spell-type="{{spell.type}}"
-            data-spell-cost="{{spell.cost}}"
-            data-spell-role="{{spell.role}}">
-            {{ spell.name }}
-          </button>
+        <div class="col">
+          <div class="spell-panel">
+              <button
+              ng-repeat="spell in attacks" ng-click="initializeSpell(spell)"
+              class="button btn-spell button-assertive"
+              data-spell-type="{{spell.type}}"
+              data-spell-cost="{{spell.cost}}"
+              data-spell-role="{{spell.role}}">
+              {{ spell.name }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
 </div>

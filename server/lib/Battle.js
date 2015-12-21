@@ -27,13 +27,10 @@ Battle.prototype.setFoesForDuel = function() {
 };
 
 Battle.prototype.startAttack = function(attackData) {
-  console.log('start attack:', attackData);
   this.attacks[attackData.attackId] = {targetId:attackData.targetId, casterId: attackData.casterId};
-  console.log(this.attacks);
 };
 
 Battle.prototype.perryAttack = function(data) {
-  console.log('register perry');
   if (!this.attacks[data.attackId]) this.attacks[data.attackId] = {};
   this.attacks[data.attackId].counterSpell = {spell: data};
   this.attacks[data.attackId].counterSpell.spell.type = 'perry';
@@ -46,17 +43,14 @@ Battle.prototype.counterAttack = function(spell) {
 };
 
 Battle.prototype.resolveAttack = function(attackSpell) {
-  console.log('resolve attack:', attackSpell)
   // get spells
   var resolution = {};
   var attack = this.attacks[attackSpell.attackId];
-  console.log(attack)
   if (attack.counterSpell) var counterSpell = attack.counterSpell.spell;
 
   if (counterSpell && counterSpell.time < attackSpell.time) {
     switch (counterSpell.type) {
       case 'perry':
-        console.log('perry, attackspell:', attackSpell)
         resolution = this.resolvePerry(attack, counterSpell, attackSpell);
         break;
       case 'repost':
@@ -64,7 +58,7 @@ Battle.prototype.resolveAttack = function(attackSpell) {
         break;
     }
   } else {
-    resolution = {targetId: attack.targetId, spellName: attackSpell.spellName, damage: attackSpell.power, casterId: attack.casterId};
+    resolution = {targetId: attack.targetId, spellName: attackSpell.spellName, damage: attackSpell.power, casterId: attack.casterId, spells:[attackSpell]};
   }
   return this.applyResolution(resolution)
 };
@@ -77,11 +71,11 @@ Battle.prototype.resolvePerry = function(attack, counterSpell, attackSpell) {
     msg: 'Attack perried!',
     counterCasterId: attack.targetId,
     casterId: attack.casterId,
+    spells: [attackSpell, counterSpell],
   }
 }
 
 Battle.prototype.resolveCrit = function(attackSpell, counterSpell) {
-  console.log('attackspell:',attackSpell)
   var outcome = null;
   switch (counterSpell.crit) {
     case -1:
@@ -142,19 +136,19 @@ Battle.prototype.resolveRepost = function(attack, counterSpell, attackSpell){
   }
   response.counterCasterId = attack.targetId;
   response.casterId = attack.casterId;
+  response.spells = [attackSpell, counterSpell]
   return response;
 };
 
 Battle.prototype.applyResolution = function(resolution) {
-  console.log('apply resolution:', resolution)
   this[resolution.targetId].health -= resolution.damage;
-  this[resolution.casterId].mana -= 5;
-  if (resolution.counterCaster) this[resolution.counterCasterId].mana -= 5;
+  resolution.spells.map(function(spell) {
+    this[spell.caster].spendMana(spell.cost)
+  }, this)
 
   this.sockets.map(function(wiz) {
     if (wiz.mana <= 0) wiz.mana = 0;
   })
-  console.log('health: ' + this.sockets[0].health + ' -- ' + this.sockets[1].health)
   if (this.sockets[0].health <= 0 || this.sockets[1].health <= 0) {
     var winner = this.sockets.filter(function(sk) {return sk.health > 0})[0]
     return {condition:'Victory', wizStats:this.wizStats(), winner:winner, targetId: resolution.targetId, casterId: resolution.casterId, spellName: resolution.spellName}

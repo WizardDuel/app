@@ -1,0 +1,16 @@
+<div>
+  <span class="powerTitle">Relase Magic</span>
+  <div id="powerbar"
+       class="power-meter"
+       ng-click="stopMeter()"
+       ng-show="castingSpell">
+    <div id="section-id-{{$index}}"
+         class="section"
+         ng-repeat="i in range(maxRange) track by $index">
+       &nbsp;
+    </div>
+    <div class="crit">
+      &nbsp;
+    </div>
+  </div>
+</div>
