@@ -5,18 +5,37 @@
   <div class="col-75">
     <section class="spell-lib" >
       <ul>
-        <li ng-repeat="spell in spells | filter: { inSpellBook: false} " ng-click="spell.inSpellBook=true">
+        <li ng-repeat="spell in spells | filter: { inSpellBook: false} " ng-click="addToBook(spell)">
           <span>{{spell.name}}</span>
         </li>
       </ul>
     </section>
     <button ng-click="playNow()">Go to Waiting Room</button>
-    <section class="spell-book">
-      <ul>
-        <li ng-click="spell.inSpellBook=false" ng-repeat="spell in spells | filter: { inSpellBook: true }">
-          <span>{{spell.name}}</span>
-        </li>
-      </ul>
+    <section class="spell-book row">
+      <div class='col-30'>
+        <h4>Attack Spells</h4>
+        <ul>
+          <li ng-click="spell.inSpellBook=false" ng-repeat="spell in spells | filter: { inSpellBook: true, role: 'attack'}">
+            <span>{{spell.name}}</span>
+          </li>
+        </ul>
+      </div>
+      <div class='col-30'>
+        <h4>Counter Spells</h4>
+        <ul>
+          <li ng-click="spell.inSpellBook=false" ng-repeat="spell in spells | filter: { inSpellBook: true, role: 'counter'}">
+            <span>{{spell.name}}</span>
+          </li>
+        </ul>
+      </div>
+      <div class='col-30'>
+        <h4>Enhancer Spells</h4>
+        <ul>
+          <li ng-click="spell.inSpellBook=false" ng-repeat="spell in spells | filter: { inSpellBook: true, role: 'enhancer'}">
+            <span>{{spell.name}}</span>
+          </li>
+        </ul>
+      </div>
     </section>
   </div>
   <section class="profile col-30">

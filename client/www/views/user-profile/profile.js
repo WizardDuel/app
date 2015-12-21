@@ -3,24 +3,30 @@ module.exports = angular.module('wizardApp.profile', [
   require('../home/home.js'),
   require('../components/spells/spells')
 ])
-  .config(['$routeProvider', function($routeProvider) {
-    $routeProvider
-      .when('/', {
+  .config(['$routeProvider', function($routeProvider, $httpProvider, $q, $location) {
+
+  $routeProvider
+      .when('/profile', {
         controller: 'ProfileCtrl',
         controllerAs: 'home',
         templateUrl: './views/user-profile/profile.html'
+      })
+      .when('login', {
+        url: '/login',
+        templateUrl: '../../templates/login.html'
       });
   }])
 
-  .controller('ProfileCtrl', ['$scope', '$location', '$timeout', '$interval', ProfileCtrl])
+  .controller('ProfileCtrl', ['$scope', '$location', '$interval', 'ajaxService', ProfileCtrl])
 
   .name;
 
-function ProfileCtrl($scope, $location, $timeout, $interval){
-  $scope.wins = 5;    //Database Call Needed
-  $scope.losses = 5;  //Database Call Needed
+function ProfileCtrl($scope, $location, $interval, ajaxService){
+  $scope.wins = 5;    //Database Call Needed to user profile
+  $scope.losses = 5;  //Database Call Needed to user profile
   $scope.winPercent = (100 * $scope.wins) / ($scope.wins + $scope.losses);
-  $scope.book = [];
+  $scope.book = { attack: [], enhancer: [], counter: [] };
+  spellRolesLengths = { attack: 3, enhancer: 2, counter: 2 };
 
   $scope.games = [
     { opponent: 'Bob', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'},
@@ -31,12 +37,25 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
     { opponent: 'Norm', result: 'Loss', spellbook: 'Fire Spells', damageDealt: 134, favoriteSpell: 'fireball'}
   ];
 
-  //Database Call Needed
-  $scope.spells = [
-    { inSpellBook: false, name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe' },
-    { inSpellBook: false, name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe'  },
-    { inSpellBook: false, name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
-  ];
+  // Database Call Needed
+  ajaxService.get('/spells').then(function(spells) {
+    $scope.spells = spells;
+    for(var i in spells){
+      $scope.spells[i].inSpellBook = false;
+    }
+  });
+
+  $scope.addToBook = function (spell) {
+    var role = spell.role;
+
+    if($scope.book[role].length < spellRolesLengths[role]) {
+      $scope.book[role].push(spell);
+      spell.inSpellBook = true;
+    } else {
+      alert('You cannot add any more spells in the ' + role + ' category');
+    }
+  };
+
 
   $scope.playNow = function() {
     $location.path('/waiting');
@@ -46,3 +65,4 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
     });
   };
 }
+

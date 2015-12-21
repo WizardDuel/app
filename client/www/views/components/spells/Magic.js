@@ -29,11 +29,20 @@ var Magic = {
       sideEffects: spell.sideEffects,
       cost: spell.cost,
     }
-    return effect
+    return effect;
   },
+
+  //get spells from user.
   spellList: {
     attacks: [
-      { name: 'Magic Missile', type: 'attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
+      {
+        name: 'Magic Missile',
+        type: 'attack',
+        target: 'foe',
+        role: 'attack',
+        afinity: 'basic',
+        cost: 5
+      },
       {name: 'Water Coffin', type: 'attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
       {name: 'Wind Swords', type: 'attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
     ],
