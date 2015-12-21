@@ -28,7 +28,6 @@
   "scripts": {
     "test": "mocha test/",
     "start": "nodemon server.js",
-    // "install": "bash ./configuration/install.sh",
     "build": "bash ./configuration/build.js"
   },
   "repository": {
