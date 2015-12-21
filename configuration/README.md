@@ -23,16 +23,35 @@ Views:
 
 ## Setup Instructions:
 ###Build
+
+To build a web app version of the app that will run on your local machine type the following command into the command line:
+```npm run build```
+Note: this will not work on windows based machines.
+
 #### Web App
-To build a web app version of this
-1. You will need to have mongo installed, or be using a database hosting service such as mongolab.
-2. You will need to run ```npm install```
-3. You will need to specify the webapp build in the configuration file located in the root directory of the app. 
-4. To run the program locally, you don't need to 
+To run the web app in the dev environmnet run ```npm start``` from the command line, and then navigate to [http://localhost:8100](http://localhost:8100) in your browser.
+
+If you would like to make a production change the values in the .config.js file in the configuration folder to match your needs.
+
 #### Android
+To build the app for android, navigate to the client directory of the application and enter the following ionic commands:
+1. ```ionic add platform android```
+2. ```ionic build platform android```
+3. ```ionic run platform android```
+
+If you don't have a device availble use ```emulate``` instead fo the ```run``` command. You may need to configure emulators on your local machine in order for that command to run.
+
 #### iOS
+To build the app for iOS, navigate to the client directory of the application and enter the following ionic commands:
+1. ```ionic add platform iOS```
+2. ```ionic build platform iOS```
+3. ```ionic run platform iOS```
+
+If you don't have a device availble use ```emulate``` instead fo the ```run``` command. You may need to configure emulators on your local machine in order for that command to run.
+
+Note you need to have an Mac to run this iOS build.
 
 Deploying using Heroku
 
 ## Contribute
-If this seems like an interesting project, and you would like to contribute feel free to Fork down this repository and mess with it.
+If this seems like an interesting project, and you would like to contribute feel free to check out the code. Although not currently inplace style and linting checks will in the future be done with Travis CI.

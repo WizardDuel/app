@@ -27,7 +27,8 @@
   },
   "scripts": {
     "test": "mocha test/",
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "build": "bash ./configuration/install.sh",
   },
   "repository": {
     "type": "git",

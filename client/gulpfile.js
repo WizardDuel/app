@@ -4,6 +4,8 @@ var sh = require('shelljs');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var webpack = require('webpack');
+var uglify = require('gulp-uglify');
+var rename = require('gulp-rename');
 
 var paths = {
   sass: './www/assets/scss/**/*',
@@ -11,15 +13,18 @@ var paths = {
   build: '.app'
 };
 
-gulp.task('watch', function() {
-  gulp.watch(paths, ['webpack']);
-});
-
 gulp.task('webpack', function() {
   webpack(require('./webpack.config.js'), function(err, stats) {
         if(err) throw new gutil.PluginError('webpack', err);
         gutil.log('[webpack]', stats.toString());
     });
+});
+
+gulp.task('compress-bundle', function() {
+  gulp.src('./wwww/asdfasdfbuild/*.js')
+    .pipe(rename({suffix: '.min'}))
+    .pipe(uglify())
+    .pipe(gulp.dest('.'));
 });
 
 gulp.task('install', ['git-check'], function() {
@@ -42,4 +47,4 @@ gulp.task('git-check', function(done) {
   done();
 });
 
-gulp.task('default', ['webpack']);
+gulp.task('default', ['webpack', 'compress']);
