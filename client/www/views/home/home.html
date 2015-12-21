@@ -5,9 +5,12 @@
   <div class="container">
     <div class="card">
       <div class="item item-text-wrap center">
-        <button ng-click="enterBattle()" class="button button-large butto   xn-block button-assertive">
-          Look For Matches
+        <button ng-click="enterBattle()" class="button button-large xn-block button-assertive">
+          Wait for opponent
         </button>
+        <div class="">
+          <span ng-bind="waiting"></span>
+        </div>
       </div>
     </div>
   </div>

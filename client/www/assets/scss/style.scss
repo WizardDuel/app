@@ -12,11 +12,25 @@
   font-family: $main-font;
 }
 
+.body{
+  height: 100%;
+}
+
+.main {
+  min-height: 100%;
+}
+
 // .background-image {
-//   background: url('../imgs/oldpaperbackground.jpg') no-repeat center center;
+//   background: url('../imgs/MTS_TheMerryeMakers-1256392-1armoury-mood.jpg') no-repeat center center;
 //   min-height:100%;
-//   background-size:cover;
+//   background-size:auto;
 // }
+
+.background-image {
+  background: url('../imgs/oldpaperbackground.jpg') no-repeat center center;
+  min-height:100%;
+  background-size:cover;
+}
 
 /* add from style.css */
 
