@@ -44,10 +44,13 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
   var E = socketIO.E;
   var socket = socketIO.socket;
   $scope.castingSpell = false; // shows powerbar when true
+  $scope.health = 100;
+  $scope.mana = 100;
 
   // gain access to the world
   var avatars = socket.avatars;
   var avatar = socket.avatars[socket.id];
+  var foe = socket.avatars[socket.getFoeId()]
   $scope.self = socket.id;
 
   $scope.range = function(n) {
@@ -80,6 +83,7 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
     } else {
       var enhanceSpell = Magic.castEnhancer(spell, socket.id);
       socket.emit(E.ENHANCE, enhanceSpell);
+
     }
   };
 
@@ -125,6 +129,33 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
     socket.incomingSpell = data;
     avatar.enableSpellsBy('role', 'counter');
     avatar.showSpideySense();
+  });
+
+  socket.on(E.RESOLVE_ATTACK, function(resolution) {
+    // spell reset
+    avatar.hideSpideySense();
+    avatar.resetSpells(socket);
+    // update world based on solution
+    for (var wiz in resolution.wizStats) {
+      var stats = resolution.wizStats[wiz];
+      console.log(avatars[wiz].getVital('health', true))
+      // send message
+      console.log('getvital', Number(avatars[wiz].getVital('health', true)))
+      console.log('stats', Number(stats.health))
+      if (Number(avatars[wiz].getVital('health', true)) === 0) {
+        var hDelta = 100 - stats.health
+      } else {
+        var hDelta = Number(avatars[wiz].getVital('health', true)) - Number(stats.health);
+      }
+      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health');
+      // set vitals for combatants
+
+      avatars[wiz].setVital('health', stats.health);
+      avatars[wiz].setVital('mana', stats.mana);
+    }
+    avatar.setSelfVitals(avatar.getVital('health', true), avatar.getVital('mana', true))
+    foe.setFoeVitals(foe.getVital('health', true), foe.getVital('mana', true))
+
   });
 
   //Power Bar Logic

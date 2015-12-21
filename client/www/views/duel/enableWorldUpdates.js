@@ -5,9 +5,14 @@ function enableWorldUpdates(wiz){
   wiz.showSpideySense = function() {
     var spideySense = document.getElementById('box-holder')
     spideySense.style.display = 'block';
+    var wawawa = document.getElementById('sound-wawawa')
+    wawawa.loop = true;
+    wawawa.play()
   }
   wiz.hideSpideySense = function() {
     document.getElementById('box-holder').style.display = 'none';
+    document.getElementById('sound-wawawa').pause()
+
   }
   wiz.toggleClass = function(className) {
     var avatar = this.getAvatar();
