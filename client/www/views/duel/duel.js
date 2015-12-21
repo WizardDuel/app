@@ -24,9 +24,13 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   var E = socketIO.E;
   socket.attacking = false;
 
-  var foe = { id: socket.getFoeId(), foeId: socket.id };
-  var self = { id: socket.id, foeId: foe.id };
+  var foe = { id: socket.getFoeId(), foeId: socket.id, health:100, mana:100 };
+  var self = { id: socket.id, foeId: foe.id, health:100, mana:100 };
   [self, foe].map(function(wiz) { enableWorldUpdates(wiz); });
+  foe.setVitals = function(health, mana){
+    document.getElementById('foe-health').innerHTML = this.getVital('health', true);
+    document.getElementById('foe-mana').innerHTML = this.getVital('mana', true);
+  }
   var avatars = {};
   avatars[foe.id] = foe;
   avatars[self.id] = self;
@@ -55,23 +59,6 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
        avatars[wiz].setVital('mana', data[wiz].mana);
      }
    });
-
-  socket.on(E.RESOLVE_ATTACK, function(resolution) {
-    // spell reset
-    self.hideSpideySense();
-    self.resetSpells(socket);
-    // update world based on solution
-    for (var wiz in resolution.wizStats) {
-      var stats = resolution.wizStats[wiz];
-      // send message
-      var hDelta = avatars[wiz].getVital('health', true) - stats.health;
-      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health');
-      // set vitals for combatants
-
-      avatars[wiz].setVital('health', stats.health);
-      avatars[wiz].setVital('mana', stats.mana);
-    }
-  });
 
   socket.on('End of battle', function() {
 
