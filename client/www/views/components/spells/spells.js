@@ -152,11 +152,8 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
       avatars[wiz].setVital('health', stats.health);
       avatars[wiz].setVital('mana', stats.mana);
     }
-    $scope.$apply(function(){
-      $scope.health = avatar.getVital('health', true)
-      $scope.mana = avatar.getVital('mana', true)
-    })
-    foe.setVitals(foe.getVital('health', true), foe.getVital('mana', true))
+    avatar.setSelfVitals(avatar.getVital('health', true), avatar.getVital('mana', true))
+    foe.setFoeVitals(foe.getVital('health', true), foe.getVital('mana', true))
 
   });
 

@@ -27,13 +27,19 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   var foe = { id: socket.getFoeId(), foeId: socket.id, health:100, mana:100 };
   var self = { id: socket.id, foeId: foe.id, health:100, mana:100 };
   [self, foe].map(function(wiz) { enableWorldUpdates(wiz); });
-  foe.setVitals = function(health, mana){
+  foe.setFoeVitals = function(health, mana){
     document.getElementById('foe-health').innerHTML = this.getVital('health', true);
     document.getElementById('foe-mana').innerHTML = this.getVital('mana', true);
+  }
+  self.setSelfVitals = function(health, mana){
+    document.getElementById('self-health').innerHTML = this.getVital('health', true);
+    document.getElementById('self-mana').innerHTML = this.getVital('mana', true);
   }
   var avatars = {};
   avatars[foe.id] = foe;
   avatars[self.id] = self;
+  avatars.foe = foe
+  avatars.self = self
   socket.avatars = avatars;
 
    // Socket events
@@ -49,9 +55,15 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
    socket.on(E.UPDATE, function(data) {
      var wizStats = data.wizStats;
      for (var wiz in wizStats) {
+       if (wiz === socket.id) {
+         var hDelta = wizStats[wiz].health - avatars[wiz].getVital('health', true)
+         avatars[wiz].flashMessage('+' + hDelta + ' health')
+       }
        avatars[wiz].setVital('health', wizStats[wiz].health);
        avatars[wiz].setVital('mana', wizStats[wiz].mana);
      }
+     self.setSelfVitals(self.getVital('health', true), self.getVital('mana', true))
+
    });
 
    socket.on(E.MANA_REGEN, function(data) {
