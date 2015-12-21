@@ -5,7 +5,7 @@ require('./assets/scss/style.scss');
 
 var angular = require('angular');
 var io = require('socket.io-client');
-// process.env.GameServer = 'https://wizardduel.herokuapp.com/';
+process.env.GameServer = 'https://wizardduel.herokuapp.com/';
 
 var rootUrl =  process.env.GameServer || 'http://localhost:3000';
 

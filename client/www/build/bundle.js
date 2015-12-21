@@ -51,7 +51,7 @@
 
 	var angular = __webpack_require__(18);
 	var io = __webpack_require__(20);
-	// process.env.GameServer = 'https://wizardduel.herokuapp.com/';
+	process.env.GameServer = 'https://wizardduel.herokuapp.com/';
 
 	var rootUrl =  process.env.GameServer || 'http://localhost:3000';
 
