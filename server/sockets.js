@@ -16,15 +16,20 @@ module.exports = function(io) {
       });
     }
 
-    socket.once(E.DUEL, function() {
+    socket.once(E.DUEL, function(data) {
 
       if (openBattles.length > 0) {
         battle = openBattles.pop();
-        battle.addCombatant(socket);
+        console.log(battle.names)
+        battle.addCombatant(socket, data.username);
         battle.setFoesForDuel();
-        io.to(battle.id).emit(E.BEGIN, {condition: 'Battle', wizStats: battle.wizStats()});
+        io.to(battle.id).emit(E.BEGIN, {
+          condition: 'Battle',
+          wizStats: battle.wizStats(),
+          names: battle.names()
+        });
       } else {
-        battle = new Battle(socket);
+        battle = new Battle(socket, data.username);
         openBattles.push(battle);
         io.sockets.connected[socket.id].emit('waiting for opponent');
       }

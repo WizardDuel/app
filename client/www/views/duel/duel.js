@@ -90,7 +90,7 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   });
 
   $scope.wizards = [
-    {user: 'Opponent',
+    {user: socket.username,
     avatar: '../../assets/imgs/' + wizardPhotos[Math.floor(Math.random() * wizardPhotos.length)],
     id: socket.getFoeId()
   }];

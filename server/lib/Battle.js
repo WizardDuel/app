@@ -1,22 +1,31 @@
 var uuid = require('node-uuid');
 
-function Battle(socket) {
+function Battle(socket, username) {
   this.id = uuid.v4();
   this.sockets = [];
-  this.addCombatant(socket);
+  this.addCombatant(socket, username);
   this.attacks = {};
   this.readyCount = 0;
 }
 
-Battle.prototype.addCombatant = function(socket) {
+Battle.prototype.addCombatant = function(socket, username) {
   this[socket.id] = socket;
   socket.join(this.id);
   socket.conditions = [];
   this.sockets.push(socket);
   socket.health = socket.mana = 100;
+  socket.username = username;
   socket.spendMana = function(amount) {
     this.mana -= amount;
-  }
+  };
+};
+
+Battle.prototype.names = function(){
+  var obj = {};
+  this.sockets.map(function(sock) {
+    obj[sock.id] = sock.username;
+  });
+  return obj;
 };
 
 Battle.prototype.setFoesForDuel = function() {
@@ -160,7 +169,7 @@ Battle.prototype.applyResolution = function(resolution) {
 Battle.prototype.wizStats = function() {
   var obj = {}
   this.sockets.map(function(sock) {
-    obj[sock.id] = {health: sock.health, mana: sock.mana}
+    obj[sock.id] = {health: sock.health, mana: sock.mana }
   });
   return obj;
 }
