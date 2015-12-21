@@ -35,6 +35,7 @@ If you would like to make a production change the values in the .config.js file 
 
 #### Android
 To build the app for android, navigate to the client directory of the application and enter the following ionic commands:
+
 1. ```ionic add platform android```
 2. ```ionic build platform android```
 3. ```ionic run platform android```
@@ -43,6 +44,7 @@ If you don't have a device availble use ```emulate``` instead fo the ```run``` c
 
 #### iOS
 To build the app for iOS, navigate to the client directory of the application and enter the following ionic commands:
+
 1. ```ionic add platform iOS```
 2. ```ionic build platform iOS```
 3. ```ionic run platform iOS```
