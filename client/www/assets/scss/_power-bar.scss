@@ -1,28 +1,23 @@
 /* meter*/
-$max: 100;
+$max: 50;
 
 @for $i from 0 through $max {
 
   #section-id-#{$i}{
     position: absolute;
-    top: #{$i}px;
-    bottom: #{$i}px;
-    left: #{$i}px;
-    right: #{$i}px;
-    background-color: rgb(255 - (($max - $i) * 2), ($max - $i) * 2, $i*($max/4));
-    // background-color: rgb(255 - $i , 150 * ($i - 2), $i*3);
+    top: #{$i}%;
+    bottom: #{$i}%;
+    left: #{$i}%;
+    right: #{$i}%;
+    background-color: rgb(155 + $i * 2, 150 + $i * 2, 200 + $i);
     border-radius: 100%;
   }
 }
 
-// .section {
-//   background-color: 
-// }
-
 #powerbar {
   position: relative;
-  height: 200px;
-  width: 200px;
+  height: $max * 2px;
+  width: $max * 2px;
   background-color: none;
 }
 
@@ -37,4 +32,13 @@ $max: 100;
   border: 2px solid #222;
   border-radius: 100%;
   z-index: 99999;
+}
+
+.power-title {
+  position: absolute;
+  top: 25px;
+  left: 25px;
+  right: 25px;
+  bottom: 25px;
+
 }
