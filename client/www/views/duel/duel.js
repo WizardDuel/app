@@ -1,5 +1,5 @@
 var enableWorldUpdates = require('./enableWorldUpdates');
-var wizardPhotos = require('../../assets/imgs/wizardPhotos')
+var wizardPhotos = require('../../assets/imgs/wizardPhotos');
 
 module.exports = angular.module('wizardApp.duel', [
   require('angular-route'),
@@ -26,11 +26,11 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
   var foe = { id: socket.getFoeId(), foeId: socket.id };
   var self = { id: socket.id, foeId: foe.id };
-  [self, foe].map(function(wiz) { enableWorldUpdates(wiz) })
-  var avatars = {}
+  [self, foe].map(function(wiz) { enableWorldUpdates(wiz); });
+  var avatars = {};
   avatars[foe.id] = foe;
   avatars[self.id] = self;
-  socket.avatars = avatars
+  socket.avatars = avatars;
 
    // Socket events
    angular.element(document).ready(function(){
@@ -38,20 +38,19 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
    });
 
    socket.on('Start', function(){
-     $scope.counter = 3;
+     $scope.counter = 4;
      $scope.countdown();
    });
 
    socket.on(E.UPDATE, function(data) {
      var wizStats = data.wizStats;
-     for (wiz in wizStats) {
+     for (var wiz in wizStats) {
        avatars[wiz].setVital('health', wizStats[wiz].health);
        avatars[wiz].setVital('mana', wizStats[wiz].mana);
      }
-   })
+   });
 
    socket.on(E.MANA_REGEN, function(data) {
-     console.log(data)
      for (var wiz in data) {
        avatars[wiz].setVital('mana', data[wiz].mana);
      }
@@ -59,22 +58,23 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
 
   socket.on(E.RESOLVE_ATTACK, function(resolution) {
     // spell reset
-    self.hideSpideySense()
+    self.hideSpideySense();
     self.resetSpells(socket);
     // update world based on solution
-    for (wiz in resolution.wizStats) {
+    for (var wiz in resolution.wizStats) {
       var stats = resolution.wizStats[wiz];
       // send message
-      var hDelta = avatars[wiz].getVital('health', true) - stats.health
-      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health')
+      var hDelta = avatars[wiz].getVital('health', true) - stats.health;
+      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health');
       // set vitals for combatants
-      avatars[wiz].setVital('health', stats.health)
+
+      avatars[wiz].setVital('health', stats.health);
       avatars[wiz].setVital('mana', stats.mana);
     }
   });
 
   socket.on('End of battle', function() {
-    
+
     $scope.$apply(function() {
       $location.path('/');
       $window.location.reload();
@@ -87,7 +87,7 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
       $location.path('/');
       $window.location.reload();
     });
-  })
+  });
 
   $scope.wizards = [
     {user: 'Opponent',
@@ -98,7 +98,7 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   $scope.countdown = function() {
     if($scope.counter === 0){
       $timeout.cancel(stopped);
-      $scope.counter = "Duel!";
+      $scope.counter = "Go!";
       $timeout(function() {
         $('.overlay').removeClass('overlay');
         $('.start-timer').hide();

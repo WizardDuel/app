@@ -533,7 +533,7 @@
 
 
 	// module
-	exports.push([module.id, "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\n/* view imports */\nheader {\n  height: 65px;\n  background-color: #c2b280;\n  position: fixed; }\n\ndiv.content-from-header.extra-specificity {\n  margin-top: 75px; }\n\n.game {\n  display: block;\n  background-color: tan;\n  hieght: 100%;\n  width: 200px;\n  border: solid 3px brown; }\n\n.stat-item {\n  display: block; }\n\n/* directive imports */\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 7pt;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n/* meter*/\n.spinner {\n  width: 250px;\n  height: 100px; }\n\n.section {\n  display: inline-block;\n  width: 2.5px;\n  hieght: 100px;\n  background-color: #222;\n  color: #222; }\n\n#section-id-0 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-1 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-2 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-3 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-4 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-5 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-6 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-7 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-8 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-9 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-10 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-11 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-12 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-13 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-14 {\n  background-color: #FF3840;\n  color: #FF3840; }\n\n#section-id-15 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-16 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-17 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-18 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-19 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-20 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-21 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-22 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-23 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-24 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-25 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-26 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-27 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-28 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-29 {\n  background-color: #FE5328;\n  color: #FE5328; }\n\n#section-id-30 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-31 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-32 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-33 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-34 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-35 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-36 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-37 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-38 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-39 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-40 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-41 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-42 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-43 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-44 {\n  background-color: #FE993A;\n  color: #FE993A; }\n\n#section-id-45 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-46 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-47 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-48 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-49 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-50 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-51 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-52 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-53 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-54 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-55 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-56 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-57 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-58 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-59 {\n  background-color: #FDBC3B;\n  color: #FDBC3B; }\n\n#section-id-60 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-61 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-62 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-63 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-64 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-65 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-66 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-67 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-68 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-69 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-70 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-71 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-72 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-73 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-74 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-75 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-76 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-77 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-78 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-79 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-80 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-81 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-82 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-83 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-84 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-85 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-86 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-87 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-88 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-89 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-90 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-91 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-92 {\n  background-color: #B6FC3E;\n  color: #B6FC3E; }\n\n#section-id-93 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-94 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-95 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-96 {\n  background-color: #D8FC3D;\n  color: #D8FC3D; }\n\n#section-id-97 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-98 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-99 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n#section-id-100 {\n  background-color: #FAFD3C;\n  color: #FAFD3C; }\n\n.active-meter {\n  background-color: #000 !important;\n  color: #000 !important; }\n\n.enemy {\n  margin-bottom: 10%; }\n\n.avatar-container {\n  position: absolute;\n  z-index: 99999;\n  max-width: 175px; }\n\n#box-holder {\n  position: relative;\n  max-width: 200px;\n  display: none; }\n\n.box {\n  position: absolute;\n  display: block;\n  width: 100px;\n  height: 100px;\n  background-image: url(" + __webpack_require__(79) + ");\n  background-size: contain; }\n\n.box {\n  -webkit-animation-name: pulsate;\n  -webkit-animation-duration: 1.5s;\n  -webkit-animation-iteration-count: infinite;\n  -webkit-animation-timing-function: linear; }\n\n@-webkit-keyframes pulsate {\n  0% {\n    margin-left: 50px;\n    margin-top: 50px;\n    width: 0px;\n    height: 0px;\n    -webkit-transform: rotate(0deg);\n    background-size: contain; }\n  50% {\n    margin-left: 0px;\n    margin-top: 0px;\n    width: 150px;\n    height: 150px;\n    background-size: contain;\n    -webkit-transform: rotate(180deg); }\n  100% {\n    margin-left: 50px;\n    margin-top: 50px;\n    width: 0px;\n    height: 0px;\n    -webkit-transform: rotate(0deg);\n    background-size: contain; } }\n\n.avatar-overlay {\n  visibility: hidden;\n  position: absolute;\n  top: 250px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.foe {\n  visibility: hidden;\n  position: absolute;\n  top: 100px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.application-settings {\n  font-family: Galindo; }\n\n.body {\n  height: 100%; }\n\n.main {\n  min-height: 100%; }\n\n.background-image {\n  background: url(" + __webpack_require__(80) + ") no-repeat center center;\n  min-height: 100%;\n  background-size: auto; }\n\n/* add from style.css */\n#status-bars {\n  min-width: 120px;\n  max-width: 200px;\n  min-height: 50px;\n  padding: 0; }\n\n#spells {\n  min-width: 366px; }\n\n.spell-panel {\n  min-width: 122px; }\n\n.btn-spell {\n  width: 60px;\n  height: 80px;\n  margin-bottom: 2px;\n  font-size: x-small;\n  line-height: 1; }\n\n#power-vessle {\n  min-height: 80px; }\n\n#powerbar {\n  width: 122px; }\n\n#powerbar button {\n  line-height: 1;\n  max-heigth: 100px;\n  font-size: small;\n  border-radius: 25px; }\n\n.red {\n  background-color: red; }\n\n.status-bar {\n  margin-bottom: 5px;\n  border-radius: 2px; }\n\n.purple {\n  background-color: purple; }\n\n.container {\n  margin-top: 200px; }\n\n.health-bar {\n  background: #FF5656;\n  display: block;\n  height: 1em; }\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em; }\n\n.start-timer {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  height: 100px;\n  width: 100px;\n  font-size: 300px;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n.spacer {\n  min-height: 150px; }\n\n.spell-message {\n  display: inline-block;\n  height: 1rem; }\n", ""]);
+	exports.push([module.id, "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline; }\n\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n  display: block; }\n\nbody {\n  line-height: 1; }\n\nol, ul {\n  list-style: none; }\n\nblockquote, q {\n  quotes: none; }\n\nblockquote:before, blockquote:after,\nq:before, q:after {\n  content: '';\n  content: none; }\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0; }\n\n/* view imports */\nheader {\n  height: 65px;\n  background-color: #c2b280;\n  position: fixed; }\n\ndiv.content-from-header.extra-specificity {\n  margin-top: 75px; }\n\n.game {\n  display: block;\n  background-color: tan;\n  hieght: 100%;\n  width: 200px;\n  border: solid 3px brown; }\n\n.stat-item {\n  display: block; }\n\n/* directive imports */\n.start-timer {\n  position: fixed;\n  top: 35%;\n  left: 45%;\n  height: 100px;\n  width: auto;\n  text-align: center;\n  font-size: 72pt;\n  color: #fff; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n/* meter*/\n#section-id-0 {\n  position: absolute;\n  top: 0%;\n  bottom: 0%;\n  left: 0%;\n  right: 0%;\n  background-color: #9b96c8;\n  border-radius: 100%; }\n\n#section-id-1 {\n  position: absolute;\n  top: 1%;\n  bottom: 1%;\n  left: 1%;\n  right: 1%;\n  background-color: #9d98c9;\n  border-radius: 100%; }\n\n#section-id-2 {\n  position: absolute;\n  top: 2%;\n  bottom: 2%;\n  left: 2%;\n  right: 2%;\n  background-color: #9f9aca;\n  border-radius: 100%; }\n\n#section-id-3 {\n  position: absolute;\n  top: 3%;\n  bottom: 3%;\n  left: 3%;\n  right: 3%;\n  background-color: #a19ccb;\n  border-radius: 100%; }\n\n#section-id-4 {\n  position: absolute;\n  top: 4%;\n  bottom: 4%;\n  left: 4%;\n  right: 4%;\n  background-color: #a39ecc;\n  border-radius: 100%; }\n\n#section-id-5 {\n  position: absolute;\n  top: 5%;\n  bottom: 5%;\n  left: 5%;\n  right: 5%;\n  background-color: #a5a0cd;\n  border-radius: 100%; }\n\n#section-id-6 {\n  position: absolute;\n  top: 6%;\n  bottom: 6%;\n  left: 6%;\n  right: 6%;\n  background-color: #a7a2ce;\n  border-radius: 100%; }\n\n#section-id-7 {\n  position: absolute;\n  top: 7%;\n  bottom: 7%;\n  left: 7%;\n  right: 7%;\n  background-color: #a9a4cf;\n  border-radius: 100%; }\n\n#section-id-8 {\n  position: absolute;\n  top: 8%;\n  bottom: 8%;\n  left: 8%;\n  right: 8%;\n  background-color: #aba6d0;\n  border-radius: 100%; }\n\n#section-id-9 {\n  position: absolute;\n  top: 9%;\n  bottom: 9%;\n  left: 9%;\n  right: 9%;\n  background-color: #ada8d1;\n  border-radius: 100%; }\n\n#section-id-10 {\n  position: absolute;\n  top: 10%;\n  bottom: 10%;\n  left: 10%;\n  right: 10%;\n  background-color: #afaad2;\n  border-radius: 100%; }\n\n#section-id-11 {\n  position: absolute;\n  top: 11%;\n  bottom: 11%;\n  left: 11%;\n  right: 11%;\n  background-color: #b1acd3;\n  border-radius: 100%; }\n\n#section-id-12 {\n  position: absolute;\n  top: 12%;\n  bottom: 12%;\n  left: 12%;\n  right: 12%;\n  background-color: #b3aed4;\n  border-radius: 100%; }\n\n#section-id-13 {\n  position: absolute;\n  top: 13%;\n  bottom: 13%;\n  left: 13%;\n  right: 13%;\n  background-color: #b5b0d5;\n  border-radius: 100%; }\n\n#section-id-14 {\n  position: absolute;\n  top: 14%;\n  bottom: 14%;\n  left: 14%;\n  right: 14%;\n  background-color: #b7b2d6;\n  border-radius: 100%; }\n\n#section-id-15 {\n  position: absolute;\n  top: 15%;\n  bottom: 15%;\n  left: 15%;\n  right: 15%;\n  background-color: #b9b4d7;\n  border-radius: 100%; }\n\n#section-id-16 {\n  position: absolute;\n  top: 16%;\n  bottom: 16%;\n  left: 16%;\n  right: 16%;\n  background-color: #bbb6d8;\n  border-radius: 100%; }\n\n#section-id-17 {\n  position: absolute;\n  top: 17%;\n  bottom: 17%;\n  left: 17%;\n  right: 17%;\n  background-color: #bdb8d9;\n  border-radius: 100%; }\n\n#section-id-18 {\n  position: absolute;\n  top: 18%;\n  bottom: 18%;\n  left: 18%;\n  right: 18%;\n  background-color: #bfbada;\n  border-radius: 100%; }\n\n#section-id-19 {\n  position: absolute;\n  top: 19%;\n  bottom: 19%;\n  left: 19%;\n  right: 19%;\n  background-color: #c1bcdb;\n  border-radius: 100%; }\n\n#section-id-20 {\n  position: absolute;\n  top: 20%;\n  bottom: 20%;\n  left: 20%;\n  right: 20%;\n  background-color: #c3bedc;\n  border-radius: 100%; }\n\n#section-id-21 {\n  position: absolute;\n  top: 21%;\n  bottom: 21%;\n  left: 21%;\n  right: 21%;\n  background-color: #c5c0dd;\n  border-radius: 100%; }\n\n#section-id-22 {\n  position: absolute;\n  top: 22%;\n  bottom: 22%;\n  left: 22%;\n  right: 22%;\n  background-color: #c7c2de;\n  border-radius: 100%; }\n\n#section-id-23 {\n  position: absolute;\n  top: 23%;\n  bottom: 23%;\n  left: 23%;\n  right: 23%;\n  background-color: #c9c4df;\n  border-radius: 100%; }\n\n#section-id-24 {\n  position: absolute;\n  top: 24%;\n  bottom: 24%;\n  left: 24%;\n  right: 24%;\n  background-color: #cbc6e0;\n  border-radius: 100%; }\n\n#section-id-25 {\n  position: absolute;\n  top: 25%;\n  bottom: 25%;\n  left: 25%;\n  right: 25%;\n  background-color: #cdc8e1;\n  border-radius: 100%; }\n\n#section-id-26 {\n  position: absolute;\n  top: 26%;\n  bottom: 26%;\n  left: 26%;\n  right: 26%;\n  background-color: #cfcae2;\n  border-radius: 100%; }\n\n#section-id-27 {\n  position: absolute;\n  top: 27%;\n  bottom: 27%;\n  left: 27%;\n  right: 27%;\n  background-color: #d1cce3;\n  border-radius: 100%; }\n\n#section-id-28 {\n  position: absolute;\n  top: 28%;\n  bottom: 28%;\n  left: 28%;\n  right: 28%;\n  background-color: #d3cee4;\n  border-radius: 100%; }\n\n#section-id-29 {\n  position: absolute;\n  top: 29%;\n  bottom: 29%;\n  left: 29%;\n  right: 29%;\n  background-color: #d5d0e5;\n  border-radius: 100%; }\n\n#section-id-30 {\n  position: absolute;\n  top: 30%;\n  bottom: 30%;\n  left: 30%;\n  right: 30%;\n  background-color: #d7d2e6;\n  border-radius: 100%; }\n\n#section-id-31 {\n  position: absolute;\n  top: 31%;\n  bottom: 31%;\n  left: 31%;\n  right: 31%;\n  background-color: #d9d4e7;\n  border-radius: 100%; }\n\n#section-id-32 {\n  position: absolute;\n  top: 32%;\n  bottom: 32%;\n  left: 32%;\n  right: 32%;\n  background-color: #dbd6e8;\n  border-radius: 100%; }\n\n#section-id-33 {\n  position: absolute;\n  top: 33%;\n  bottom: 33%;\n  left: 33%;\n  right: 33%;\n  background-color: #ddd8e9;\n  border-radius: 100%; }\n\n#section-id-34 {\n  position: absolute;\n  top: 34%;\n  bottom: 34%;\n  left: 34%;\n  right: 34%;\n  background-color: #dfdaea;\n  border-radius: 100%; }\n\n#section-id-35 {\n  position: absolute;\n  top: 35%;\n  bottom: 35%;\n  left: 35%;\n  right: 35%;\n  background-color: #e1dceb;\n  border-radius: 100%; }\n\n#section-id-36 {\n  position: absolute;\n  top: 36%;\n  bottom: 36%;\n  left: 36%;\n  right: 36%;\n  background-color: #e3deec;\n  border-radius: 100%; }\n\n#section-id-37 {\n  position: absolute;\n  top: 37%;\n  bottom: 37%;\n  left: 37%;\n  right: 37%;\n  background-color: #e5e0ed;\n  border-radius: 100%; }\n\n#section-id-38 {\n  position: absolute;\n  top: 38%;\n  bottom: 38%;\n  left: 38%;\n  right: 38%;\n  background-color: #e7e2ee;\n  border-radius: 100%; }\n\n#section-id-39 {\n  position: absolute;\n  top: 39%;\n  bottom: 39%;\n  left: 39%;\n  right: 39%;\n  background-color: #e9e4ef;\n  border-radius: 100%; }\n\n#section-id-40 {\n  position: absolute;\n  top: 40%;\n  bottom: 40%;\n  left: 40%;\n  right: 40%;\n  background-color: #ebe6f0;\n  border-radius: 100%; }\n\n#section-id-41 {\n  position: absolute;\n  top: 41%;\n  bottom: 41%;\n  left: 41%;\n  right: 41%;\n  background-color: #ede8f1;\n  border-radius: 100%; }\n\n#section-id-42 {\n  position: absolute;\n  top: 42%;\n  bottom: 42%;\n  left: 42%;\n  right: 42%;\n  background-color: #efeaf2;\n  border-radius: 100%; }\n\n#section-id-43 {\n  position: absolute;\n  top: 43%;\n  bottom: 43%;\n  left: 43%;\n  right: 43%;\n  background-color: #f1ecf3;\n  border-radius: 100%; }\n\n#section-id-44 {\n  position: absolute;\n  top: 44%;\n  bottom: 44%;\n  left: 44%;\n  right: 44%;\n  background-color: #f3eef4;\n  border-radius: 100%; }\n\n#section-id-45 {\n  position: absolute;\n  top: 45%;\n  bottom: 45%;\n  left: 45%;\n  right: 45%;\n  background-color: #f5f0f5;\n  border-radius: 100%; }\n\n#section-id-46 {\n  position: absolute;\n  top: 46%;\n  bottom: 46%;\n  left: 46%;\n  right: 46%;\n  background-color: #f7f2f6;\n  border-radius: 100%; }\n\n#section-id-47 {\n  position: absolute;\n  top: 47%;\n  bottom: 47%;\n  left: 47%;\n  right: 47%;\n  background-color: #f9f4f7;\n  border-radius: 100%; }\n\n#section-id-48 {\n  position: absolute;\n  top: 48%;\n  bottom: 48%;\n  left: 48%;\n  right: 48%;\n  background-color: #fbf6f8;\n  border-radius: 100%; }\n\n#section-id-49 {\n  position: absolute;\n  top: 49%;\n  bottom: 49%;\n  left: 49%;\n  right: 49%;\n  background-color: #fdf8f9;\n  border-radius: 100%; }\n\n#section-id-50 {\n  position: absolute;\n  top: 50%;\n  bottom: 50%;\n  left: 50%;\n  right: 50%;\n  background-color: snow;\n  border-radius: 100%; }\n\n#powerbar {\n  position: relative;\n  height: 100px;\n  width: 100px;\n  background-color: none; }\n\n.crit {\n  position: absolute;\n  top: 7px;\n  bottom: 7px;\n  left: 7px;\n  right: 7px;\n  border-radius: 100%;\n  background-color: transparent;\n  border: 2px solid #222;\n  border-radius: 100%;\n  z-index: 99999; }\n\n.power-title {\n  position: absolute;\n  top: 25px;\n  left: 25px;\n  right: 25px;\n  bottom: 25px; }\n\n.enemy {\n  margin-bottom: 10%; }\n\n.avatar-container {\n  position: absolute;\n  z-index: 99999;\n  max-width: 175px; }\n\n#box-holder {\n  position: relative;\n  max-width: 200px;\n  display: none; }\n\n.box {\n  position: absolute;\n  display: block;\n  width: 100px;\n  height: 100px;\n  background-image: url(" + __webpack_require__(81) + ");\n  background-size: contain; }\n\n.box {\n  -webkit-animation-name: pulsate;\n  -webkit-animation-duration: 1.5s;\n  -webkit-animation-iteration-count: infinite;\n  -webkit-animation-timing-function: linear; }\n\n@-webkit-keyframes pulsate {\n  0% {\n    margin-left: 50px;\n    margin-top: 50px;\n    width: 0px;\n    height: 0px;\n    -webkit-transform: rotate(0deg);\n    background-size: contain; }\n  50% {\n    margin-left: 0px;\n    margin-top: 0px;\n    width: 150px;\n    height: 150px;\n    background-size: contain;\n    -webkit-transform: rotate(180deg); }\n  100% {\n    margin-left: 50px;\n    margin-top: 50px;\n    width: 0px;\n    height: 0px;\n    -webkit-transform: rotate(0deg);\n    background-size: contain; } }\n\n.avatar-overlay {\n  visibility: hidden;\n  position: absolute;\n  top: 250px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.foe {\n  visibility: hidden;\n  position: absolute;\n  top: 100px;\n  background-color: #222;\n  color: ivory;\n  text-align: center;\n  width: 50%;\n  opacity: 0.75; }\n\n.application-settings {\n  font-family: Galindo; }\n\n.body {\n  height: 100%; }\n\n.main {\n  min-height: 100%; }\n\n.background-image {\n  background: url(" + __webpack_require__(80) + ") no-repeat center center;\n  min-height: 100%;\n  background-size: auto; }\n\n/* add from style.css */\n#status-bars {\n  min-width: 120px;\n  max-width: 200px;\n  min-height: 50px;\n  padding: 0; }\n\n#spells {\n  min-width: 366px; }\n\n.spell-panel {\n  min-width: 122px; }\n\n.btn-spell {\n  width: 60px;\n  height: 80px;\n  margin-bottom: 2px;\n  font-size: x-small;\n  line-height: 1; }\n\n#power-vessle {\n  min-height: 80px; }\n\n.red {\n  background-color: red; }\n\n.status-bar {\n  margin-bottom: 5px;\n  border-radius: 2px; }\n\n.purple {\n  background-color: purple; }\n\n.container {\n  margin-top: 200px; }\n\n.health-bar {\n  background: #FF5656;\n  display: block;\n  height: 1em; }\n\n.mana-bar {\n  background: #A621FF;\n  display: block;\n  height: 1em; }\n\n.overlay {\n  position: absolute;\n  top: 0;\n  background-color: #222;\n  width: 100%;\n  opacity: 0.75;\n  height: 99999px; }\n\n.spacer {\n  min-height: 150px; }\n\n.spell-message {\n  display: inline-block;\n  height: 1rem; }\n", ""]);
 
 	// exports
 
@@ -36898,7 +36898,7 @@
 /* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function($) {module.exports = angular.module('wizardApp.profile', [
+	module.exports = angular.module('wizardApp.profile', [
 	  __webpack_require__(69),
 	  __webpack_require__(71),
 	  __webpack_require__(75)
@@ -36938,10 +36938,6 @@
 	    { inSpellBook: false, name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
 	  ];
 
-	  $scope.range = function(n) {
-	    return new Array(n);
-	  };
-
 	  $scope.playNow = function() {
 	    $location.path('/waiting');
 
@@ -36949,54 +36945,8 @@
 	      return spell.inSpellBook;
 	    });
 	  };
-
-	  $scope.speed = 1; //ms
-	  $scope.maxRange = 100;
-	  $scope.meterStarted = false;
-	  $scope.counter = $scope.maxRange / 2;
-
-	  var index = 0;
-	  var last;
-	  var decrement = false;
-	  var intervalPromise;
-
-
-	  function changeIndexClass() {
-	    $('#section-id-' + index).addClass('active-meter');
-	    $('#section-id-' + last).removeClass('active-meter');
-	    last = index;
-
-	    if(index === $scope.maxRange) decrement = true;
-	    if(index === 0) decrement = false;
-
-	    if(decrement) index--;
-	    else index++;
-	  }
-
-	  function stopMeter(){
-	    $interval.cancel(intervalPromise);
-	    $scope.power = index;
-	    $scope.meterStarted = false;
-	    $('.section').removeClass('active-meter');
-	    console.log($scope.power);
-	  }
-
-	  $scope.meterClick = function(){
-	    console.log('clicked');
-
-	    if(!$scope.meterStarted) {
-	      $scope.meterStarted = true;
-	      intervalPromise = $interval(changeIndexClass, $scope.speed);
-	    } else {
-	      stopMeter();
-	    }
-	  };
-
-	  $scope.$on('$destroy', function() {
-	    stopMeter();
-	  });
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(68)))
+
 
 /***/ },
 /* 68 */
@@ -47290,7 +47240,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function($) {var enableWorldUpdates = __webpack_require__(73);
-	var wizardPhotos = __webpack_require__(74)
+	var wizardPhotos = __webpack_require__(74);
 
 	module.exports = angular.module('wizardApp.duel', [
 	  __webpack_require__(69),
@@ -47317,11 +47267,11 @@
 
 	  var foe = { id: socket.getFoeId(), foeId: socket.id };
 	  var self = { id: socket.id, foeId: foe.id };
-	  [self, foe].map(function(wiz) { enableWorldUpdates(wiz) })
-	  var avatars = {}
+	  [self, foe].map(function(wiz) { enableWorldUpdates(wiz); });
+	  var avatars = {};
 	  avatars[foe.id] = foe;
 	  avatars[self.id] = self;
-	  socket.avatars = avatars
+	  socket.avatars = avatars;
 
 	   // Socket events
 	   angular.element(document).ready(function(){
@@ -47329,20 +47279,19 @@
 	   });
 
 	   socket.on('Start', function(){
-	     $scope.counter = 3;
+	     $scope.counter = 4;
 	     $scope.countdown();
 	   });
 
 	   socket.on(E.UPDATE, function(data) {
 	     var wizStats = data.wizStats;
-	     for (wiz in wizStats) {
+	     for (var wiz in wizStats) {
 	       avatars[wiz].setVital('health', wizStats[wiz].health);
 	       avatars[wiz].setVital('mana', wizStats[wiz].mana);
 	     }
-	   })
+	   });
 
 	   socket.on(E.MANA_REGEN, function(data) {
-	     console.log(data)
 	     for (var wiz in data) {
 	       avatars[wiz].setVital('mana', data[wiz].mana);
 	     }
@@ -47350,22 +47299,23 @@
 
 	  socket.on(E.RESOLVE_ATTACK, function(resolution) {
 	    // spell reset
-	    self.hideSpideySense()
+	    self.hideSpideySense();
 	    self.resetSpells(socket);
 	    // update world based on solution
-	    for (wiz in resolution.wizStats) {
+	    for (var wiz in resolution.wizStats) {
 	      var stats = resolution.wizStats[wiz];
 	      // send message
-	      var hDelta = avatars[wiz].getVital('health', true) - stats.health
-	      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health')
+	      var hDelta = avatars[wiz].getVital('health', true) - stats.health;
+	      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health');
 	      // set vitals for combatants
-	      avatars[wiz].setVital('health', stats.health)
+
+	      avatars[wiz].setVital('health', stats.health);
 	      avatars[wiz].setVital('mana', stats.mana);
 	    }
 	  });
 
 	  socket.on('End of battle', function() {
-	    
+
 	    $scope.$apply(function() {
 	      $location.path('/');
 	      $window.location.reload();
@@ -47378,7 +47328,7 @@
 	      $location.path('/');
 	      $window.location.reload();
 	    });
-	  })
+	  });
 
 	  $scope.wizards = [
 	    {user: 'Opponent',
@@ -47389,7 +47339,7 @@
 	  $scope.countdown = function() {
 	    if($scope.counter === 0){
 	      $timeout.cancel(stopped);
-	      $scope.counter = "Duel!";
+	      $scope.counter = "Go!";
 	      $timeout(function() {
 	        $('.overlay').removeClass('overlay');
 	        $('.start-timer').hide();
@@ -47522,11 +47472,11 @@
 /* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/* WEBPACK VAR INJECTION */(function($) {// var powerBar = require('../power-bar/powerBar.js');
 	/* globals angular */
 	var Magic = __webpack_require__(76);
 
 	module.exports = angular.module('wizardApp.spells', [
-
 	  ])
 	  .directive('spells', function() {
 	    return {
@@ -47539,16 +47489,6 @@
 	      controller: 'SpellsCtrl'
 	    };
 	  })
-
-	  .directive('powerBar', function() {
-	    return {
-	      restrict: 'E',
-	      replace: true,
-	      templateUrl: './views/components/spells/powerBar.html',
-	      controller: 'SpellsCtrl'
-	    };
-	  })
-
 	  .directive('spellPanel', function() {
 	    return {
 	      restrict: 'E',
@@ -47558,90 +47498,183 @@
 	      },
 	      templateUrl: './views/components/spells/spellPanel.html',
 	      controller: 'SpellsCtrl'
-	    }
+	    };
+	  })
+	  .directive('powerBar', function() {
+	    return {
+	      restrict: 'E',
+	      replace: true,
+	      templateUrl: './views/components/power-bar/powerBar.html',
+	      controller: 'SpellsCtrl'
+	    };
 	  })
 
-	  .controller('SpellsCtrl', ['$scope', '$timeout', 'socketIO', SpellsCtrl])
+	  .controller('SpellsCtrl', ['$scope', '$timeout', '$interval', 'socketIO', SpellsCtrl])
 
 	  .name;
 
-	function SpellsCtrl($scope, $timeout, socketIO) {
+	function SpellsCtrl($scope, $timeout, $interval, socketIO) {
 	  // set initial values for magic casting
 	  var E = socketIO.E;
 	  var socket = socketIO.socket;
 	  $scope.castingSpell = false; // shows powerbar when true
+
 	  // gain access to the world
-	  var avatars = socket.avatars
-	  var avatar = socket.avatars[socket.id]
-	  $scope.self = socket.id
+	  var avatars = socket.avatars;
+	  var avatar = socket.avatars[socket.id];
+	  $scope.self = socket.id;
+
+
+	  $scope.range = function(n) {
+	    return new Array(n);
+	  };
+
+	  $scope.$on('$destroy', function() {
+	    $scope.stopMeter();
+	  });
 
 	  $scope.attacks = Magic.spellList.attacks;
 	  $scope.counters = Magic.spellList.counters;
 	  $scope.enhancers = Magic.spellList.enhancers;
 
 	  $scope.initializeSpell = function (spell) {
+	    crit = false;
+
 	    if (spell.role !== 'enhancer') {
+	      intervalPromise = $interval(changeIndexClass, speed);
 	      avatar.disableSpellsBy('role', 'attack');
 	      avatar.disableSpellsBy('role', 'counter');
 	      if (spell.type === 'attack') { // initialize the attack cycle
 	        spell = socket.attackWith(spell);
 	      }
-	      spell.initTime = new Date().getTime()
+	      spell.initTime = new Date().getTime();
 	      $scope.castingSpell = true;
-	      socket.castingSpell = true;
+
 	      // Inspect spell
-	      $scope.spell = spell
-	      console.log(spell)
+	      $scope.spell = spell;
 	    } else {
 	      var enhanceSpell = Magic.castEnhancer(spell, socket.id);
 	      socket.emit(E.ENHANCE, enhanceSpell);
 	    }
-
 	  };
 
 	  $scope.finalizeSpell = function(spell) {
 	    spell.finalTime = new Date().getTime();
 	    $scope.castingSpell = false;
-	    socket.castingSpell = false;
 	    $scope.castSpell(spell);
 	  };
 
 	  $scope.castSpell = function(spell) {
+	    var attackId = spell.attackId;
+	    var attack = {
+	      attackId: attackId,
+	      spellName: spell.name
+	    };
+
 	    switch (spell.type) {
 	      case 'perry':
-	          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId)
+	          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId, $scope.spellPower, $scope.crit);
 	          socket.emit(E.PERRY, defensiveSpell);
-	          avatar.resetSpells(socket)
+	          avatar.resetSpells(socket);
 	          socket.incomingSpell = null;
-	          avatar.flashMessage('-'+spell.cost+' mana')
+	          avatar.flashMessage('-'+spell.cost+' mana');
 	        break;
 	      case 'repost':
-	          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId)
+	          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId, $scope.spellPower, $scope.crit);
 	          socket.emit(E.REPOST, repostSpell);
 
-	          socket.incomingSpell = null
-	          avatar.resetSpells(socket)
-	          avatar.flashMessage('-'+spell.cost+' mana')
+	          socket.incomingSpell = null;
+	          avatar.resetSpells(socket);
+	          avatar.flashMessage('-'+spell.cost+' mana');
 	        break;
 
 	      case 'attack':
-	          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name});
+	          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name}, $scope.spellPower, $scope.crit);
+	          console.log(attackSpell)
+	          console.log($scope.spellPower)
 	          socket.emit(E.ATTACK, attackSpell);
-	          avatar.flashMessage('-'+spell.cost+' mana')
+	          avatar.flashMessage('-'+spell.cost+' mana');
 	        break;
 	    }
 	  };
 
 	  socket.on(E.ATTACK_PU, function(data) {
 	    socket.incomingSpell = data;
-	    avatar.enableSpellsBy('role', 'counter')
+	    avatar.enableSpellsBy('role', 'counter');
 	    avatar.showSpideySense();
 	  });
 
+	  $scope.AttackSpells = [
+	    { name: 'Magic Missile', type: 'Attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
+	    {name: 'Water Coffin', type: 'Attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
+	    {name: 'Wind Swords', type: 'Attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
+	  ];
+	  $scope.nonAttackSpells  = [
+	    {name: 'Heal', icon: 'ion-heart', type: 'recovery', target: 'caster', role: 'heal', afinity: 'basic', cost: 5, power: 5},
+	    {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff', target: 'caster', role:'buff', afinity:'basic', cost: 5, duration: 15},
+	    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe', role: 'perry', afinity: 'basic', cost: 5 },
+	    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
+	  ];
 
+	//Power Bar Logic
+	  $scope.spellPower = 0;
+	  $scope.crit = 0;
+	  $scope.maxRange = 50;
+	  var critValue = 7;
+	  var speed = 7; //ms
+	  var index = $scope.maxRange;
+	  var lastIndex;
+	  var decrement = false;
+	  var intervalPromise;
 
-	} // Spells controller
+	  function changeIndexClass() {
+	    lastIndex = index;
 
+	    if(index === $scope.maxRange) decrement = true;
+	    if(index === 0) decrement = false;
+
+	    if(decrement) {
+	      $('#section-id-' + lastIndex).show();
+	      index--;
+	    } else {
+	      $('#section-id-' + index).hide();
+	      index++;
+	    }
+	  }
+
+	  function getPower() {
+	    var power;
+
+	    if(index < critValue + 1 && index > critValue - 1 ){
+	      $scope.crit = 1;
+	    } else if (index > $scope.maxRange / 2) {
+	      $scope.crit = -1;
+	    } else {
+	      $scope.crit = 0;
+	    }
+
+	    if(index < critValue){
+	      power =  Math.floor(Math.abs(critValue) / Math.abs(index - critValue));
+	    } else if (index > critValue) {
+	      power = Math.floor(Math.abs($scope.maxRange - critValue) / Math.abs(index - critValue));
+	      if(power > 20){
+	        power = 20;
+	      }
+	    } else {
+	      power = 25;
+	    }
+
+	    return power;
+	  }
+
+	  $scope.stopMeter = function(){
+	    $scope.spellPower = getPower();
+	    $interval.cancel(intervalPromise);
+	    $scope.finalizeSpell($scope.spell);
+	  };
+	}
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(68)))
 
 /***/ },
 /* 76 */
@@ -47757,16 +47790,17 @@
 
 
 /***/ },
-/* 79 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__.p + "2080c725ccc4edb0f1ae22c9e4aa181e.png";
-
-/***/ },
+/* 79 */,
 /* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__.p + "9916c2e7ee40fa4685d0037e610dc53b.jpg";
+
+/***/ },
+/* 81 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "2080c725ccc4edb0f1ae22c9e4aa181e.png";
 
 /***/ }
 /******/ ]);

@@ -1,0 +1,44 @@
+/* meter*/
+$max: 50;
+
+@for $i from 0 through $max {
+
+  #section-id-#{$i}{
+    position: absolute;
+    top: #{$i}%;
+    bottom: #{$i}%;
+    left: #{$i}%;
+    right: #{$i}%;
+    background-color: rgb(155 + $i * 2, 150 + $i * 2, 200 + $i);
+    border-radius: 100%;
+  }
+}
+
+#powerbar {
+  position: relative;
+  height: $max * 2px;
+  width: $max * 2px;
+  background-color: none;
+}
+
+.crit {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 7px;
+  right: 7px;
+  border-radius: 100%;
+  background-color: rgba(0, 0, 0, 0);
+  border: 2px solid #222;
+  border-radius: 100%;
+  z-index: 99999;
+}
+
+.power-title {
+  position: absolute;
+  top: 25px;
+  left: 25px;
+  right: 25px;
+  bottom: 25px;
+
+}

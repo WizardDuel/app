@@ -38,10 +38,6 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
     { inSpellBook: false, name: 'Magic Missile', icon: 'ion-flame', type: 'Attack', target: 'foe'  }
   ];
 
-  $scope.range = function(n) {
-    return new Array(n);
-  };
-
   $scope.playNow = function() {
     $location.path('/waiting');
 
@@ -49,50 +45,4 @@ function ProfileCtrl($scope, $location, $timeout, $interval){
       return spell.inSpellBook;
     });
   };
-
-  $scope.speed = 1; //ms
-  $scope.maxRange = 100;
-  $scope.meterStarted = false;
-  $scope.counter = $scope.maxRange / 2;
-
-  var index = 0;
-  var last;
-  var decrement = false;
-  var intervalPromise;
-
-
-  function changeIndexClass() {
-    $('#section-id-' + index).addClass('active-meter');
-    $('#section-id-' + last).removeClass('active-meter');
-    last = index;
-
-    if(index === $scope.maxRange) decrement = true;
-    if(index === 0) decrement = false;
-
-    if(decrement) index--;
-    else index++;
-  }
-
-  function stopMeter(){
-    $interval.cancel(intervalPromise);
-    $scope.power = index;
-    $scope.meterStarted = false;
-    $('.section').removeClass('active-meter');
-    console.log($scope.power);
-  }
-
-  $scope.meterClick = function(){
-    console.log('clicked');
-
-    if(!$scope.meterStarted) {
-      $scope.meterStarted = true;
-      intervalPromise = $interval(changeIndexClass, $scope.speed);
-    } else {
-      stopMeter();
-    }
-  };
-
-  $scope.$on('$destroy', function() {
-    stopMeter();
-  });
 }

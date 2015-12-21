@@ -8,7 +8,7 @@
 
 /* directive imports */
 @import "start-timer";
-@import "meter";
+@import "power-bar";
 @import "wizard";
 
 
@@ -29,6 +29,12 @@
   min-height:100%;
   background-size:auto;
 }
+
+// .background-image {
+//   background: url('../imgs/oldpaperbackground.jpg') no-repeat center center;
+//   min-height:100%;
+//   background-size:cover;
+// }
 
 /* add from style.css */
 
@@ -54,16 +60,6 @@
 }
 #power-vessle {
   min-height: 80px
-}
-#powerbar {
-  width: 122px;
-}
-
-#powerbar button{
-  line-height: 1;
-  max-heigth: 100px;
-  font-size: small;
-  border-radius: 25px;
 }
 
 .red{
@@ -95,16 +91,6 @@
 
 $main-text-color: #fff;
 $black: #222;
-
-.start-timer {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  height: 100px;
-  width: 100px;
-  font-size: 300px;
-  color: $main-text-color;
-}
 
 .overlay {
   position: absolute;
