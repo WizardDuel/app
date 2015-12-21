@@ -1,14 +1,15 @@
-require('../../.config.js');
+require('../../configuration/.config.js');
 require('./assets/css/style.css');
 require('./lib/ionic/css/ionic.css');
 require('./assets/scss/style.scss');
 
 var angular = require('angular');
 var io = require('socket.io-client');
+console.log(process.env.GameServer)
 var rootUrl =  process.env.GameServer || 'http://localhost:3000';
 
 angular.module('wizardApp', [
-  require('./views/user-profile/profile.js'),
+  require('./views/home/home.js'),
 ])
 .factory('socketIO', function() {
     return {
