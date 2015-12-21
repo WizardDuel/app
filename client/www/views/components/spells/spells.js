@@ -113,6 +113,7 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
         avatar.flashMessage('-'+spell.cost+' mana');
         break;
     }
+    document.getElementById(spell.sound).play();
   };
 
   function castCounterSpell(avatar, eventType, Magic, socket, spell) {

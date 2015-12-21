@@ -37,17 +37,18 @@ var Magic = {
         target: 'foe',
         role: 'attack',
         afinity: 'basic',
-        cost: 5
+        cost: 5,
+        sound: 'sound-magic-missle'
       },
-      {name: 'Water Coffin', type: 'attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
-      {name: 'Wind Swords', type: 'attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
+      {name: 'Water Coffin', type: 'attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7, sound:'sound-water-coffin'},
+      {name: 'Wind Swords', type: 'attack', target: 'foe', role: 'attack', afinity:'air', cost: 7, sound:'sound-wind-swords'},
     ],
     counters: [
-      { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'perry', target: 'foe', role: 'counter', afinity: 'basic', cost: 5 },
-      { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'repost', target: 'foe', role: 'counter', afinity: 'basic', cost: 6 },
+      { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'perry', target: 'foe', role: 'counter', afinity: 'basic', cost: 5, sound:'sound-warp-spacetime' },
+      { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'repost', target: 'foe', role: 'counter', afinity: 'basic', cost: 6, sound: 'sound-mystical-judo'},
     ],
     enhancers: [
-      {name: 'Heal', icon: 'ion-heart', type: 'recover-health', target: 'caster', role: 'enhancer', afinity: 'basic', cost: 5, power: 5},
+      {name: 'Heal', icon: 'ion-heart', type: 'recover-health', target: 'caster', role: 'enhancer', afinity: 'basic', cost: 5, power: 5, sound:'sound-ahhh'},
       //{name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff-health', target: 'caster', role:'enhancer', afinity:'basic', cost: 5, duration:20},
     ]
   }
