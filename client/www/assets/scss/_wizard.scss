@@ -58,7 +58,16 @@
 .avatar-overlay {
   visibility: hidden;
   position: absolute;
-  top: 250px;
+  top: 125px;
+  background-color: $black;
+  color: ivory;
+  text-align: center;
+  width: 50%;
+  opacity: 0.75;
+}
+.self-overlay {
+  visibility: hidden;
+  position: absolute;
   background-color: $black;
   color: ivory;
   text-align: center;

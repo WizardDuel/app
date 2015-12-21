@@ -52,17 +52,16 @@
   min-height: 50px;
   padding:0;
 }
-#spells {
-  min-width: 366px;
-}
+// #spells {
+//   min-width: 366px;
+// }
 .spell-panel {
-  min-width: 122px;
+  min-width: 33%;
 }
 
 .btn-spell {
-  width: 60px;
-  height: 80px;
-  margin-bottom: 2px;
+  height: 50%;
+  margin-bottom: 1px;
   font-size: x-small;
   line-height: 1;
 }
@@ -88,13 +87,13 @@
 .health-bar {
   background: #FF5656;
   display: block;
-  height: 1em
+  height: 5px
 }
 
 .mana-bar {
   background: #A621FF;
   display: block;
-  height: 1em
+  height: 5px
 }
 
 $main-text-color: #fff;

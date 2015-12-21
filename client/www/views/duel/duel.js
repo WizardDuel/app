@@ -24,12 +24,22 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
   var E = socketIO.E;
   socket.attacking = false;
 
-  var foe = { id: socket.getFoeId(), foeId: socket.id };
-  var self = { id: socket.id, foeId: foe.id };
+  var foe = { id: socket.getFoeId(), foeId: socket.id, health:100, mana:100 };
+  var self = { id: socket.id, foeId: foe.id, health:100, mana:100 };
   [self, foe].map(function(wiz) { enableWorldUpdates(wiz); });
+  foe.setFoeVitals = function(health, mana){
+    document.getElementById('foe-health').innerHTML = this.getVital('health', true);
+    document.getElementById('foe-mana').innerHTML = this.getVital('mana', true);
+  }
+  self.setSelfVitals = function(health, mana){
+    document.getElementById('self-health').innerHTML = this.getVital('health', true);
+    document.getElementById('self-mana').innerHTML = this.getVital('mana', true);
+  }
   var avatars = {};
   avatars[foe.id] = foe;
   avatars[self.id] = self;
+  avatars.foe = foe
+  avatars.self = self
   socket.avatars = avatars;
 
    // Socket events
@@ -45,9 +55,15 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
    socket.on(E.UPDATE, function(data) {
      var wizStats = data.wizStats;
      for (var wiz in wizStats) {
+       if (wiz === socket.id) {
+         var hDelta = wizStats[wiz].health - avatars[wiz].getVital('health', true)
+         avatars[wiz].flashMessage('+' + hDelta + ' health')
+       }
        avatars[wiz].setVital('health', wizStats[wiz].health);
        avatars[wiz].setVital('mana', wizStats[wiz].mana);
      }
+     self.setSelfVitals(self.getVital('health', true), self.getVital('mana', true))
+
    });
 
    socket.on(E.MANA_REGEN, function(data) {
@@ -55,23 +71,6 @@ function DuelCtrl($scope, socketIO, $location, $window, $timeout) {
        avatars[wiz].setVital('mana', data[wiz].mana);
      }
    });
-
-  socket.on(E.RESOLVE_ATTACK, function(resolution) {
-    // spell reset
-    self.hideSpideySense();
-    self.resetSpells(socket);
-    // update world based on solution
-    for (var wiz in resolution.wizStats) {
-      var stats = resolution.wizStats[wiz];
-      // send message
-      var hDelta = avatars[wiz].getVital('health', true) - stats.health;
-      if (hDelta !== 0) avatars[wiz].flashMessage('-' + hDelta + ' health');
-      // set vitals for combatants
-
-      avatars[wiz].setVital('health', stats.health);
-      avatars[wiz].setVital('mana', stats.mana);
-    }
-  });
 
   socket.on('End of battle', function() {
 

@@ -151,6 +151,7 @@ Battle.prototype.resolveRepost = function(attack, counterSpell, attackSpell){
 
 Battle.prototype.applyResolution = function(resolution) {
   this[resolution.targetId].health -= resolution.damage;
+
   resolution.spells.map(function(spell) {
     this[spell.caster].spendMana(spell.cost)
   }, this)
@@ -196,6 +197,7 @@ Battle.prototype.resolveEnhance = function(spell) {
         vital:'health',
         duration: spell.duration,
         time: new Date().getTime(),
+        isWorking: true,
       })
     break;
   }
