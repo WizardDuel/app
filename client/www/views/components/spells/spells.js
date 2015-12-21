@@ -83,6 +83,7 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
     } else {
       var enhanceSpell = Magic.castEnhancer(spell, socket.id);
       socket.emit(E.ENHANCE, enhanceSpell);
+
     }
   };
 
@@ -113,7 +114,6 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
         avatar.flashMessage('-'+spell.cost+' mana');
         break;
     }
-    document.getElementById(spell.sound).play();
   };
 
   function castCounterSpell(avatar, eventType, Magic, socket, spell) {

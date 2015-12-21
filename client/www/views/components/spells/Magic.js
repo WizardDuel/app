@@ -9,10 +9,17 @@ var Magic = {
   },
   setTime: function() {return new Date().getTime();},
 
+  playSound: function(soundId) {
+    var sound = document.getElementById(soundId);
+    sound.load();
+    sound.play();
+  },
+
   castSpell: function(spell, power, crit) {
     spell.time = this.setTime();
     spell.power = power ? power : this.setPower();
     spell.crit = crit !== null ? crit : this.setCrit();
+    this.playSound(spell.sound)
   return spell;
   },
   castEnhancer: function(spell, target) {
@@ -25,6 +32,7 @@ var Magic = {
       sideEffects: spell.sideEffects,
       cost: spell.cost,
     }
+    this.playSound(spell.sound)
     return effect;
   },
 
