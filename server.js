@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var path = require('path');
+var morgan = require('morgan');
 
 //Setup Socket Server
 var http = require('http').Server(app);
@@ -14,6 +15,7 @@ var cookieParser = require('cookie-parser');
 app.set('env', process.env.NODE_ENV);
 app.set('view engine', 'jade');
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(morgan('dev'));
 
 //Setup Authentication
 var passport = require('passport');
@@ -42,11 +44,17 @@ var auth = function(req, res, next){
   } else  next();
 };
 
-//App Routing
-// app.get('/', function(req, res) {
-//   console.log('did we get here?');
-//   res.sendFile(path.resolve(__dirname, './client/www/landing.html'));
-// });
+app.all('*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  next();
+ });
+
+// App Routing
+app.get('/', function(req, res) {
+  console.log('did we get here?');
+  res.sendFile(path.resolve(__dirname, './client/www/landing.html'));
+});
 
 app.use(express.static(__dirname + '/client/www'));
 
@@ -61,22 +69,6 @@ app.use('/user', auth, userRoutes);
 
 var spellRoutes = require('./server/routes/spellRoutes.js');
 app.use('/spells', spellRoutes);
-
-
-// // catch 404 and forward to error handler
-// app.use(function(req, res, next) {
-//     var err = new Error('Not Found');
-//     err.status = 404;
-//     next(err);
-// });
-
-// app.use(function(err, req, res, next) {
-//     res.status(err.status || 500);
-//     res.render('error', {
-//         message: err.message,
-//         error: {}
-//     });
-// });
 
 http.listen(port, function() {
   console.log('listening on: ', port);

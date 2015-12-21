@@ -1,10 +1,11 @@
+require('../../.config.js');
 require('./assets/css/style.css');
 require('./lib/ionic/css/ionic.css');
 require('./assets/scss/style.scss');
 
 var angular = require('angular');
 var io = require('socket.io-client');
-var rootUrl = 'http://localhost:3000';
+var rootUrl =  process.env.GameServer || 'http://localhost:3000';
 
 angular.module('wizardApp', [
   require('./views/user-profile/profile.js'),
@@ -46,10 +47,11 @@ angular.module('wizardApp', [
           });
         };
 })
-.factory('myHttpResponseInterceptor',['$q','$location',function($q,$location){
+
+.factory('httpInterceptor',['$q','$location',function($q,$location){
   return {
     response: function(response){
-      return promise.then(
+      return $q.then(
         function success(response) {
         return response;
       },
@@ -65,7 +67,21 @@ angular.module('wizardApp', [
     }
   }
 ;}])
+
 //Http Intercpetor to check auth failures for xhr requests
 .config(['$httpProvider',function($httpProvider) {
-  $httpProvider.interceptors.push('myHttpResponseInterceptor');
+  $httpProvider.interceptors.push(function($q, $location) {
+    return {
+      response: function(response) {
+        return response;
+      },
+      responseError: function(response) {
+        if (response.status === 401)
+          $location.url('/login');
+      return $q.reject(response);
+    }
+  };
+
+
+});
 }]);

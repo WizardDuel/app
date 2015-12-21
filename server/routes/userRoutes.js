@@ -4,6 +4,8 @@ var mongoose = require('mongoose');
 var User = require('../models/user.js');
 var passport = require('passport');
 
+
+
 router.get('/', function(req, res) {
   User.find({}, function(err, results){
     res.send(req.isAuthenticated() ? req.user : 0);

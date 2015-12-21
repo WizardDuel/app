@@ -1,19 +1,42 @@
+var rootUrl = process.env.GameServer || 'http://localhost:3000';
+
+var loggedin = function($q, $timeout, $http, $location, $rootScope){
+    var deferred = $q.defer();
+
+    $http.get(rootUrl + '/user').success(function(user){
+      if(user !== '0') deferred.resolve();
+      else {
+        $rootScope.message = 'You need to log in to view this page.';
+        deferred.reject();
+        $location.url('/login');
+      }
+    });
+
+    return deferred.promise;
+};
+
 module.exports = angular.module('wizardApp.profile', [
   require('angular-route'),
   require('../home/home.js'),
-  require('../components/spells/spells')
+  require('../components/spells/spells'),
+  require('../authentication/authentication')
 ])
   .config(['$routeProvider', function($routeProvider, $httpProvider, $q, $location) {
+
 
   $routeProvider
       .when('/profile', {
         controller: 'ProfileCtrl',
         controllerAs: 'home',
-        templateUrl: './views/user-profile/profile.html'
+        templateUrl: './views/user-profile/profile.html',
+        resolve: {
+          loggedin: loggedin
+        }
       })
-      .when('login', {
+      .when('/login', {
+        controller: 'AuthenticationCtrl',
         url: '/login',
-        templateUrl: '../../templates/login.html'
+        templateUrl: '../authentication/login.html'
       });
   }])
 
