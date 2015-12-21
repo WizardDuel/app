@@ -22,7 +22,6 @@ module.exports = function(io) {
         battle = openBattles.pop();
         battle.addCombatant(socket);
         battle.setFoesForDuel();
-        console.log('begin: ', battle.wizStats())
         io.to(battle.id).emit(E.BEGIN, {condition: 'Battle', wizStats: battle.wizStats()});
       } else {
         battle = new Battle(socket);
@@ -45,6 +44,7 @@ module.exports = function(io) {
       socket.to(battle.id).broadcast.emit(E.ATTACK_PU, attackData);
     });
 
+    // register counter spells on the attack
     socket.on(E.PERRY, function(data) {
       battle.perryAttack(data);
     });
@@ -53,6 +53,7 @@ module.exports = function(io) {
       battle.counterAttack(data);
     });
 
+    // resolve attack and send back outcome
     socket.on(E.ATTACK, function(data) {
       setTimeout(function(){
         var resolution = battle.resolveAttack(data);

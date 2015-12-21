@@ -9,15 +9,11 @@ var Magic = {
   },
   setTime: function() {return new Date().getTime();},
 
-    castSpell: function(attack, power, crit, timeShift) {
-    var spell = {
-      attackId: attack.attackId,
-      power: power ? power : this.setPower(),
-      crit: crit !== null ? crit : this.setCrit(),
-      time: this.setTime() + timeShift,
-      spellName: attack.spellName
-    };
-    return spell;
+  castSpell: function(spell, power, crit) {
+    spell.time = this.setTime();
+    spell.power = power ? power : this.setPower();
+    spell.crit = crit !== null ? crit : this.setCrit();
+  return spell;
   },
   castEnhancer: function(spell, target) {
     var effect = {

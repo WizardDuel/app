@@ -50,7 +50,6 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
   var avatar = socket.avatars[socket.id];
   $scope.self = socket.id;
 
-
   $scope.range = function(n) {
     return new Array(n);
   };
@@ -85,6 +84,7 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
   };
 
   $scope.finalizeSpell = function(spell) {
+    console.log('spell', spell)
     spell.finalTime = new Date().getTime();
     $scope.castingSpell = false;
     $scope.castSpell(spell);
@@ -96,33 +96,30 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
       attackId: attackId,
       spellName: spell.name
     };
-
+    spell.caster = socket.id;
     switch (spell.type) {
       case 'perry':
-          var defensiveSpell = Magic.castSpell(socket.incomingSpell.attackId, $scope.spellPower, $scope.crit);
-          socket.emit(E.PERRY, defensiveSpell);
-          avatar.resetSpells(socket);
-          socket.incomingSpell = null;
-          avatar.flashMessage('-'+spell.cost+' mana');
+        castCounterSpell(avatar, E.PERRY, Magic, socket, spell)
         break;
       case 'repost':
-          var repostSpell = Magic.castSpell(socket.incomingSpell.attackId, $scope.spellPower, $scope.crit);
-          socket.emit(E.REPOST, repostSpell);
-
-          socket.incomingSpell = null;
-          avatar.resetSpells(socket);
-          avatar.flashMessage('-'+spell.cost+' mana');
+        castCounterSpell(avatar, E.REPOST, Magic, socket, spell)
         break;
-
       case 'attack':
-          var attackSpell = Magic.castSpell({attackId: spell.attackId, spellName: spell.name}, $scope.spellPower, $scope.crit);
-          console.log(attackSpell)
-          console.log($scope.spellPower)
-          socket.emit(E.ATTACK, attackSpell);
-          avatar.flashMessage('-'+spell.cost+' mana');
+        var attackSpell = Magic.castSpell(spell, $scope.spellPower, $scope.crit);
+        socket.emit(E.ATTACK, attackSpell);
+        avatar.flashMessage('-'+spell.cost+' mana');
         break;
     }
   };
+
+  function castCounterSpell(avatar, eventType, Magic, socket, spell) {
+    spell.attackId = socket.incomingSpell.attackId
+    var counterSpell = Magic.castSpell(spell, $scope.spellPower, $scope.crit);
+    socket.emit(eventType, counterSpell);
+    avatar.resetSpells(socket);
+    socket.incomingSpell = null;
+    avatar.flashMessage('-'+spell.cost+' mana');
+  }
 
   socket.on(E.ATTACK_PU, function(data) {
     socket.incomingSpell = data;
@@ -130,19 +127,7 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
     avatar.showSpideySense();
   });
 
-  $scope.AttackSpells = [
-    { name: 'Magic Missile', type: 'Attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
-    {name: 'Water Coffin', type: 'Attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
-    {name: 'Wind Swords', type: 'Attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
-  ];
-  $scope.nonAttackSpells  = [
-    {name: 'Heal', icon: 'ion-heart', type: 'recovery', target: 'caster', role: 'heal', afinity: 'basic', cost: 5, power: 5},
-    {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff', target: 'caster', role:'buff', afinity:'basic', cost: 5, duration: 15},
-    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe', role: 'perry', afinity: 'basic', cost: 5 },
-    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
-  ];
-
-//Power Bar Logic
+  //Power Bar Logic
   $scope.spellPower = 0;
   $scope.crit = 0;
   $scope.maxRange = 50;
@@ -198,4 +183,17 @@ function SpellsCtrl($scope, $timeout, $interval, socketIO) {
     $interval.cancel(intervalPromise);
     $scope.finalizeSpell($scope.spell);
   };
+
+  // spell library
+  $scope.AttackSpells = [
+    { name: 'Magic Missile', type: 'Attack', target: 'foe', role: 'attack', afinity: 'basic', cost: 5},
+    {name: 'Water Coffin', type: 'Attack', target: 'foe', role: 'attack', afinity: 'water', cost: 7},
+    {name: 'Wind Swords', type: 'Attack', target: 'foe', role: 'attack', afinity:'air', cost: 7},
+  ];
+  $scope.nonAttackSpells  = [
+    {name: 'Heal', icon: 'ion-heart', type: 'recovery', target: 'caster', role: 'heal', afinity: 'basic', cost: 5, power: 5},
+    {name: 'Force Armor', icon: 'ion-ios-plus-outline', type: 'buff', target: 'caster', role:'buff', afinity:'basic', cost: 5, duration: 15},
+    { name: 'Warp spacetime', icon: 'ion-android-favorite-outline', type: 'Perry', target: 'foe', role: 'perry', afinity: 'basic', cost: 5 },
+    { name: 'Mystical Judo', icon: 'ion-ios-plus-outline', type: 'Repost', target: 'foe', role: 'repost', afinity: 'basic', cost: 6 },
+  ];
 }
